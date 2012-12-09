@@ -130,10 +130,10 @@ function connectToTwitterStream() {
         stream.on('data', function (data) {
             storeTweet(data);
         }).on('delete', function (data) {
-            // TODO: Implement
+            // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter delete: %s", data);
         }).on('scrub_geo', function (data) {
-            // TODO: Implement
+            // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter scrub_geo: %s", data);
         }).on('end', function (response) {
             console.warn("Twitter stream disconnected: %s", response);

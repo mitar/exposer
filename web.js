@@ -74,7 +74,8 @@ var server = http.createServer(function (request, response) {
         case '/fb/realtime':
             if (request.method.toLowerCase() === 'post') {
                 var data = '';
-                request.setEncoding('utf8').addListener('data', function (chunk) {
+                request.setEncoding('utf8');
+                request.addListener('data', function (chunk) {
                     data += chunk;
                 }).addListener('end', function () {
                     console.log("Facebook realtime payload");

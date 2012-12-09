@@ -7,7 +7,12 @@ var twitter = require('ntwitter');
 
 var $ = require('jquery');
 
-var MONGODB_URL = 'mongodb://localhost/exposer';
+var PORT = process.env.PORT || '8000';
+var MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost/exposer';
+var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
+var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
+var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
+var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje'];
 var MAX_POSTS_PER_REQUEST = 50;
 
@@ -45,7 +50,7 @@ var schema = mongoose.Schema({
 var Post = db.model('Post', schema);
 
 var server = http.createServer(ecstatic);
-server.listen(8000);
+server.listen(PORT);
 
 // TODO: This should be distributed if we will have multiple instances
 var clients = [];

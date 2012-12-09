@@ -76,7 +76,7 @@ var server = http.createServer(function (request, response) {
                 var data = '';
                 request.setEncoding('utf8').addListener('data', function (chunk) {
                     data += chunk;
-                }).addListener('end', function() {
+                }).addListener('end', function () {
                     console.log("Facebook realtime payload");
                     console.log(data);
                 });

@@ -78,11 +78,16 @@ var server = http.createServer(function (request, response) {
                 request.addListener('data', function (chunk) {
                     data += chunk;
                 }).addListener('end', function () {
+                    response.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+                    response.end();
+
                     console.log("Facebook realtime payload");
                     console.log(data);
                 });
             }
             else {
+                // TODO: Check X-Hub-Signature
+
                 console.log("Facebook realtime subscription");
 
                 if ((request_url.query['hub.mode'] !== 'subscribe') || (request_url.query['hub.verify_token'] !== FACEBOOK_REALTIME_VERIFY_TOKEN)) {

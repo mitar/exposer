@@ -1,0 +1,17 @@
+{
+    'name': 'expose',
+    'version': '0.0.1',
+    'dependencies': {
+        'shoe': '0.0.x',
+        'ecstatic': '0.3.x',
+        'dnode': '1.0.x',
+        'jquery': '1.8.x',
+        'jquery-browserify': '1.8.x',
+        'mongoose': '3.4.x',
+        'ntwitter': '0.5.x'
+    },
+    'engines': {
+        'node': '0.8.x',
+        'npm': '1.1.x'
+    }
+}

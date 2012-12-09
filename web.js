@@ -8,7 +8,7 @@ var twitter = require('ntwitter');
 var $ = require('jquery');
 
 var PORT = process.env.PORT || '8000';
-var MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost/exposer';
+var MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';
 var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
 var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
 var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;

@@ -1,19 +1,24 @@
 var http = require('http');
+var url = require('url');
 var shoe = require('shoe');
 var ecstatic = require('ecstatic')(__dirname + '/static');
 var dnode = require('dnode');
 var mongoose = require('mongoose');
 var twitter = require('ntwitter');
+var swig = require('swig');
 
 var $ = require('jquery');
 
 var PORT = process.env.PORT || '8000';
+var SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:8000';
 var MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';
 var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
 var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
 var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
 var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
-var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#mbprotest', '#ljprotest'];
+var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
+var FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 var MAX_POSTS_PER_REQUEST = 50;
 
 var db = mongoose.createConnection(MONGODB_URL).on('error', function (err) {
@@ -49,7 +54,52 @@ var schema = mongoose.Schema({
 });
 var Post = db.model('Post', schema);
 
-var server = http.createServer(ecstatic);
+swig.init({
+    'root': __dirname + '/templates'
+});
+
+var facebookTemplate = swig.compileFile('facebook.html');
+
+var server = http.createServer(function (request, response) {
+    var request_url = url.parse(request.url, true);
+    switch (request_url.pathname) {
+        case '/facebook.html':
+            response.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+            response.write(facebookTemplate.render({
+                'FACEBOOK_APP_ID': FACEBOOK_APP_ID,
+                'SITE_URL': SITE_URL
+            }));
+            response.end();
+            break;
+        case '/fb/realtime':
+            if (request.method.toLowerCase() === 'post') {
+                var data = '';
+                request.setEncoding('utf8').addListener('data', function (chunk) {
+                    data += chunk;
+                }).addListener('end', function() {
+                    console.log("Facebook realtime payload");
+                    console.log(data);
+                });
+            }
+            else {
+                console.log("Facebook realtime subscription");
+
+                if ((request_url.query['hub.mode'] !== 'subscribe') || (request_url.query['hub.verify_token'] !== FACEBOOK_REALTIME_VERIFY_TOKEN)) {
+                    response.writeHead(400);
+                    response.end();
+                    return;
+                }
+
+                response.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+                response.write(request_url.query['hub.challenge']);
+                response.end();
+            }
+            break;
+        default:
+            ecstatic(request, response);
+            break;
+    }
+});
 server.listen(PORT);
 
 // TODO: This should be distributed if we will have multiple instances

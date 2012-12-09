@@ -1,1 +1,1 @@
-web: node web.js
+web: browserify client.js -o static/bundle.js; node web.js

@@ -1,0 +1,71 @@
+<html>
+    <head>
+        <title>Exposer</title>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+    </head>
+    <body>
+        <div id="fb-root"></div>
+        <ul id="access-keys"></ul>
+        <script type="text/javascript">
+            function getAccessToken(accessToken) {
+                var clientSecret = prompt("Facebook secret for app {{ FACEBOOK_APP_ID|escape('js') }}:");
+                if (clientSecret) {
+                    $.ajax('https://graph.facebook.com/oauth/access_token', {
+                        'data': {
+                            'client_id': '{{ FACEBOOK_APP_ID|escape('js') }}',
+                            'client_secret': clientSecret,
+                            'grant_type': 'fb_exchange_token',
+                            'fb_exchange_token': accessToken
+                        },
+                        'success': function (data, textStatus, jqXHR) {
+                            var params = {};
+                            decodeURIComponent(data).replace(
+                                new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
+                                function ($0, $1, $2, $3) {
+                                    params[$1] = $3;
+                                }
+                            );
+                            FB.api('/me/accounts', {'access_token': params.access_token}, function (response) {
+                                console.log(response);
+                                $.each(response.data, function (i, page) {
+                                    $('<li/>').append($('<b/>').text(page.name + ':')).append('<br/>').append($('<a/>').attr('href', 'https://developers.facebook.com/tools/debug/access_token?q=' + page.access_token).text(page.access_token)).appendTo('#access-keys');
+                                });
+                            });
+                        }
+                    });
+                    /*FB.api('/me/accounts', function(response) {
+                        // handle response
+                    });*/
+                }
+            }
+
+            function login() {
+                FB.login(function (response) {
+                    if (response.authResponse) {
+                        getAccessToken(response.authResponse.accessToken);
+                    }
+                }, {'scope': 'manage_pages,read_stream,export_stream,user_photos,user_status,user_videos,friends_photos,friends_status,friends_videos'});
+            }
+
+            window.fbAsyncInit = function () {
+                FB.init({
+                    'appId': '{{ FACEBOOK_APP_ID|escape('js') }}',
+                    'channelUrl': '{{ SITE_URL }}/channel.html',
+                    'status': true,
+                    'cookie': false,
+                    'xfbml': false
+                });
+
+                FB.getLoginStatus(function (response) {
+                    if (response.status === 'connected') {
+                        getAccessToken(response.authResponse.accessToken);
+                    }
+                    else {
+                        login();
+                    }
+                });
+            };
+        </script>
+        <script type="text/javascript" src="https://connect.facebook.net/en_US/all.js" id="facebook-jssdk"></script>
+    </body>
+</html>

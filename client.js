@@ -17,7 +17,7 @@ function createPost(post) {
             t.attr('data-in-reply-to', post.data.in_reply_to_status_id);
         }
 
-        return t;
+        return $('<div/>').addClass('post').append(t);
     }
     else {
         console.error("Unknown post type: %s", post.type, post);

@@ -19,10 +19,11 @@ var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
 var FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
+var FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 var MAX_POSTS_PER_REQUEST = 50;
 
 var db = mongoose.createConnection(MONGODB_URL).on('error', function (err) {
-    // TODO: Handle
+    // TODO: Handle (just throw an exception and let us be respawned?)
     console.error("MongoDB connection error: %s", err);
 }).once('open', function () {
     console.log("MongoDB connection successful");
@@ -71,7 +72,7 @@ var server = http.createServer(function (request, response) {
             }));
             response.end();
             break;
-        case '/fb/realtime':
+        case FACEBOOK_REALTIME_PATHNAME:
             if (request.method.toLowerCase() === 'post') {
                 var data = '';
                 request.setEncoding('utf8');
@@ -82,6 +83,7 @@ var server = http.createServer(function (request, response) {
                     response.end();
 
                     console.log("Facebook realtime payload");
+                    // TODO: Process
                     console.log(data);
                 });
             }

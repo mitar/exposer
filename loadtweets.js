@@ -5,8 +5,8 @@ var $ = require('jquery');
 var settings = require('./settings');
 var models = require('./models');
 
-// Rate limit is 180 requests per 15 minutes
-var LOAD_INTERVAL = 15 * 60 * 1000 / 180;
+// Rate limit is 350 requests per 60 minutes for 1.0 API, it is 180 requests per 15 minutes for 1.1 API
+var LOAD_INTERVAL = 60 * 60 * 1000 / 350;
 
 var twit = new twitter({
     'consumer_key': settings.TWITTER_CONSUMER_KEY,

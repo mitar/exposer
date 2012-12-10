@@ -25,6 +25,7 @@ var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
 var FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 var MAX_POSTS_PER_REQUEST = 50;
+var FACEBOOK_POLL_INTERVAL = 3 * 60 * 1000; // ms
 
 var db = mongoose.createConnection(MONGODB_URL).on('error', function (err) {
     // TODO: Handle (just throw an exception and let us be respawned?)
@@ -88,6 +89,7 @@ var server = http.createServer(function (req, res) {
 
                     console.log("Facebook realtime payload");
                     // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
+                    // TODO: We should fetch into the past until we get to posts we already have
                     fetchFacebookLatest(100);
                 });
             }
@@ -306,5 +308,14 @@ function enableFacebookStream() {
     addAppToFacebookPage(subscribeToFacebook);
 }
 
+// TODO: We should fetch into the past until we get to posts we already have
 fetchFacebookLatest(1000);
 enableFacebookStream();
+
+function facebookPolling() {
+    // TODO: We should fetch into the past until we get to posts we already have
+    fetchFacebookLatest(100);
+    setTimeout(facebookPolling, FACEBOOK_POLL_INTERVAL);
+}
+
+setTimeout(facebookPolling, FACEBOOK_POLL_INTERVAL);

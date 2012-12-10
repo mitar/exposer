@@ -49,7 +49,7 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
             // Post was not already stored
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
-            Post.findOne(query, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
+            Post.findOne($.extend({}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
                 if (err) {
                     console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
                     return;

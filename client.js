@@ -3,6 +3,7 @@ var dnode = require('dnode');
 
 var $ = require('jquery-browserify');
 
+var postsCount = 0;
 var displayedPosts = {};
 
 function createPost(post) {
@@ -45,6 +46,8 @@ function displayNewPost(post) {
     if (displayedPosts[post.type + '-' + post.foreign_id]) {
         return;
     }
+    displayedPosts[post.type + '-' + post.foreign_id] = true;
+    postsCount++;
 
     var t = createPost(post);
     if (t) {
@@ -58,6 +61,8 @@ function displayOldPosts(posts) {
         if (displayedPosts[post.type + '-' + post.foreign_id]) {
             return;
         }
+        displayedPosts[post.type + '-' + post.foreign_id] = true;
+        postsCount++;
 
         var t = createPost(post);
         if (t) {
@@ -77,13 +82,31 @@ $(document).ready(function () {
         }
     });
     d.on('remote', function (remote) {
-        remote.getPosts(null, 10, function (err, posts) {
+        remote.getPosts(0, 10, function (err, posts) {
             if (err) {
                 console.error(err);
                 return;
             }
 
             displayOldPosts(posts);
+        });
+
+        $(window).scroll(function (event) {
+            if (document.body.scrollHeight - $(this).scrollTop() <= $(this).height()) {
+                // Make sure initial posts have been already loaded
+                if (postsCount > 0) {
+                    // We can use simple counter because we are not deleting any posts
+                    // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
+                    remote.getPosts(postsCount, 10, function (err, posts) {
+                        if (err) {
+                            console.error(err);
+                            return;
+                        }
+
+                        displayOldPosts(posts);
+                    });
+                }
+            }
         });
     }).on('end', function () {
         // TODO: Handle better?

@@ -73,14 +73,14 @@ var clients = [];
 
 var sock = shoe(function (stream) {
     var d = dnode({
-        'getPosts': function (start, limit, cb) {
+        'getPosts': function (skip, limit, cb) {
+            skip = parseInt(skip) || 0;
             limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
             if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
                 limit = settings.MAX_POSTS_PER_REQUEST;
             }
-            // TODO: Implement support for start
             // TODO: Once implemented, make client load new posts when it scrolls to the end of the page
-            models.Post.find({}, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
+            models.Post.find({}, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
                     cb(err);
                     return;

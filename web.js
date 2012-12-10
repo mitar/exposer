@@ -42,7 +42,7 @@ var server = http.createServer(function (req, res) {
                     console.log("Facebook realtime payload");
                     // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
                     // TODO: We should fetch into the past until we get to posts we already have
-                    fetchFacebookLatest(100);
+                    fetchFacebookPageLatest(100);
                 });
             }
             else {
@@ -161,10 +161,46 @@ function fetchTwitterLatest() {
 fetchTwitterLatest();
 connectToTwitterStream();
 
-function fetchFacebookLatest(limit) {
+function fetchFacebookLatest() {
+    var keywords = settings.FACEBOOK_QUERY.slice(0);
+
+    function fetchFirst() {
+        if (keywords.length == 0) {
+            return;
+        }
+
+        var keyword = keywords[0];
+        keywords = keywords.slice(1);
+
+        request('https://graph.facebook.com/search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (error, res, body) {
+            if (error || res.statusCode !== 200) {
+                console.error("Facebook search (%s) fetch error", keyword, error, res.statusCode, body);
+                return;
+            }
+
+            try {
+                body = JSON.parse(body);
+            }
+            catch (e) {
+                console.error("Facebook search (%s) fetch error", keyword, e);
+                return;
+            }
+
+            $.each(body.data, function (i, post) {
+                models.storeFacebookPost(post, notifyClients);
+            });
+
+            setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+        });
+    }
+
+    fetchFirst();
+}
+
+function fetchFacebookPageLatest(limit) {
     request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
         if (error || res.statusCode !== 200) {
-            console.error("Facebook fetch error", error, res.statusCode, body);
+            console.error("Facebook page fetch error", error, res.statusCode, body);
             return;
         }
 
@@ -172,7 +208,7 @@ function fetchFacebookLatest(limit) {
             body = JSON.parse(body);
         }
         catch (e) {
-            console.error("Facebook fetch error", e);
+            console.error("Facebook page fetch error", e);
             return;
         }
 
@@ -225,12 +261,14 @@ function enableFacebookStream() {
 }
 
 // TODO: We should fetch into the past until we get to posts we already have
+fetchFacebookPageLatest(1000);
 fetchFacebookLatest(1000);
 enableFacebookStream();
 
 function facebookPolling() {
     // TODO: We should fetch into the past until we get to posts we already have
-    fetchFacebookLatest(100);
+    fetchFacebookPageLatest(100);
+    fetchFacebookLatest(1000);
     setTimeout(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
 }
 

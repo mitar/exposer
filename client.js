@@ -3,6 +3,8 @@ var dnode = require('dnode');
 
 var $ = require('jquery-browserify');
 
+var FACEBOOK_POST_REGEXP = /(\d+)_(\d+)/;
+
 var postsCount = 0;
 var displayedPosts = {};
 
@@ -21,8 +23,22 @@ function createPost(post) {
 
             return $('<div/>').addClass('post').append(t);
         case 'facebook':
+            var post_link = $('<a/>').text('Facebook post');
+            if (post.data.actions && post.data.actions.length > 0 && post.data.actions[0].link) {
+                var https_link = post.data.actions[0].link.split('http://').join('https://');
+                post_link.attr('href', https_link);
+            }
+            else {
+                var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
+                if (post_match) {
+                    post_link.attr('href', 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2]);
+                }
+                else {
+                    console.warning("Facebook post does not have a link: %s", post.foreign_id, post)
+                }
+            }
             var t = $('<blockquote/>').append(
-                $('<p/>').text('Facebook post')
+                $('<p/>').append(post_link)
             ).append(
                 $('<p/>').text(post.data.message)
             ).append(

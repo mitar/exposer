@@ -54,7 +54,7 @@ var schema = mongoose.Schema({
     },
     'original_data': {
         'type': mongoose.Schema.Types.Mixed,
-        'required': true
+        'required': false
     }
 });
 var Post = db.model('Post', schema);
@@ -240,12 +240,7 @@ fetchTwitterLatest();
 connectToTwitterStream();
 
 function storeFacebookPost(post) {
-    var data = {
-        'from': post.from,
-        'message': post.message
-    };
-
-    storePost(post.id, 'facebook', new Date(post.created_time), data, post);
+    storePost(post.id, 'facebook', new Date(post.created_time), post, null);
 }
 
 function fetchFacebookLatest(limit) {

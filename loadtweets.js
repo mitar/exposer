@@ -16,20 +16,23 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-var max_id = null;
+var max_id = process.argv.length > 2 ? process.argv[2] : null;
 var count = 0;
 
 function loadtweets() {
     var params = {'include_entities': true, 'count': 100, 'max_id': max_id, 'q': settings.TWITTER_QUERY.join(' OR ')};
+    console.log("Making request, max_id = %s", max_id);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error, max_id = %s: %s", max_id, err);
+            console.error("Twitter fetch error: %s", err);
             process.exit(1);
             return;
         }
 
+        console.log("Processing")
+
         if (data.statuses.length === 0) {
-            console.log("%s new tweets fetched, max_id = %s", count, max_id);
+            console.log("%s new tweets fetched", count, max_id);
             process.exit(0);
         }
 
@@ -38,7 +41,7 @@ function loadtweets() {
                 count++;
 
                 if (count % 100 == 0) {
-                    console.log("%s new tweets fetched, max_id = %s", count, max_id);
+                    console.log("%s new tweets fetched", count, max_id);
                 }
             });
         });

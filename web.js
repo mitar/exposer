@@ -254,7 +254,7 @@ function addAppToFacebookPage(cb) {
             return;
         }
 
-        checkPageAdded(cb);
+        checkFacebookPageAdded(cb);
     });
 }
 
@@ -265,7 +265,7 @@ function subscribeToFacebook() {
 }
 
 function enableFacebookStream() {
-    addAppToPage(subscribeToFacebook);
+    addAppToFacebookPage(subscribeToFacebook);
 }
 
 enableFacebookStream();

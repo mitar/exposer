@@ -6,6 +6,7 @@ var dnode = require('dnode');
 var mongoose = require('mongoose');
 var twitter = require('ntwitter');
 var swig = require('swig');
+var request = require('request');
 
 var $ = require('jquery');
 
@@ -18,6 +19,8 @@ var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
 var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
 var FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
+var FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
+var FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 var FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 var MAX_POSTS_PER_REQUEST = 50;
@@ -61,26 +64,26 @@ swig.init({
 
 var facebookTemplate = swig.compileFile('facebook.html');
 
-var server = http.createServer(function (request, response) {
-    var request_url = url.parse(request.url, true);
-    switch (request_url.pathname) {
+var server = http.createServer(function (req, res) {
+    var req_url = url.parse(req.url, true);
+    switch (req_url.pathname) {
         case '/facebook.html':
-            response.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-            response.write(facebookTemplate.render({
+            res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+            res.write(facebookTemplate.render({
                 'FACEBOOK_APP_ID': FACEBOOK_APP_ID,
                 'SITE_URL': SITE_URL
             }));
-            response.end();
+            res.end();
             break;
         case FACEBOOK_REALTIME_PATHNAME:
-            if (request.method.toLowerCase() === 'post') {
+            if (req.method.toLowerCase() === 'post') {
                 var data = '';
-                request.setEncoding('utf8');
-                request.addListener('data', function (chunk) {
+                req.setEncoding('utf8');
+                req.addListener('data', function (chunk) {
                     data += chunk;
                 }).addListener('end', function () {
-                    response.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
-                    response.end();
+                    res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+                    res.end();
 
                     console.log("Facebook realtime payload");
                     // TODO: Process
@@ -92,19 +95,19 @@ var server = http.createServer(function (request, response) {
 
                 console.log("Facebook realtime subscription");
 
-                if ((request_url.query['hub.mode'] !== 'subscribe') || (request_url.query['hub.verify_token'] !== FACEBOOK_REALTIME_VERIFY_TOKEN)) {
-                    response.writeHead(400);
-                    response.end();
+                if ((req_url.query['hub.mode'] !== 'subscribe') || (req_url.query['hub.verify_token'] !== FACEBOOK_REALTIME_VERIFY_TOKEN)) {
+                    res.writeHead(400);
+                    res.end();
                     return;
                 }
 
-                response.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
-                response.write(request_url.query['hub.challenge']);
-                response.end();
+                res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
+                res.write(req_url.query['hub.challenge']);
+                res.end();
             }
             break;
         default:
-            ecstatic(request, response);
+            ecstatic(req, res);
             break;
     }
 });
@@ -198,12 +201,12 @@ function connectToTwitterStream() {
         }).on('scrub_geo', function (data) {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter scrub_geo: %s", data);
-        }).on('end', function (response) {
-            console.warn("Twitter stream disconnected: %s", response);
+        }).on('end', function (res) {
+            console.warn("Twitter stream disconnected: %s", res);
             // TODO: Back-off
             connectToTwitterStream();
-        }).on('destroy', function (response) {
-            console.warn("Twitter stream disconnected: %s", response);
+        }).on('destroy', function (res) {
+            console.warn("Twitter stream disconnected: %s", res);
             // TODO: Back-off
             connectToTwitterStream();
         });
@@ -223,3 +226,46 @@ twit.search(TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100,
 });
 
 connectToTwitterStream();
+
+function checkFacebookPageAdded(cb) {
+    request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
+        if (error || res.statusCode !== 200) {
+            console.error("Facebook stream check add to page error", error, res.statusCode, body);
+            return;
+        }
+
+        try {
+            body = JSON.parse(body);
+        }
+        catch (e) {
+            console.error("Facebook stream check add to page error", e);
+            return;
+        }
+
+        // TODO: Implement check and only if OK, call callback
+        cb();
+    });
+}
+
+function addAppToFacebookPage(cb) {
+    request.post('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN + '&app_id=' + FACEBOOK_APP_ID, function (error, res, body) {
+        if (error || res.statusCode !== 200) {
+            console.error("Facebook stream add to page error", error, res.statusCode, body);
+            return;
+        }
+
+        checkPageAdded(cb);
+    });
+}
+
+function subscribeToFacebook() {
+    // TODO: Implement, currently set manually through
+    // request.post('https://graph.facebook.com/' + FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
+
+}
+
+function enableFacebookStream() {
+    addAppToPage(subscribeToFacebook);
+}
+
+enableFacebookStream();

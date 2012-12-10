@@ -21,8 +21,13 @@ function loadtweets() {
     // We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
     twit.search(settings.TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100, 'page': page}, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error: %s", err);
+            console.error("Twitter fetch error page %s: %s", page, err);
+            process.exit(1);
             return;
+        }
+
+        if (data.results.length === 0) {
+            process.exit(0);
         }
 
         $.each(data.results, function (i, tweet) {

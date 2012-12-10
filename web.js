@@ -10,18 +10,19 @@ var request = require('request');
 
 var $ = require('jquery');
 
-var PORT = process.env.PORT || '8000';
-var SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:8000';
+var PORT = process.env.PORT || '5000';
+var SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:5000';
 var MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';
 var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
 var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
 var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
 var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
-var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
 var FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 var FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 var FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
+
+var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
 var FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 var MAX_POSTS_PER_REQUEST = 50;
 

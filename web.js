@@ -230,7 +230,7 @@ connectToTwitterStream();
 function checkFacebookPageAdded(cb) {
     request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
         if (error || res.statusCode !== 200) {
-            console.error("Facebook stream check add to page error", error, res.statusCode, body);
+            console.error("Facebook app check add to the page error", error, res.statusCode, body);
             return;
         }
 
@@ -238,11 +238,13 @@ function checkFacebookPageAdded(cb) {
             body = JSON.parse(body);
         }
         catch (e) {
-            console.error("Facebook stream check add to page error", e);
+            console.error("Facebook app check add to the page error", e);
             return;
         }
 
         // TODO: Implement check and only if OK, call callback
+
+        console.log("Facebook app %s added to the page %s", FACEBOOK_APP_ID, FACEBOOK_PAGE_ID);
         cb();
     });
 }
@@ -250,7 +252,7 @@ function checkFacebookPageAdded(cb) {
 function addAppToFacebookPage(cb) {
     request.post('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN + '&app_id=' + FACEBOOK_APP_ID, function (error, res, body) {
         if (error || res.statusCode !== 200) {
-            console.error("Facebook stream add to page error", error, res.statusCode, body);
+            console.error("Facebook app add to the page error", error, res.statusCode, body);
             return;
         }
 
@@ -261,7 +263,6 @@ function addAppToFacebookPage(cb) {
 function subscribeToFacebook() {
     // TODO: Implement, currently set manually through
     // request.post('https://graph.facebook.com/' + FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
-
 }
 
 function enableFacebookStream() {

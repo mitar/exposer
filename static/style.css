@@ -12,3 +12,24 @@
     margin: 0;
     padding: 12px;
 }
+
+#header {
+    background-color: #5B5B5B;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 0 1px 7px rgba(0, 0, 0, 0.73);
+    color: #CDCDCD;
+    font-family: Tahoma;
+    font-size: 19px;
+    letter-spacing: 0;
+    margin: 4px;
+    padding: 10px 100px 10px 10px;
+    text-align: center;
+}
+
+#header tt {
+    color: #A9FF00;
+    font-family: Verdana;
+    font-size: 25px;
+    font-weight: bold;
+}

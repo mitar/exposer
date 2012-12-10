@@ -54,6 +54,10 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
                     console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
                     return;
                 }
+                if (!post) {
+                    // Filtered out
+                    return;
+                }
 
                 post.fetch_timestamp = post._id.getTimestamp();
                 delete post._id;

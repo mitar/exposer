@@ -20,7 +20,7 @@ function createPost(post) {
 
             return $('<div/>').addClass('post').append(t);
         case 'facebook':
-            var t = $('<blockquote/>').addClass('facebook-post').append(
+            var t = $('<blockquote/>').append(
                 $('<p/>').text('Facebook post')
             ).append(
                 $('<p/>').text(post.data.message)
@@ -30,7 +30,11 @@ function createPost(post) {
                 )
             );
 
-            return $('<div/>').addClass('post').append(t);
+            return $('<div/>').addClass('post').append(
+                $('<div/>').addClass('facebook-post').append(
+                    $('<div/>').addClass('twt-border').append(t)
+                )
+            );
         default:
             console.error("Unknown post type: %s", post.type, post);
             return null;

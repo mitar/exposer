@@ -5,6 +5,10 @@
 }
 
 .facebook-post {
-    border: #0000ff solid 1px;
-    padding: 10px;
+    max-width: 550px;
+}
+
+.facebook-post blockquote {
+    margin: 0;
+    padding: 12px;
 }

@@ -80,7 +80,7 @@ var sock = shoe(function (stream) {
                 limit = settings.MAX_POSTS_PER_REQUEST;
             }
             // TODO: Once implemented, make client load new posts when it scrolls to the end of the page
-            models.Post.find({}, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
+            models.Post.find(exports.POSTS_FILTER, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
                     cb(err);
                     return;

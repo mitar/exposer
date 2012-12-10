@@ -37,7 +37,7 @@ var schema = mongoose.Schema({
 });
 var Post = db.model('Post', schema);
 
-function storePost(foreign_id, type, foreign_timestamp, data, original_data) {
+function storePost(foreign_id, type, foreign_timestamp, data, original_data, callback) {
     var query = {'foreign_id': foreign_id, 'type': type};
     Post.findOneAndUpdate(query, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
@@ -58,26 +58,26 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data) {
                 post.fetch_timestamp = post._id.getTimestamp();
                 delete post._id;
 
-                $.each(clients, function (i, client) {
-                    client.newPost(post);
-                });
+                if (callback) {
+                    callback(post);
+                }
             });
         }
     });
 }
 
-function storeTweet(tweet) {
+function storeTweet(tweet, callback) {
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
         'text': tweet.text
     };
 
-    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet);
+    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet, callback);
 }
 
-function storeFacebookPost(post) {
-    storePost(post.id, 'facebook', new Date(post.created_time), post, null);
+function storeFacebookPost(post, callback) {
+    storePost(post.id, 'facebook', new Date(post.created_time), post, null, callback);
 }
 
 exports.Post = Post;

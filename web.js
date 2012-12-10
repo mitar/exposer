@@ -113,12 +113,18 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
+function notifyClients(post) {
+    $.each(clients, function (i, client) {
+        client.newPost(post);
+    });
+}
+
 function connectToTwitterStream() {
     console.log("Twitter stream connecting");
     twit.stream('statuses/filter', {'track': settings.TWITTER_QUERY}, function (stream) {
         console.log("Twitter stream connected");
         stream.on('data', function (data) {
-            models.storeTweet(data);
+            models.storeTweet(data, notifyClients);
         }).on('delete', function (data) {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter delete: %s", data);
@@ -146,7 +152,7 @@ function fetchTwitterLatest() {
         }
 
         $.each(data.results, function (i, tweet) {
-            models.storeTweet(tweet);
+            models.storeTweet(tweet, notifyClients);
         });
     });
 }
@@ -170,7 +176,7 @@ function fetchFacebookLatest(limit) {
         }
 
         $.each(body.data, function (i, post) {
-            models.storeFacebookPost(post);
+            models.storeFacebookPost(post, notifyClients);
         });
     });
 }

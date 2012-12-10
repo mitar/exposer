@@ -34,9 +34,9 @@ Development installation
 
    This will install all node.js dependencies and compile client JavaScript file.
 
-4. You will need also various app keys for social networks. You have to put them into process environment.
-   If you are using Heroku_, you can put them into ``.env`` file `in the root of the repository`_. You can
-   maybe ask some other developer to provide you with the ``.env`` file.
+4. You will need also various app keys for social networks (see ``constants.js`` file for the list). You have to
+   put them into the process environment. If you are using Heroku_, you can put them into ``.env``
+   file `in the root of the repository`_. You can maybe ask some other developer to provide you with the ``.env`` file.
 
 5. Using Heroku_ you can run::
 

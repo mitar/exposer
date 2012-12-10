@@ -10,24 +10,9 @@ var request = require('request');
 
 var $ = require('jquery');
 
-var PORT = process.env.PORT || '5000';
-var SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:5000';
-var MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';
-var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
-var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
-var TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
-var TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
-var FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
-var FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
-var FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
-var FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
+var settings = require('./settings');
 
-var TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest'];
-var FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
-var MAX_POSTS_PER_REQUEST = 50;
-var FACEBOOK_POLL_INTERVAL = 3 * 60 * 1000; // ms
-
-var db = mongoose.createConnection(MONGODB_URL).on('error', function (err) {
+var db = mongoose.createConnection(settings.MONGODB_URL).on('error', function (err) {
     // TODO: Handle (just throw an exception and let us be respawned?)
     console.error("MongoDB connection error: %s", err);
 }).once('open', function () {
@@ -72,12 +57,12 @@ var server = http.createServer(function (req, res) {
         case '/facebook.html':
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
             res.write(facebookTemplate.render({
-                'FACEBOOK_APP_ID': FACEBOOK_APP_ID,
-                'SITE_URL': SITE_URL
+                'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+                'SITE_URL': settings.SITE_URL
             }));
             res.end();
             break;
-        case FACEBOOK_REALTIME_PATHNAME:
+        case settings.FACEBOOK_REALTIME_PATHNAME:
             if (req.method.toLowerCase() === 'post') {
                 var data = '';
                 req.setEncoding('utf8');
@@ -98,7 +83,7 @@ var server = http.createServer(function (req, res) {
 
                 console.log("Facebook realtime subscription");
 
-                if ((req_url.query['hub.mode'] !== 'subscribe') || (req_url.query['hub.verify_token'] !== FACEBOOK_REALTIME_VERIFY_TOKEN)) {
+                if ((req_url.query['hub.mode'] !== 'subscribe') || (req_url.query['hub.verify_token'] !== settings.FACEBOOK_REALTIME_VERIFY_TOKEN)) {
                     res.writeHead(400);
                     res.end();
                     return;
@@ -114,7 +99,7 @@ var server = http.createServer(function (req, res) {
             break;
     }
 });
-server.listen(PORT);
+server.listen(settings.PORT);
 
 // TODO: This should be distributed if we will have multiple instances
 var clients = [];
@@ -122,9 +107,9 @@ var clients = [];
 var sock = shoe(function (stream) {
     var d = dnode({
         'getPosts': function (start, limit, cb) {
-            limit = parseInt(limit) || MAX_POSTS_PER_REQUEST;
-            if ((limit <= 0) || (limit > MAX_POSTS_PER_REQUEST)) {
-                limit = MAX_POSTS_PER_REQUEST;
+            limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
+            if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
+                limit = settings.MAX_POSTS_PER_REQUEST;
             }
             // TODO: Implement support for start
             // TODO: Once implemented, make client load new posts when it scrolls to the end of the page
@@ -155,10 +140,10 @@ var sock = shoe(function (stream) {
 sock.install(server, '/dnode');
 
 var twit = new twitter({
-    'consumer_key': TWITTER_CONSUMER_KEY,
-    'consumer_secret': TWITTER_CONSUMER_SECRET,
-    'access_token_key': TWITTER_ACCESS_TOKEN_KEY,
-    'access_token_secret': TWITTER_ACCESS_TOKEN_SECRET
+    'consumer_key': settings.TWITTER_CONSUMER_KEY,
+    'consumer_secret': settings.TWITTER_CONSUMER_SECRET,
+    'access_token_key': settings.TWITTER_ACCESS_TOKEN_KEY,
+    'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
 function storePost(foreign_id, type, foreign_timestamp, data, original_data) {
@@ -202,7 +187,7 @@ function storeTweet(tweet) {
 
 function connectToTwitterStream() {
     console.log("Twitter stream connecting");
-    twit.stream('statuses/filter', {'track': TWITTER_QUERY}, function (stream) {
+    twit.stream('statuses/filter', {'track': settings.TWITTER_QUERY}, function (stream) {
         console.log("Twitter stream connected");
         stream.on('data', function (data) {
             storeTweet(data);
@@ -226,7 +211,7 @@ function connectToTwitterStream() {
 
 function fetchTwitterLatest() {
     // We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
-    twit.search(TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100}, function(err, data) {
+    twit.search(settings.TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100}, function(err, data) {
         if (err) {
             console.error("Twitter fetch error: %s", err);
             return;
@@ -246,7 +231,7 @@ function storeFacebookPost(post) {
 }
 
 function fetchFacebookLatest(limit) {
-    request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tagged?access_token=' + FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
+    request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
         if (error || res.statusCode !== 200) {
             console.error("Facebook fetch error", error, res.statusCode, body);
             return;
@@ -267,7 +252,7 @@ function fetchFacebookLatest(limit) {
 }
 
 function checkFacebookPageAdded(cb) {
-    request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
+    request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
         if (error || res.statusCode !== 200) {
             console.error("Facebook app check add to the page error", error, res.statusCode, body);
             return;
@@ -283,13 +268,13 @@ function checkFacebookPageAdded(cb) {
 
         // TODO: Implement check and only if OK, call callback
 
-        console.log("Facebook app %s added to the page %s", FACEBOOK_APP_ID, FACEBOOK_PAGE_ID);
+        console.log("Facebook app %s added to the page %s", settings.FACEBOOK_APP_ID, settings.FACEBOOK_PAGE_ID);
         cb();
     });
 }
 
 function addAppToFacebookPage(cb) {
-    request.post('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN + '&app_id=' + FACEBOOK_APP_ID, function (error, res, body) {
+    request.post('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&app_id=' + settings.FACEBOOK_APP_ID, function (error, res, body) {
         if (error || res.statusCode !== 200) {
             console.error("Facebook app add to the page error", error, res.statusCode, body);
             return;
@@ -301,7 +286,7 @@ function addAppToFacebookPage(cb) {
 
 function subscribeToFacebook() {
     // TODO: Implement, currently set manually through
-    // request.post('https://graph.facebook.com/' + FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
+    // request.post('https://graph.facebook.com/' + settings.FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
 }
 
 function enableFacebookStream() {
@@ -315,7 +300,7 @@ enableFacebookStream();
 function facebookPolling() {
     // TODO: We should fetch into the past until we get to posts we already have
     fetchFacebookLatest(100);
-    setTimeout(facebookPolling, FACEBOOK_POLL_INTERVAL);
+    setTimeout(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
 }
 
-setTimeout(facebookPolling, FACEBOOK_POLL_INTERVAL);
+setTimeout(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);

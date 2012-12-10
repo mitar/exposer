@@ -4,6 +4,13 @@
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     </head>
     <body>
+        <p>
+            This page generates a permanent Facebook access token for the app. It should be visited by
+            page admin (and currently also app developer) and access token will be generated.
+            <tt>FACEBOOK_ACCESS_TOKEN</tt> environment variable should be set to that.
+        </p>
+        {# TODO: We should exchange access token on the server, so that we can automatically provide app secret #}
+        {# TODO: We should simply store in the database all access tokens users generate for us by visiting this site, not through environment variable #}
         <div id="fb-root"></div>
         <ul id="access-keys"></ul>
         <script type="text/javascript">
@@ -33,9 +40,6 @@
                             });
                         }
                     });
-                    /*FB.api('/me/accounts', function(response) {
-                        // handle response
-                    });*/
                 }
             }
 

@@ -144,14 +144,15 @@ function connectToTwitterStream() {
 }
 
 function fetchTwitterLatest() {
-    // We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
-    twit.search(settings.TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100}, function(err, data) {
+    // TODO: Should we simply automatically start loading all tweets until we find one existing in the database?
+    var params = {'include_entities': true, 'count': 100, 'q': settings.TWITTER_QUERY.join(' OR ')};
+    twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
             console.error("Twitter fetch error: %s", err);
             return;
         }
 
-        $.each(data.results, function (i, tweet) {
+        $.each(data.statuses, function (i, tweet) {
             models.storeTweet(tweet, notifyClients);
         });
     });

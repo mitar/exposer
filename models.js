@@ -70,6 +70,7 @@ function storeTweet(tweet, callback) {
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
+        'in_reply_to_status_id_str': tweet.in_reply_to_status_id_str,
         'text': tweet.text
     };
 

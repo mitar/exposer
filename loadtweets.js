@@ -5,8 +5,9 @@ var $ = require('jquery');
 var settings = require('./settings');
 var models = require('./models');
 
-// Rate limit is 350 requests per 60 minutes for 1.0 API, it is 180 requests per 15 minutes for 1.1 API
-var LOAD_INTERVAL = 60 * 60 * 1000 / 350;
+// Rate limit is 180 requests per 15 minutes
+var LOAD_INTERVAL = 15 * 60 * 1000 / 180;
+var MAX_ID_REGEXP = /max_id=(\d+)/;
 
 var twit = new twitter({
     'consumer_key': settings.TWITTER_CONSUMER_KEY,
@@ -15,28 +16,40 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-var page = 1;
+var max_id = null;
+var count = 0;
 
 function loadtweets() {
-    // We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
-    twit.search(settings.TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100, 'page': page}, function(err, data) {
+    var params = {'include_entities': true, 'count': 100, 'max_id': max_id, 'q': settings.TWITTER_QUERY.join(' OR ')};
+    twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error page %s: %s", page, err);
+            console.error("Twitter fetch error, max_id = %s: %s", max_id, err);
             process.exit(1);
             return;
         }
 
-        if (data.results.length === 0) {
+        if (data.statuses.length === 0) {
+            console.log("%s new tweets fetched, max_id = %s", count, max_id);
             process.exit(0);
         }
 
-        $.each(data.results, function (i, tweet) {
-            models.storeTweet(tweet);
+        $.each(data.statuses, function (i, tweet) {
+            models.storeTweet(tweet, function () {
+                count++;
+
+                if (count % 100 == 0) {
+                    console.log("%s new tweets fetched, max_id = %s", count, max_id);
+                }
+            });
         });
 
-        page++;
+        var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
+        if (!max_id_match) {
+            return;
+        }
 
-        // Rate limit is 180 requests per 15 minutes
+        max_id = max_id_match[1];
+
         setTimeout(loadtweets, LOAD_INTERVAL);
     });
 }

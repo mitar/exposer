@@ -209,7 +209,7 @@ function addAppToFacebookPage(cb) {
 }
 
 function subscribeToFacebook() {
-    // TODO: Implement, currently set manually through
+    // TODO: Implement, currently set manually through Facebook web interface
     // request.post('https://graph.facebook.com/' + settings.FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
 }
 

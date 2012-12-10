@@ -83,6 +83,6 @@ $(document).ready(function () {
         });
     }).on('end', function () {
         // TODO: Handle better?
-        alert("Connection to server failed. Please reload to continue with real-time updates.");
+        alert("Connection to the server failed. Please reload to continue with real-time updates.");
     }).pipe(stream).pipe(d);
 });

@@ -87,8 +87,8 @@ var server = http.createServer(function (req, res) {
                     res.end();
 
                     console.log("Facebook realtime payload");
-                    // TODO: Process
-                    console.log(data);
+                    // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
+                    fetchFacebookLatest(100);
                 });
             }
             else {
@@ -159,35 +159,43 @@ var twit = new twitter({
     'access_token_secret': TWITTER_ACCESS_TOKEN_SECRET
 });
 
+function storePost(foreign_id, type, foreign_timestamp, data, original_data) {
+    var query = {'foreign_id': foreign_id, 'type': type};
+    Post.findOneAndUpdate(query, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
+        if (err) {
+            console.error("Post (%s/%s) store error: %s", type, foreign_id, err);
+            return;
+        }
+
+        if (!obj.toObject()) {
+            // Post was not already stored
+            // We load post manually, because to know if post was stored or not we
+            // do not set "new" parameter of findOneAndUpdate call
+            Post.findOne(query, {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
+                if (err) {
+                    console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
+                    return;
+                }
+
+                post.fetch_timestamp = post._id.getTimestamp();
+                delete post._id;
+
+                $.each(clients, function (i, client) {
+                    client.newPost(post);
+                });
+            });
+        }
+    });
+}
+
 function storeTweet(tweet) {
-    var t = {'foreign_id': tweet.id_str, 'type': 'twitter'};
-    var foreign_timestamp = new Date(tweet.created_at);
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
         'text': tweet.text
     };
 
-    Post.findOneAndUpdate(t, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': tweet}, {'upsert': true, 'new': false}, function (err, obj) {
-        if (err) {
-            console.error("Twitter post (%s) store error: %s", tweet.id_str, err);
-            return;
-        }
-
-        if (!obj.toObject()) {
-            // Tweet was not already stored
-            // We reconstruct object as it is stored in the database, because to if
-            // tweet was stored or not we do not fetch new a object from the database
-            t.foreign_timestamp = foreign_timestamp;
-            t.data = data;
-
-            t.fetch_timestamp = new Date(); // We fake here a bit
-
-            $.each(clients, function (i, client) {
-                client.newPost(t);
-            });
-        }
-    });
+    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet);
 }
 
 function connectToTwitterStream() {
@@ -214,19 +222,52 @@ function connectToTwitterStream() {
     });
 }
 
-// We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
-twit.search(TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100}, function(err, data) {
-    if (err) {
-        console.error("Twitter search error: %s", err);
-        return;
-    }
+function fetchTwitterLatest() {
+    // We use both count and rpp to be compatibile with various Twitter API versions (and older ntwitter versions)
+    twit.search(TWITTER_QUERY.join(' OR '), {'include_entities': true, 'count': 100, 'rpp': 100}, function(err, data) {
+        if (err) {
+            console.error("Twitter fetch error: %s", err);
+            return;
+        }
 
-    $.each(data.results, function (i, tweet) {
-        storeTweet(tweet);
+        $.each(data.results, function (i, tweet) {
+            storeTweet(tweet);
+        });
     });
-});
+}
 
+fetchTwitterLatest();
 connectToTwitterStream();
+
+function storeFacebookPost(post) {
+    var data = {
+        'from': post.from,
+        'message': post.message
+    };
+
+    storePost(post.id, 'facebook', new Date(post.created_time), data, post);
+}
+
+function fetchFacebookLatest(limit) {
+    request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tagged?access_token=' + FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
+        if (error || res.statusCode !== 200) {
+            console.error("Facebook fetch error", error, res.statusCode, body);
+            return;
+        }
+
+        try {
+            body = JSON.parse(body);
+        }
+        catch (e) {
+            console.error("Facebook fetch error", e);
+            return;
+        }
+
+        $.each(body.data, function (i, post) {
+            storeFacebookPost(post);
+        });
+    });
+}
 
 function checkFacebookPageAdded(cb) {
     request('https://graph.facebook.com/' + FACEBOOK_PAGE_ID + '/tabs?access_token=' + FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
@@ -270,4 +311,5 @@ function enableFacebookStream() {
     addAppToFacebookPage(subscribeToFacebook);
 }
 
+fetchFacebookLatest(1000);
 enableFacebookStream();

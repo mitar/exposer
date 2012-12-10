@@ -3,3 +3,8 @@
     vertical-align: top;
     padding: 5px;
 }
+
+.facebook-post {
+    border: #0000ff solid 1px;
+    padding: 10px;
+}

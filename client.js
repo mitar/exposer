@@ -6,22 +6,34 @@ var $ = require('jquery-browserify');
 var displayedPosts = {};
 
 function createPost(post) {
-    if (post.type === 'twitter') {
-        var t = $('<blockquote/>').addClass('twitter-tweet').append(
-            $('<p/>').text(post.data.text)
-        ).append(
-            $('<a/>').attr('href', 'https://twitter.com/' + post.data.from_user + '/status/' + post.foreign_id).attr('data-datetime', post.foreign_timestamp)
-        );
+    switch (post.type) {
+        case 'twitter':
+            var t = $('<blockquote/>').addClass('twitter-tweet').append(
+                $('<p/>').text(post.data.text)
+            ).append(
+                $('<a/>').attr('href', 'https://twitter.com/' + post.data.from_user + '/status/' + post.foreign_id).attr('data-datetime', post.foreign_timestamp)
+            );
 
-        if (post.data.in_reply_to_status_id) {
-            t.attr('data-in-reply-to', post.data.in_reply_to_status_id);
-        }
+            if (post.data.in_reply_to_status_id) {
+                t.attr('data-in-reply-to', post.data.in_reply_to_status_id);
+            }
 
-        return $('<div/>').addClass('post').append(t);
-    }
-    else {
-        console.error("Unknown post type: %s", post.type, post);
-        return null;
+            return $('<div/>').addClass('post').append(t);
+        case 'facebook':
+            var t = $('<blockquote/>').addClass('facebook-post').append(
+                $('<p/>').text('Facebook post')
+            ).append(
+                $('<p/>').text(post.data.message)
+            ).append(
+                $('<p/>').text('From: ').append(
+                    $('<a/>').attr('href', 'https://www.facebook.com/' + post.data.from.id).text(post.data.from.name)
+                )
+            );
+
+            return $('<div/>').addClass('post').append(t);
+        default:
+            console.error("Unknown post type: %s", post.type, post);
+            return null;
     }
 }
 

@@ -58,17 +58,6 @@ function createPost(post) {
     }
 }
 
-function displayTweets() {
-    if (typeof twttr === 'undefined') {
-        $.getScript('https://platform.twitter.com/widgets.js', function (script, textStatus, jqXHR) {
-            twttr.widgets.load();
-        });
-    }
-    else {
-        twttr.widgets.load();
-    }
-}
-
 function displayNewPost(post) {
     if (displayedPosts[post.type + '-' + post.foreign_id]) {
         return;
@@ -79,7 +68,12 @@ function displayNewPost(post) {
     var t = createPost(post);
     if (t) {
         t.prependTo('#posts');
-        displayTweets();
+
+        if (typeof twttr === 'undefined') {
+            $.getScript('https://platform.twitter.com/widgets.js');
+        }
+
+        twttr.widgets.load();
     }
 }
 
@@ -97,7 +91,11 @@ function displayOldPosts(posts) {
         }
     });
 
-    displayTweets();
+    if (typeof twttr === 'undefined') {
+        $.getScript('https://platform.twitter.com/widgets.js');
+    }
+
+    twttr.widgets.load();
 }
 
 $(document).ready(function () {

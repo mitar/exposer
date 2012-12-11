@@ -69,7 +69,7 @@ function displayNewPost(post) {
     if (t) {
         t.prependTo('#posts');
 
-        if (typeof twttr === 'undefined') {
+        if (!twttr) {
             $.getScript('https://platform.twitter.com/widgets.js');
         }
 
@@ -91,7 +91,7 @@ function displayOldPosts(posts) {
         }
     });
 
-    if (typeof twttr === 'undefined') {
+    if (!twttr) {
         $.getScript('https://platform.twitter.com/widgets.js');
     }
 

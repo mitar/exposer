@@ -68,6 +68,11 @@ function displayNewPost(post) {
     var t = createPost(post);
     if (t) {
         t.prependTo('#posts');
+
+        if (!twttr) {
+            $.getScript('https://platform.twitter.com/widgets.js');
+        }
+
         twttr.widgets.load();
     }
 }
@@ -85,6 +90,10 @@ function displayOldPosts(posts) {
             t.appendTo('#posts');
         }
     });
+
+    if (!twttr) {
+        $.getScript('https://platform.twitter.com/widgets.js');
+    }
 
     twttr.widgets.load();
 }

@@ -10,8 +10,8 @@ exports.FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 exports.FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 exports.FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 
-exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#fertikje', '#stavka'];
-exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'fertikje', 'stavka'];
+exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#fertikje'];
+exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'fertikje'];
 exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.MAX_POSTS_PER_REQUEST = 50;
 exports.FACEBOOK_POLL_INTERVAL = 3 * 60 * 1000; // ms

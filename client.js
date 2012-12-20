@@ -59,7 +59,7 @@ function createPost(post) {
 }
 
 function renderTweets() {
-    if (!twttr) {
+    if (typeof twttr === 'undefined') {
         alert("Not all necessary scripts have loaded. Are you using ad-block or something similar?");
         return;
     }

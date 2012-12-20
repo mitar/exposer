@@ -58,6 +58,15 @@ function createPost(post) {
     }
 }
 
+function renderTweets() {
+    if (!twttr) {
+        alert("Not all necessary scripts have loaded. Are you using ad-block or something similar?");
+        return;
+    }
+
+    twttr.widgets.load();
+}
+
 function displayNewPost(post) {
     if (displayedPosts[post.type + '-' + post.foreign_id]) {
         return;
@@ -68,7 +77,7 @@ function displayNewPost(post) {
     var t = createPost(post);
     if (t) {
         t.prependTo('#posts');
-        twttr.widgets.load();
+        renderTweets();
     }
 }
 
@@ -86,7 +95,7 @@ function displayOldPosts(posts) {
         }
     });
 
-    twttr.widgets.load();
+    renderTweets();
 }
 
 $(document).ready(function () {

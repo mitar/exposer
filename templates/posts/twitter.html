@@ -1,0 +1,6 @@
+<div class="post">
+    <blockquote class="twitter-tweet"{% if post.data.in_reply_to_status_id %} data-in-reply-to="{{ post.data.in_reply_to_status_id }}"{% endif %}>
+        <p>{{ post.data.text }}</p>
+        <a href="https://twitter.com/{{ post.data.from_user }}/status/{{ post.foreign_id }}" data-datetime="{{ post.foreign_timestamp }}"></a>
+    </blockquote>
+</div>

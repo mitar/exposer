@@ -124,7 +124,18 @@ function connectToTwitterStream() {
     twit.stream('statuses/filter', {'track': settings.TWITTER_QUERY}, function (stream) {
         console.log("Twitter stream connected");
         stream.on('data', function (data) {
-            models.storeTweet(data, notifyClients);
+            if (data['disconnect']) {
+                console.warn("Twitter stream disconnected: %s", data['disconnect']);
+                // TODO: Back-off
+                connectToTwitterStream();
+            }
+            else if (data.from_user || data.user) {
+                models.storeTweet(data, notifyClients);
+            }
+            else {
+                console.log("Invalid Tweet", data);
+                throw new Error("Invalid Tweet");
+            }
         }).on('delete', function (data) {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter delete: %s", data);

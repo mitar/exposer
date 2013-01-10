@@ -1,5 +1,11 @@
 var shoe = require('shoe');
 var dnode = require('dnode');
+var swig = require('swig/lib/swig');
+
+var templates = {
+    'twitter': require('./templates/posts/twitter.html'),
+    'facebook': require('./templates/posts/facebook.html')
+};
 
 var $ = require('jquery-browserify');
 
@@ -11,47 +17,28 @@ var displayedPosts = {};
 function createPost(post) {
     switch (post.type) {
         case 'twitter':
-            var t = $('<blockquote/>').addClass('twitter-tweet').append(
-                $('<p/>').text(post.data.text)
-            ).append(
-                $('<a/>').attr('href', 'https://twitter.com/' + post.data.from_user + '/status/' + post.foreign_id).attr('data-datetime', post.foreign_timestamp)
-            );
-
-            if (post.data.in_reply_to_status_id) {
-                t.attr('data-in-reply-to', post.data.in_reply_to_status_id);
-            }
-
-            return $('<div/>').addClass('post').append(t);
+            return templates.twitter({
+                'post': post
+            });
         case 'facebook':
-            var post_link = $('<a/>').text('Facebook post');
+            var post_link = null;
             if (post.data.actions && post.data.actions.length > 0 && post.data.actions[0].link) {
-                var https_link = post.data.actions[0].link.split('http://').join('https://');
-                post_link.attr('href', https_link);
+                post_link = post.data.actions[0].link.split('http://').join('https://');
             }
             else {
                 var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
                 if (post_match) {
-                    post_link.attr('href', 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2]);
+                    post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];
                 }
                 else {
                     console.warning("Facebook post does not have a link: %s", post.foreign_id, post)
                 }
             }
-            var t = $('<blockquote/>').append(
-                $('<p/>').append(post_link)
-            ).append(
-                $('<p/>').text(post.data.message)
-            ).append(
-                $('<p/>').text('From: ').append(
-                    $('<a/>').attr('href', 'https://www.facebook.com/' + post.data.from.id).text(post.data.from.name)
-                )
-            );
 
-            return $('<div/>').addClass('post').append(
-                $('<div/>').addClass('facebook-post').append(
-                    $('<div/>').addClass('twt-border').append(t)
-                )
-            );
+            return templates.facebook({
+                'post': post,
+                'post_link': post_link
+            });
         default:
             console.error("Unknown post type: %s", post.type, post);
             return null;
@@ -76,7 +63,7 @@ function displayNewPost(post) {
 
     var t = createPost(post);
     if (t) {
-        t.prependTo('#posts');
+        $(t).prependTo('#posts');
         renderTweets();
     }
 }
@@ -91,7 +78,7 @@ function displayOldPosts(posts) {
 
         var t = createPost(post);
         if (t) {
-            t.appendTo('#posts');
+            $(t).appendTo('#posts');
         }
     });
 

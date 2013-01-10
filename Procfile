@@ -1,1 +1,1 @@
-web: browserify client.js -o static/bundle.js; node web.js
+web: browserify client.js -p ./swig -o static/bundle.js; node web.js

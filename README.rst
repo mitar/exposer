@@ -30,7 +30,7 @@ Development installation
 3. Move to location where you cloned the repository and run::
 
     npm install
-    browserify client.js -o static/bundle.js
+    browserify client.js -p ./swig -o static/bundle.js
 
    This will install all node.js dependencies and compile client JavaScript file.
 

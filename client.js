@@ -21,23 +21,28 @@ function createPost(post) {
                 'post': post
             });
         case 'facebook':
+            // TODO: Remove
+            console.log(post.data);
+            var post_id = null;
             var post_link = null;
-            if (post.data.actions && post.data.actions.length > 0 && post.data.actions[0].link) {
-                post_link = post.data.actions[0].link.split('http://').join('https://');
+            var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
+            if (post_match) {
+                post_id = post_match[2];
+                post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];
             }
             else {
-                var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
-                if (post_match) {
-                    post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];
-                }
-                else {
-                    console.warning("Facebook post does not have a link: %s", post.foreign_id, post)
-                }
+                console.warning("Facebook post does not have a link and ID: %s", post.foreign_id, post);
+            }
+
+            // Override with a better version
+            if (post.data.actions && post.data.actions.length > 0 && post.data.actions[0].link) {
+                post_link = post.data.actions[0].link.split('http://').join('https://');
             }
 
             return templates.facebook({
                 'post': post,
-                'post_link': post_link
+                'post_link': post_link,
+                'post_id': post_id
             });
         default:
             console.error("Unknown post type: %s", post.type, post);

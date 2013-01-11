@@ -2,9 +2,53 @@
     <div class="facebook-post">
         <div class="twt-border">
             <blockquote>
-                <p><a href="{{ post_link }}">Facebook post</a></p>
-                <p>{{ post.data.message }}</p>
-                <p>From: <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a></p>
+                <div class="facebook-head">
+                    <div class="head-pic">
+                        <a href="https://www.facebook.com/{{ post.data.from.id }}"><img src="https://graph.facebook.com/{{ post.data.from.id }}/picture" style="width: 32px; height: 32px;"></a>
+                    </div>
+                    <div class="facebook-logo"><a href="{{ post_link }}" title="Facebook post"><img src="/facebook-logo.png"></a></div>
+                    <div class="head-space">
+                        <div class="head-author">
+                            <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
+                            <abbr><a href="{{ post_link }}">{# TODO #}{{ post.data.created_time }}</a></abbr>
+                        </div>
+                    </div>
+                </div>
+                <div class="body">
+                    {{ post.data.message|facebook_message|raw }}
+                </div>
+                {% if post.data.type === "link" %}
+                    <div class="link">
+                        {# TODO: Find where to get size we want #}
+                        <img src="{{ post.data.picture }}&cfs=1" class="picture" alt="{{ post.data.name }}" />
+                        <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
+                        <div class="caption">{{ post.data.caption }}</div>
+                        <div class="description">{{ post.data.description }}</div>
+                    </div>
+                {% else if post.data.type === "photo" %}
+                    {# TODO: Find where to get size we want #}
+                    <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
+                    <div class="caption">{{ post.data.caption }}</div>
+                {% else if post.data.type === "video" %}
+                    <div class="video">
+                        {# TODO: Find where to get size we want #}
+                        {# TODO: Icon for video overlay #}
+                        {# TODO: Replace with video player when clicked? #}
+                        <a href="{{ post.data.link }}"><img src="{{ post.data.picture }}&cfs=1" class="picture" alt="{{ post.data.name }}" /></a>
+                        <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
+                        <div class="description">{{ post.data.description }}</div>
+                    </div>
+                {% endif %}
+                <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{% if post.data.likes %}{{ post.data.likes.count }}{% else %}0{% endif %} people</a> like this.</div>
+                <div class="shares"><a href="https://www.facebook.com/shares/view?id={{ post_id }}">{% if post.data.shares %}{{ post.data.shares.count }}{% else %}0{% endif %} shares</a>.</div>
+                {% if post.data.actions %}
+                    <ul class="actions">
+                        {# TODO: Put correct links #}
+                        <li><a href="" title="Like this item">Like</a></li>
+                        <li><a href="" title="Leave a comment">Comment</a></li>
+                        <li><a href="" title="Send this to friends or post it on your timeline">Share</a></li>
+                    </ul>
+                {% endif %}
             </blockquote>
         </div>
     </div>

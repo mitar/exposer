@@ -13,7 +13,8 @@ var settings = require('./settings');
 var models = require('./models');
 
 swig.init({
-    'root': __dirname + '/templates'
+    'root': __dirname + '/templates',
+    'filters': './filters'
 });
 
 var facebookTemplate = swig.compileFile('facebook.html');

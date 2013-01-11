@@ -10,7 +10,7 @@
                     <div class="head-space">
                         <div class="head-author">
                             <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
-                            <abbr><a href="{{ post_link }}">{# TODO #}{{ post.data.created_time }}</a></abbr>
+                            <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|date("r") }}">{{ post.data.created_time|date("j M y") }}</abbr></a>
                         </div>
                     </div>
                 </div>

@@ -115,8 +115,12 @@ body {
     text-decoration: underline;
 }
 
-.facebook-post .body {
-    margin: 15px 0 0;
+.facebook-post .message {
+    margin: 15px 0 10px 0;
+}
+
+.facebook-post .body a {
+    font-weight: normal;
 }
 
 .facebook-post .picture {
@@ -127,6 +131,7 @@ body {
     background-color: #EDEFF4;
     padding: 5px 12px;
     color: #999999;
+    margin-top: 10px;
 }
 
 .facebook-post .actions a {
@@ -159,5 +164,82 @@ body {
 }
 
 .facebook-post .likes a {
+    font-size: 11px;
+    line-height: 1.28;
     font-weight: normal;
+}
+
+.facebook-post .photo .caption {
+    border-left: 2px solid #CCCCCC;
+    margin-top: 10px;
+    padding-left: 8px;
+}
+
+.facebook-post .video {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    position: relative;
+    background-color: #F7F7F7;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.facebook-post .video .picture {
+    float: left;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.facebook-post .video .video-top-border, .facebook-post .video .video-bottom-border {
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    left: 1px;
+    position: absolute;
+    right: 1px;
+    top: 0;
+}
+
+.facebook-post .video .video-bottom-border {
+    top: auto;
+    bottom: 0;
+    right: 0;
+}
+
+.facebook-post .video .video-right-border {
+    bottom: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.facebook-post .video .meta-outside {
+    overflow: hidden;
+}
+
+.facebook-post .video .meta-link {
+    min-height: 112px;
+}
+
+.facebook-post .video .meta-link:hover {
+    text-decoration: none;
+}
+
+.facebook-post .video .meta {
+    max-height: 112px;
+    overflow: hidden;
+    font-size: 11px;
+    color: gray;
+    font-weight: normal;
+    margin: 8px 10px 10px 10px;
+}
+
+.facebook-post .video .meta .name {
+    color: #3B5998;
+    font-weight: bold;
+}
+
+.facebook-post .video .meta .name:hover {
+    text-decoration: underline;
+}
+
+.facebook-post .video .meta .description {
+    margin-top: 3px;
 }

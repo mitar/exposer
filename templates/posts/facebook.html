@@ -15,44 +15,57 @@
                     </div>
                 </div>
                 <div class="body">
-                    {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
-                </div>
-                {% if post.data.type === "link" %}
-                    <div class="link">
-                        {% if post.data.picture %}
-                            <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
-                        {% endif %}
-                        <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
-                        {% if post.data.caption %}
-                            <div class="caption">{{ post.data.caption }}</div>
-                        {% endif %}
-                        {% if post.data.description %}
-                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
-                        {% endif %}
+                    <div class="message">
+                        {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                     </div>
-                {% else if post.data.type === "photo" %}
-                    <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
-                    {% if post.data.caption %}
-                        <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                    {% if post.data.type === "link" %}
+                        <div class="link">
+                            {% if post.data.picture %}
+                                <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
+                            {% endif %}
+                            <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
+                            {% if post.data.caption %}
+                                <div class="caption">{{ post.data.caption }}</div>
+                            {% endif %}
+                            {% if post.data.description %}
+                                <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                            {% endif %}
+                        </div>
+                    {% else if post.data.type === "photo" %}
+                        <div class="photo">
+                            <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
+                            {% if post.data.caption %}
+                                <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                            {% endif %}
+                            {% if post.data.description %}
+                                <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                            {% endif %}
+                        </div>
+                    {% else if post.data.type === "video" %}
+                        <div class="video">
+                            {# TODO: Icon for video overlay #}
+                            {# TODO: Replace with video player when clicked? #}
+                            {% if post.data.picture %}
+                                <a href="{{ post_link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /></a>
+                            {% endif %}
+                            <div class="meta-outside">
+                                <a href="{{ post.data.link }}" class="meta-link">
+                                    <div class="meta">
+                                        <div class="name">{{ post.data.name }}</div>
+                                        {% if post.data.caption %}
+                                            <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                                        {% endif %}
+                                        {% if post.data.description %}
+                                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="video-top-border"> </div>
+                            <div class="video-right-border"> </div>
+                            <div class="video-bottom-border"> </div>
+                        </div>
                     {% endif %}
-                    {% if post.data.description %}
-                        <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
-                    {% endif %}
-                {% else if post.data.type === "video" %}
-                    <div class="video">
-                        {# TODO: Icon for video overlay #}
-                        {# TODO: Replace with video player when clicked? #}
-                        <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /></a>
-                        <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
-                        {% if post.data.caption %}
-                            <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
-                        {% endif %}
-                        {% if post.data.description %}
-                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
-                        {% endif %}
-                    </div>
-                {% endif %}
-                {% if post.data.actions || post.data.shares %}
                     <div class="actions">
                         {# TODO: Override links with JavaScript #}
                         {% if post.data.actions.like %}
@@ -61,17 +74,15 @@
                         {% if post.data.actions.comment %}
                             <a href="{{ post.data.actions.comment.link }}" title="Leave a comment">Comment</a> ·
                         {% endif %}
-                        {% if post.data.actions %}
-                            <a href="{% if post.data.actions.share %}{{ post.data.actions.share.link }}{% else %}{{ post_link }}{% endif %}" title="Send this to friends or post it on your timeline">Share</a>
-                        {% endif %}
+                        <a href="{% if post.data.actions.share %}{{ post.data.actions.share.link }}{% else %}{{ post_link }}{% endif %}" title="Send this to friends or post it on your timeline">Share</a>
                         {% if post.data.shares %}
                             <span class="shares"><a href="https://www.facebook.com/shares/view?id={{ post_id }}" title="Show shares">{{ post.data.shares.count }}</a></span>
                         {% endif %}
                     </div>
-                {% endif %}
-                {% if post.data.likes %}
-                    <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{{ post.data.likes.count }} people</a> like this.</div>
-                {% endif %}
+                    {% if post.data.likes %}
+                        <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{{ post.data.likes.count }} people</a> like this.</div>
+                    {% endif %}
+                </div>
             </blockquote>
         </div>
     </div>

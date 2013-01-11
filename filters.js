@@ -11,10 +11,19 @@ exports.facebook_text = function (input, input_tags) {
         return filters.escape(text).replace(HTTP_LINK, '<a href="$&" class="text-link">$&</a>').replace(NEWLINE, '<br/>');
     }
 
+    input_tags = input_tags || {};
+
+    var keys = [];
+    $.each(input_tags, function (key, tags) {
+        keys.push(key);
+    });
+    keys.sort();
+
     var output = '';
     var offset = 0;
-    $.each(input_tags || {}, function (i, tags) {
-        $.each(tags, function (j, tag) {
+    // We have to traverse in key order
+    $.each(keys, function (i, key) {
+        $.each(input_tags[key], function (j, tag) {
             if (tag.offset >= offset) {
                 output += non_tags(input.substring(offset, tag.offset));
                 output += '<a href="https://www.facebook.com/' + tag.id + '" class="tag">' + filters.escape(input.substring(tag.offset, tag.offset + tag.length)) + '</a>';

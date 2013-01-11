@@ -117,6 +117,10 @@ body {
 
 .facebook-post .message {
     margin: 15px 0 10px 0;
+    color: #333333;
+    font-size: 13px;
+    line-height: 1.38;
+
 }
 
 .facebook-post .body a {

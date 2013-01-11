@@ -15,7 +15,7 @@ body {
     background: url("paper.jpg") repeat scroll center bottom #DDDDDD;
     box-shadow: 0 0 10px 5px black;
     color: #00285A;
-    font-family: Permanent Marker;
+    font-family: "Permanent Marker";
     font-size: 17px;
     letter-spacing: 0;
     margin: 0 0 20px;
@@ -46,12 +46,12 @@ body {
     padding: 15px;
 }
 
-.facebook-post {
+.facebook-post .twt-border, .facebook-post, .facebook-post .twt-border .body {
     color: #333333;
     direction: ltr;
-    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
-    font-size: 11px;
-    line-height: 1.28;
+    font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
+    font-size: 11px !important;
+    line-height: 1.28 !important;
     text-align: left;
 }
 
@@ -92,7 +92,7 @@ body {
 .facebook-post a {
     color: #3B5998;
     cursor: pointer;
-    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 13px;
     font-weight: bold;
     text-decoration: none;
@@ -138,7 +138,7 @@ body {
     color: #3B5998;
     cursor: pointer;
     text-decoration: none;
-    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 11px;
     line-height: 1.28;
     font-weight: normal;
@@ -157,7 +157,7 @@ body {
     margin-top: 1px;
     border: 0 none;
     padding: 5px 12px;
-    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 11px;
     line-height: 1.28;
     font-weight: normal;
@@ -175,7 +175,7 @@ body {
     padding-left: 8px;
 }
 
-.facebook-post .video {
+.facebook-post .video, .facebook-post .link {
     margin-bottom: 10px;
     margin-top: 10px;
     position: relative;
@@ -183,12 +183,22 @@ body {
     border-left: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.facebook-post .video .picture {
+.facebook-post .video .picture, .facebook-post .link .picture {
     float: left;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.facebook-post .video .video-top-border, .facebook-post .video .video-bottom-border {
+.facebook-post .video .picture {
+    width: 130px;
+    height: 130px;
+}
+
+.facebook-post .link .picture {
+    width: 90px;
+    height: 90px;
+}
+
+.facebook-post .top-border, .facebook-post .bottom-border {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     left: 1px;
     position: absolute;
@@ -196,13 +206,13 @@ body {
     top: 0;
 }
 
-.facebook-post .video .video-bottom-border {
+.facebook-post .bottom-border {
     top: auto;
     bottom: 0;
     right: 0;
 }
 
-.facebook-post .video .video-right-border {
+.facebook-post .right-border {
     bottom: 0;
     position: absolute;
     right: 0;
@@ -210,7 +220,7 @@ body {
     border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.facebook-post .video .meta-outside {
+.facebook-post .meta-outside {
     overflow: hidden;
 }
 
@@ -218,12 +228,15 @@ body {
     min-height: 112px;
 }
 
-.facebook-post .video .meta-link:hover {
+.facebook-post .meta-link:hover {
     text-decoration: none;
 }
 
 .facebook-post .video .meta {
     max-height: 112px;
+}
+
+.facebook-post .meta {
     overflow: hidden;
     font-size: 11px;
     color: gray;
@@ -231,15 +244,23 @@ body {
     margin: 8px 10px 10px 10px;
 }
 
-.facebook-post .video .meta .name {
+.facebook-post .meta .name {
     color: #3B5998;
     font-weight: bold;
 }
 
-.facebook-post .video .meta .name:hover {
+.facebook-post .meta .name:hover {
     text-decoration: underline;
 }
 
-.facebook-post .video .meta .description {
+.facebook-post .meta .description {
     margin-top: 3px;
+}
+
+.facebook-post .link .meta-link {
+    min-height: 72px;
+}
+
+.facebook-post .link .meta {
+    max-height: 72px;
 }

@@ -23,13 +23,22 @@
                             {% if post.data.picture %}
                                 <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
                             {% endif %}
-                            <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
-                            {% if post.data.caption %}
-                                <div class="caption">{{ post.data.caption }}</div>
-                            {% endif %}
-                            {% if post.data.description %}
-                                <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
-                            {% endif %}
+                            <div class="meta-outside">
+                                <a href="{{ post.data.link }}" class="meta-link">
+                                    <div class="meta">
+                                        <div class="name">{{ post.data.name }}</div>
+                                        {% if post.data.caption %}
+                                            <div class="caption">{{ post.data.caption }}</div>
+                                        {% endif %}
+                                        {% if post.data.description %}
+                                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                                        {% endif %}
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="top-border"> </div>
+                            <div class="right-border"> </div>
+                            <div class="bottom-border"> </div>
                         </div>
                     {% else if post.data.type === "photo" %}
                         <div class="photo">
@@ -61,9 +70,9 @@
                                     </div>
                                 </a>
                             </div>
-                            <div class="video-top-border"> </div>
-                            <div class="video-right-border"> </div>
-                            <div class="video-bottom-border"> </div>
+                            <div class="top-border"> </div>
+                            <div class="right-border"> </div>
+                            <div class="bottom-border"> </div>
                         </div>
                     {% endif %}
                     <div class="actions">

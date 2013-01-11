@@ -15,28 +15,41 @@
                     </div>
                 </div>
                 <div class="body">
-                    {{ post.data.message|facebook_message|raw }}
+                    {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                 </div>
                 {% if post.data.type === "link" %}
                     <div class="link">
-                        {# TODO: Find where to get size we want #}
-                        <img src="{{ post.data.picture }}&cfs=1" class="picture" alt="{{ post.data.name }}" />
+                        {% if post.data.picture %}
+                            <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
+                        {% endif %}
                         <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
-                        <div class="caption">{{ post.data.caption }}</div>
-                        <div class="description">{{ post.data.description }}</div>
+                        {% if post.data.caption %}
+                            <div class="caption">{{ post.data.caption }}</div>
+                        {% endif %}
+                        {% if post.data.description %}
+                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                        {% endif %}
                     </div>
                 {% else if post.data.type === "photo" %}
-                    {# TODO: Find where to get size we want #}
                     <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
-                    <div class="caption">{{ post.data.caption }}</div>
+                    {% if post.data.caption %}
+                        <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                    {% endif %}
+                    {% if post.data.description %}
+                        <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                    {% endif %}
                 {% else if post.data.type === "video" %}
                     <div class="video">
-                        {# TODO: Find where to get size we want #}
                         {# TODO: Icon for video overlay #}
                         {# TODO: Replace with video player when clicked? #}
-                        <a href="{{ post.data.link }}"><img src="{{ post.data.picture }}&cfs=1" class="picture" alt="{{ post.data.name }}" /></a>
+                        <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /></a>
                         <div class="name"><a href="{{ post.data.link }}">{{ post.data.name }}</a></div>
-                        <div class="description">{{ post.data.description }}</div>
+                        {% if post.data.caption %}
+                            <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                        {% endif %}
+                        {% if post.data.description %}
+                            <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                        {% endif %}
                     </div>
                 {% endif %}
                 <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{% if post.data.likes %}{{ post.data.likes.count }}{% else %}0{% endif %} people</a> like this.</div>

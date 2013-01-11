@@ -9,7 +9,9 @@
                     <div class="facebook-logo"><a href="{{ post_link }}" title="Facebook post"><img src="/facebook-logo.png"></a></div>
                     <div class="head-space">
                         <div class="head-author">
-                            <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
+                            <div class="name">
+                                <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
+                            </div>
                             <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|date("r") }}">{{ post.data.created_time|date("j M y") }}</abbr></a>
                         </div>
                     </div>

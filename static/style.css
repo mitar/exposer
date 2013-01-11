@@ -122,3 +122,42 @@ body {
 .facebook-post .picture {
     max-width: 100%;
 }
+
+.facebook-post .actions {
+    background-color: #EDEFF4;
+    padding: 5px 12px;
+    color: #999999;
+}
+
+.facebook-post .actions a {
+    color: #3B5998;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    font-size: 11px;
+    line-height: 1.28;
+    font-weight: normal;
+}
+
+.facebook-post .actions a:hover {
+    text-decoration: underline;
+}
+
+.facebook-post .actions .shares {
+    float: right;
+}
+
+.facebook-post .likes {
+    background-color: #F1F2F6;
+    margin-top: 1px;
+    border: 0 none;
+    padding: 5px 12px;
+    font-family: 'lucida grande',tahoma,verdana,arial,sans-serif;
+    font-size: 11px;
+    line-height: 1.28;
+    font-weight: normal;
+}
+
+.facebook-post .likes a {
+    font-weight: normal;
+}

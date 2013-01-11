@@ -52,15 +52,25 @@
                         {% endif %}
                     </div>
                 {% endif %}
-                <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{% if post.data.likes %}{{ post.data.likes.count }}{% else %}0{% endif %} people</a> like this.</div>
-                <div class="shares"><a href="https://www.facebook.com/shares/view?id={{ post_id }}">{% if post.data.shares %}{{ post.data.shares.count }}{% else %}0{% endif %} shares</a>.</div>
-                {% if post.data.actions %}
-                    <ul class="actions">
-                        {# TODO: Put correct links #}
-                        <li><a href="" title="Like this item">Like</a></li>
-                        <li><a href="" title="Leave a comment">Comment</a></li>
-                        <li><a href="" title="Send this to friends or post it on your timeline">Share</a></li>
-                    </ul>
+                {% if post.data.actions || post.data.shares %}
+                    <div class="actions">
+                        {# TODO: Override links with JavaScript #}
+                        {% if post.data.actions.like %}
+                            <a href="{{ post.data.actions.like.link }}" title="Like this item">Like</a> ·
+                        {% endif %}
+                        {% if post.data.actions.comment %}
+                            <a href="{{ post.data.actions.comment.link }}" title="Leave a comment">Comment</a> ·
+                        {% endif %}
+                        {% if post.data.actions %}
+                            <a href="{% if post.data.actions.share %}{{ post.data.actions.share.link }}{% else %}{{ post_link }}{% endif %}" title="Send this to friends or post it on your timeline">Share</a>
+                        {% endif %}
+                        {% if post.data.shares %}
+                            <span class="shares"><a href="https://www.facebook.com/shares/view?id={{ post_id }}" title="Show shares">{{ post.data.shares.count }}</a></span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                {% if post.data.likes %}
+                    <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{{ post.data.likes.count }} people</a> like this.</div>
                 {% endif %}
             </blockquote>
         </div>

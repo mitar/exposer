@@ -39,6 +39,12 @@ function createPost(post) {
                 post_link = post.data.actions[0].link.split('http://').join('https://');
             }
 
+            if (post.data.actions) {
+                $.each(post.data.actions, function (i, action) {
+                    post.data.actions[action.name.toLowerCase()] = action;
+                });
+            }
+
             return templates.facebook({
                 'post': post,
                 'post_link': post_link,

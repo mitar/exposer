@@ -86,6 +86,11 @@ body {
     vertical-align: middle;
 }
 
+.facebook-post .head-author .story {
+    color: #999999;
+    font-size: 13px;
+}
+
 .facebook-post a {
     color: #3B5998;
     cursor: pointer;

@@ -185,8 +185,8 @@ function fetchFacebookLatest() {
         keywords = keywords.slice(1);
 
         request('https://graph.facebook.com/search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (error, res, body) {
-            if (error || res.statusCode !== 200) {
-                console.error("Facebook search (%s) fetch error", keyword, error, res.statusCode, body);
+            if (error || !res || res.statusCode !== 200) {
+                console.error("Facebook search (%s) fetch error", keyword, error, res && res.statusCode, body);
                 return;
             }
 

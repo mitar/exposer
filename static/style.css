@@ -286,3 +286,7 @@ body {
 .facebook-post .meta-link span {
     display: block;
 }
+
+.facebook-post .short {
+    max-height: 100px;
+}

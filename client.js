@@ -17,9 +17,9 @@ var displayedPosts = {};
 function createPost(post) {
     switch (post.type) {
         case 'twitter':
-            return templates.twitter({
+            return $(templates.twitter({
                 'post': post
-            });
+            }));
         case 'facebook':
             // TODO: Remove
             console.log(post.data);
@@ -45,11 +45,11 @@ function createPost(post) {
                 });
             }
 
-            return templates.facebook({
+            return $(templates.facebook({
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id
-            });
+            }));
         default:
             console.error("Unknown post type: %s", post.type, post);
             return null;
@@ -65,6 +65,26 @@ function renderTweets() {
     twttr.widgets.load();
 }
 
+function shortenPosts() {
+    $('#posts .short').dotdotdot({
+        'callback': function(isTruncated, orgContent) {
+            var t = $(this);
+            t.removeClass('short');
+            if (isTruncated) {
+                t.append(
+                    $('<span/>').addClass('see-more').append(
+                        $('<br/>')
+                    ).append(
+                        $('<a/>').text("See More").click(function (event) {
+                            t.trigger('destroy').html(orgContent);
+                        })
+                    )
+                );
+            }
+        }
+    });
+}
+
 function displayNewPost(post) {
     if (displayedPosts[post.type + '-' + post.foreign_id]) {
         return;
@@ -74,8 +94,9 @@ function displayNewPost(post) {
 
     var t = createPost(post);
     if (t) {
-        $(t).prependTo('#posts');
+        t.prependTo('#posts');
         renderTweets();
+        shortenPosts();
     }
 }
 
@@ -89,7 +110,8 @@ function displayOldPosts(posts) {
 
         var t = createPost(post);
         if (t) {
-            $(t).appendTo('#posts');
+            t.appendTo('#posts');
+            shortenPosts();
         }
     });
 

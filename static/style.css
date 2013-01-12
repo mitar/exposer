@@ -289,4 +289,5 @@ body {
 
 .facebook-post .short {
     max-height: 100px;
+    overflow: hidden;
 }

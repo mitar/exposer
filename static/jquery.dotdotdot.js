@@ -453,7 +453,11 @@
 	}
 	function setTextContent( e, content )
 	{
-		if ( e.innerText )
+		if ( !e )
+		{
+			return;
+		}
+		else if ( e.innerText )
 		{
 			e.innerText = content;
 		}
@@ -469,7 +473,11 @@
 	}
 	function getTextContent( e )
 	{
-		if ( e.innerText )
+		if ( !e )
+		{
+			return "";
+		}
+		else if ( e.innerText )
 		{
 			return e.innerText;
 		}

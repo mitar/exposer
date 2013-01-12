@@ -178,6 +178,15 @@ body {
     border-left: 2px solid #CCCCCC;
     margin-top: 10px;
     padding-left: 8px;
+    font-size: 11px;
+}
+
+.facebook-post .photo .caption a {
+    font-size: 11px;
+}
+
+.facebook-post .photo .description, .facebook-post .photo .description a {
+    font-size: 11px;
 }
 
 .facebook-post .video, .facebook-post .link {

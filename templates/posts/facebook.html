@@ -53,10 +53,10 @@
                         <div class="photo">
                             <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
                             {% if post.data.caption %}
-                                <div class="caption">{{ post.data.caption|wrap_text|raw }}</div>
+                                <div class="caption">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
                             {% endif %}
                             {% if post.data.description %}
-                                <div class="description">{{ post.data.description|wrap_text|raw }}</div>
+                                <div class="description">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
                             {% endif %}
                         </div>
                     {% else if post.data.type === "video" %}

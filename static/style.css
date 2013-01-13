@@ -242,8 +242,11 @@ body {
 }
 
 .facebook-post .video .meta-link {
-    min-height: 122px;
     display: block;
+}
+
+.facebook-post .video .meta-link-picture {
+    min-height: 122px;
 }
 
 .facebook-post .meta-link:hover {
@@ -277,8 +280,11 @@ body {
 }
 
 .facebook-post .link .meta-link {
-    min-height: 82px;
     display: block;
+}
+
+.facebook-post .link .meta-link-picture {
+    min-height: 82px;
 }
 
 .facebook-post .link .meta {

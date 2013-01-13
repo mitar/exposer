@@ -32,7 +32,7 @@
                                 <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
                             {% endif %}
                             <div class="meta-outside">
-                                <a href="{{ post.data.link }}" class="meta-link">
+                                <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">
                                     {# Must not contain </a> because HTML5 parser stops there then. #}
                                     <span class="meta">
                                         <span class="name">{{ post.data.name }}</span>
@@ -67,7 +67,7 @@
                                 <a href="{{ post_link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /></a>
                             {% endif %}
                             <div class="meta-outside">
-                                <a href="{{ post.data.link }}" class="meta-link">
+                                <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">
                                     {# Must not contain </a> because HTML5 parser stops there then. #}
                                     <span class="meta">
                                         <span class="name">{{ post.data.name }}</span>

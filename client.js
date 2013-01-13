@@ -74,7 +74,6 @@ function shortenPosts() {
             if (isTruncated) {
                 var link = $('<span/>').addClass('see-more');
                 if (DOTS.test($.trim(t.text()))) {
-                    console.log(t.text());
                     link.append($('<br/>'));
                 }
                 link.append(

@@ -37,6 +37,30 @@ var schema = mongoose.Schema({
 });
 var Post = db.model('Post', schema);
 
+var postNotFiltered = " \
+    function () { \
+        function regexMatch(obj) { \
+            for (var field in obj) { \
+                if (obj.hasOwnProperty(field)) { \
+                    if (/" + settings.FACEBOOK_QUERY.join('|') + "/i.test(obj[field])) { \
+                        return true; \
+                    } \
+                    if (typeof(obj[field]) === 'object' && regexMatch(obj[field])) { \
+                        return true; \
+                    } \
+                } \
+            } \
+            return false; \
+        } \
+        if (this.type === 'facebook') { \
+            return regexMatch(this); \
+        } \
+        else { \
+            return true; \
+        } \
+    } \
+"
+
 function storePost(foreign_id, type, foreign_timestamp, data, original_data, callback) {
     var query = {'foreign_id': foreign_id, 'type': type};
     Post.findOneAndUpdate(query, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
@@ -49,7 +73,7 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
             // Post was not already stored
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
-            Post.findOne($.extend({}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
+            Post.findOne($.extend({}, {'$where': postNotFiltered}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
                 if (err) {
                     console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
                     return;
@@ -88,3 +112,4 @@ function storeFacebookPost(post, callback) {
 exports.Post = Post;
 exports.storeTweet = storeTweet;
 exports.storeFacebookPost = storeFacebookPost;
+exports.postNotFiltered = postNotFiltered;

@@ -96,6 +96,7 @@ function displayNewPost(post) {
 
     var t = createPost(post);
     if (t) {
+        // TODO: Insert it in the foreign_timestamp order
         t.prependTo('#posts');
         renderTweets();
         shortenPosts();
@@ -112,6 +113,7 @@ function displayOldPosts(posts) {
 
         var t = createPost(post);
         if (t) {
+            // TODO: Insert it in the foreign_timestamp order
             t.appendTo('#posts');
             shortenPosts();
         }
@@ -142,7 +144,7 @@ $(document).ready(function () {
             if (document.body.scrollHeight - $(this).scrollTop() <= $(this).height()) {
                 // Make sure initial posts have been already loaded
                 if (postsCount > 0) {
-                    // We can use simple counter because we are not deleting any posts
+                    // We can use a simple counter because we are not deleting any posts
                     // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
                     remote.getPosts(postsCount, 10, function (err, posts) {
                         if (err) {

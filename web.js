@@ -286,7 +286,11 @@ function facebookPolling() {
 setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
 
 function keepAlive() {
-    request(settings.SITE_URL);
+    request(settings.SITE_URL, function (error, res, body) {
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Keep alive error: %s", settings.SITE_URL, error, res && res.statusCode, body);
+        }
+    });
 }
 
 setInterval(keepAlive, settings.KEEP_ALIVE_INTERVAL);

@@ -66,6 +66,10 @@ function renderTweets() {
     twttr.widgets.load();
 }
 
+function postsRelayout() {
+    $('#posts').isotope('reLayout');
+}
+
 function shortenPosts() {
     $('#posts .short').dotdotdot({
         'callback': function(isTruncated, orgContent) {
@@ -79,16 +83,14 @@ function shortenPosts() {
                 link.append(
                     $('<a/>').text("See More").click(function (event) {
                         t.trigger('destroy').html(orgContent);
+                        postsRelayout();
                     })
                 );
                 t.append(link);
+                postsRelayout();
             }
         }
     });
-}
-
-function postsRelayout() {
-    $('#posts').isotope('reLayout');
 }
 
 function displayNewPost(post) {

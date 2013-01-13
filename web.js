@@ -164,6 +164,8 @@ function connectToTwitterStream() {
 }
 
 function fetchTwitterLatest() {
+    console.log("Doing Twitter fetch");
+
     // TODO: Should we simply automatically start loading all tweets until we find one existing in the database?
     var params = {'include_entities': true, 'count': 100, 'q': settings.TWITTER_QUERY.join(' OR ')};
     twit.get('/search/tweets.json', params, function(err, data) {
@@ -175,6 +177,8 @@ function fetchTwitterLatest() {
         $.each(data.statuses, function (i, tweet) {
             models.storeTweet(tweet, notifyClients);
         });
+
+        console.log("Twitter fetch done");
     });
 }
 
@@ -201,6 +205,8 @@ function fetchFacebookLatest() {
         $.each(body.data, function (i, post) {
             models.storeFacebookPost(post, notifyClients);
         });
+
+        console.log("Facebook search done (%s)", keyword);
     }
 
     function fetchFirst() {
@@ -210,6 +216,8 @@ function fetchFacebookLatest() {
 
         var keyword = keywords[0];
         keywords = keywords.slice(1);
+
+        console.log("Doing Facebook search (%s)", keyword);
 
         request('https://graph.facebook.com/search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (error, res, body) {
             processResponse(keyword, error, res, body);
@@ -221,6 +229,8 @@ function fetchFacebookLatest() {
 }
 
 function fetchFacebookPageLatest(limit) {
+    console.log("Doing Facebook page fetch");
+
     request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
         if (error || !res || res.statusCode !== 200) {
             console.error("Facebook page fetch error", error, res && res.statusCode, body);
@@ -238,6 +248,8 @@ function fetchFacebookPageLatest(limit) {
         $.each(body.data, function (i, post) {
             models.storeFacebookPost(post, notifyClients);
         });
+
+        console.log("Facebook page fetch done");
     });
 }
 

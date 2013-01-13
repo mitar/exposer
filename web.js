@@ -177,6 +177,25 @@ connectToTwitterStream();
 function fetchFacebookLatest() {
     var keywords = settings.FACEBOOK_QUERY.slice(0);
 
+    function processResponse(keyword, error, res, body) {
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Facebook search (%s) fetch error", keyword, error, res && res.statusCode, body);
+            return;
+        }
+
+        try {
+            body = JSON.parse(body);
+        }
+        catch (e) {
+            console.error("Facebook search (%s) fetch error", keyword, e);
+            return;
+        }
+
+        $.each(body.data, function (i, post) {
+            models.storeFacebookPost(post, notifyClients);
+        });
+    }
+
     function fetchFirst() {
         if (keywords.length == 0) {
             return;
@@ -186,23 +205,7 @@ function fetchFacebookLatest() {
         keywords = keywords.slice(1);
 
         request('https://graph.facebook.com/search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (error, res, body) {
-            if (error || !res || res.statusCode !== 200) {
-                console.error("Facebook search (%s) fetch error", keyword, error, res && res.statusCode, body);
-                return;
-            }
-
-            try {
-                body = JSON.parse(body);
-            }
-            catch (e) {
-                console.error("Facebook search (%s) fetch error", keyword, e);
-                return;
-            }
-
-            $.each(body.data, function (i, post) {
-                models.storeFacebookPost(post, notifyClients);
-            });
-
+            processResponse(keyword, error, res, body);
             setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
         });
     }

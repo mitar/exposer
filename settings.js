@@ -16,7 +16,7 @@ exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprote
 exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.MAX_POSTS_PER_REQUEST = 50;
 exports.FACEBOOK_POLL_INTERVAL = 3 * 60 * 1000; // ms
-exports.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS = 1000; // ms (they say that one request per second rate is OK)
+exports.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS = 2 * 1000; // ms (they say that one request per second rate is OK, so we do one every two seconds)
 exports.POSTS_FILTER = {
     // Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting
     'data.from.id': {'$ne': '100000591290520'}

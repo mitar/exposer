@@ -34,11 +34,8 @@ body {
     text-shadow: 0 0 2px red;
 }
 
-.twitter-tweet-rendered {
+.twitter-tweet-rendered, .post .twitter-tweet-rendered {
     margin: 0 !important;
-}
-
-.twt-border blockquote {
 }
 
 .facebook-post .twt-border blockquote {

@@ -287,7 +287,6 @@ setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
 
 function keepAlive() {
     request(settings.SITE_URL);
-    console.log("in");
 }
 
 setInterval(keepAlive, settings.KEEP_ALIVE_INTERVAL);

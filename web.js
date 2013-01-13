@@ -80,9 +80,10 @@ var sock = shoe(function (stream) {
             if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
                 limit = settings.MAX_POSTS_PER_REQUEST;
             }
+            // TODO: Fix comment
             // Sorted by _id which is monotonic and we are using a simple counter because we are not deleting any posts
             // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
-            models.Post.find($.extend({}, {'$where': models.postNotFiltered}, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'_id': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
+            models.Post.find($.extend({}, {'$where': models.postNotFiltered}, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
                     cb(err);
                     return;

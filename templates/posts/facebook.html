@@ -23,7 +23,7 @@
                     </div>
                 </div>
                 <div class="body">
-                    <div class="message short">
+                    <div class="message short hideoverflow">
                         {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                     </div>
                     {% if post.data.type === "link" %}
@@ -53,10 +53,10 @@
                         <div class="photo">
                             <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
                             {% if post.data.caption %}
-                                <div class="caption short">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
+                                <div class="caption short hideoverflow">{{ post.data.caption|facebook_text(post.data.caption_tags)|raw }}</div>
                             {% endif %}
                             {% if post.data.description %}
-                                <div class="description short">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
+                                <div class="description short hideoverflow">{{ post.data.description|facebook_text(post.data.description_tags)|raw }}</div>
                             {% endif %}
                         </div>
                     {% else if post.data.type === "video" %}

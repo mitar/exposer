@@ -20,7 +20,7 @@ function createPost(post) {
         case 'twitter':
             return $(templates.twitter({
                 'post': post
-            }));
+            })).data('foreign_timestamp', post.foreign_timestamp);
         case 'facebook':
             // TODO: Remove
             console.log(post.data);
@@ -50,7 +50,7 @@ function createPost(post) {
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id
-            }));
+            })).data('foreign_timestamp', post.foreign_timestamp);
         default:
             console.error("Unknown post type: %s", post.type, post);
             return null;
@@ -87,6 +87,10 @@ function shortenPosts() {
     });
 }
 
+function postsRelayout() {
+    $('#posts').isotope('reLayout');
+}
+
 function displayNewPost(post) {
     if (displayedPosts[post.type + '-' + post.foreign_id]) {
         return;
@@ -94,16 +98,26 @@ function displayNewPost(post) {
     displayedPosts[post.type + '-' + post.foreign_id] = true;
     postsCount++;
 
-    var t = createPost(post);
-    if (t) {
-        // TODO: Insert it in the foreign_timestamp order
-        t.prependTo('#posts');
-        renderTweets();
-        shortenPosts();
+    var postElement = createPost(post);
+    if (postElement) {
+        $('#posts').isotope('insert', postElement, function () {
+            renderTweets();
+            shortenPosts();
+
+            // Twitter and Facebook posts can resize after loading
+            // because images and other media can be loaded, so we
+            // wait a bit and relayout posts again
+            // TODO: Should call this probably after all DOM manipulations and media has loaded - is there such an event?
+            setTimeout(postsRelayout, 1000);
+            setTimeout(postsRelayout, 5000);
+            setTimeout(postsRelayout, 30000);
+            setTimeout(postsRelayout, 60000);
+        });
     }
 }
 
 function displayOldPosts(posts) {
+    var postElements = $();
     $.each(posts, function (i, post) {
         if (displayedPosts[post.type + '-' + post.foreign_id]) {
             return;
@@ -111,18 +125,41 @@ function displayOldPosts(posts) {
         displayedPosts[post.type + '-' + post.foreign_id] = true;
         postsCount++;
 
-        var t = createPost(post);
-        if (t) {
-            // TODO: Insert it in the foreign_timestamp order
-            t.appendTo('#posts');
-            shortenPosts();
-        }
+        postElements = postElements.add(createPost(post));
     });
 
-    renderTweets();
+    if (postElements.length > 0) {
+        $('#posts').isotope('insert', postElements, function () {
+            renderTweets();
+            shortenPosts();
+
+            // Twitter and Facebook posts can resize after loading
+            // because images and other media can be loaded, so we
+            // wait a bit and relayout posts again
+            // TODO: Should call this probably after all DOM manipulations and media has loaded - is there such an event?
+            setTimeout(postsRelayout, 1000);
+            setTimeout(postsRelayout, 5000);
+            setTimeout(postsRelayout, 30000);
+            setTimeout(postsRelayout, 60000);
+        });
+    }
 }
 
 $(document).ready(function () {
+    $('#posts').isotope({
+        'itemSelector': '.post',
+        'getSortData': {
+            'foreign_timestamp': function (elem) {
+                return elem.data('foreign_timestamp');
+            }
+        },
+        'sortBy': 'foreign_timestamp',
+        'sortAscending': false,
+        // We disable animations
+        'transformsEnabled': false,
+        'animationEngine': 'css'
+    });
+
     var stream = shoe('/dnode');
 
     var d = dnode({
@@ -144,6 +181,7 @@ $(document).ready(function () {
             if (document.body.scrollHeight - $(this).scrollTop() <= $(this).height()) {
                 // Make sure initial posts have been already loaded
                 if (postsCount > 0) {
+                    // TODO: Fix comment
                     // We can use a simple counter because we are not deleting any posts
                     // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
                     remote.getPosts(postsCount, 10, function (err, posts) {

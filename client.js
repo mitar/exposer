@@ -10,6 +10,7 @@ var templates = {
 var $ = require('jquery-browserify');
 
 var FACEBOOK_POST_REGEXP = /(\d+)_(\d+)/;
+var DOTS = /\.\.\.$/;
 
 var postsCount = 0;
 var displayedPosts = {};
@@ -71,15 +72,17 @@ function shortenPosts() {
             var t = $(this);
             t.removeClass('short');
             if (isTruncated) {
-                t.append(
-                    $('<span/>').addClass('see-more').append(
-                        $('<br/>')
-                    ).append(
-                        $('<a/>').text("See More").click(function (event) {
-                            t.trigger('destroy').html(orgContent);
-                        })
-                    )
+                var link = $('<span/>').addClass('see-more');
+                if (DOTS.test($.trim(t.text()))) {
+                    console.log(t.text());
+                    link.append($('<br/>'));
+                }
+                link.append(
+                    $('<a/>').text("See More").click(function (event) {
+                        t.trigger('destroy').html(orgContent);
+                    })
                 );
+                t.append(link);
             }
         }
     });

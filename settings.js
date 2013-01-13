@@ -9,6 +9,7 @@ exports.FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 exports.FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 exports.FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 exports.FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
+exports.KEEP_ALIVE_INTERVAL = 25 * 60 * 1000; // ms
 
 exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#fertikje', '#demonstracije'];
 exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'fertikje', 'demonstracije'];

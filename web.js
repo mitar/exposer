@@ -281,7 +281,13 @@ function facebookPolling() {
     // TODO: We should fetch into the past until we get to posts we already have
     fetchFacebookPageLatest(100);
     fetchFacebookLatest(1000);
-    setTimeout(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
 }
 
-setTimeout(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
+setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
+
+function keepAlive() {
+    request(settings.SITE_URL);
+    console.log("in");
+}
+
+setInterval(keepAlive, settings.KEEP_ALIVE_INTERVAL);

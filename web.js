@@ -211,8 +211,8 @@ function fetchFacebookLatest() {
 
 function fetchFacebookPageLatest(limit) {
     request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
-        if (error || res.statusCode !== 200) {
-            console.error("Facebook page fetch error", error, res.statusCode, body);
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Facebook page fetch error", error, res && res.statusCode, body);
             return;
         }
 
@@ -232,8 +232,8 @@ function fetchFacebookPageLatest(limit) {
 
 function checkFacebookPageAdded(cb) {
     request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
-        if (error || res.statusCode !== 200) {
-            console.error("Facebook app check add to the page error", error, res.statusCode, body);
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Facebook app check add to the page error", error, res && res.statusCode, body);
             return;
         }
 
@@ -254,8 +254,8 @@ function checkFacebookPageAdded(cb) {
 
 function addAppToFacebookPage(cb) {
     request.post('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&app_id=' + settings.FACEBOOK_APP_ID, function (error, res, body) {
-        if (error || res.statusCode !== 200) {
-            console.error("Facebook app add to the page error", error, res.statusCode, body);
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Facebook app add to the page error", error, res && res.statusCode, body);
             return;
         }
 

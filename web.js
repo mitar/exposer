@@ -17,11 +17,17 @@ swig.init({
     'filters': './filters'
 });
 
+var indexTemplate = swig.compileFile('index.html');
 var facebookTemplate = swig.compileFile('facebook.html');
 
 var server = http.createServer(function (req, res) {
     var req_url = url.parse(req.url, true);
     switch (req_url.pathname) {
+        case '/':
+            res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+            res.write(indexTemplate.render({}));
+            res.end();
+            break;
         case '/facebook.html':
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
             res.write(facebookTemplate.render({

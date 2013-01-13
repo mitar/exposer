@@ -147,6 +147,20 @@ function displayOldPosts(posts) {
     }
 }
 
+function loadMorePosts(remote) {
+    // TODO: Fix comment
+    // We can use a simple counter because we are not deleting any posts
+    // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
+    remote.getPosts(postsCount, 10, function (err, posts) {
+        if (err) {
+            console.error(err);
+            return;
+        }
+
+        displayOldPosts(posts);
+    });
+}
+
 $(document).ready(function () {
     $('#posts').isotope({
         'itemSelector': '.post',
@@ -179,21 +193,16 @@ $(document).ready(function () {
             displayOldPosts(posts);
         });
 
+        $('#load-posts').click(function (event) {
+            loadMorePosts(remote);
+        }).show();
+
         $(window).scroll(function (event) {
-            if (document.body.scrollHeight - $(this).scrollTop() <= $(this).height()) {
+            // Two screens before the end we start loading more posts
+            if (document.body.scrollHeight - $(this).scrollTop() <= 3 * $(this).height()) {
                 // Make sure initial posts have been already loaded
                 if (postsCount > 0) {
-                    // TODO: Fix comment
-                    // We can use a simple counter because we are not deleting any posts
-                    // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
-                    remote.getPosts(postsCount, 10, function (err, posts) {
-                        if (err) {
-                            console.error(err);
-                            return;
-                        }
-
-                        displayOldPosts(posts);
-                    });
+                    loadMorePosts(remote);
                 }
             }
         });

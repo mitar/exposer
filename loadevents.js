@@ -15,6 +15,7 @@ function loadevents() {
         }
 
         $.each(posts, function (i, post) {
+            // TODO: Move to MongoDB query?
             if (post.data.link) {
                 return;
             }
@@ -40,6 +41,11 @@ function loadevents() {
                 }
 
                 var event_id = link_match[1];
+                var event_link = body.link;
+
+                if (event_link.substring(0, 4) !== 'http') {
+                    event_link = 'https://www.facebook.com' + event_link;
+                }
 
                 facebook.request(event_id + '?fields=id,owner,name,description,start_time,end_time,timezone,is_date_only,location,venue,privacy,updated_time,picture&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
                     if (body.picture && body.picture.data) {
@@ -47,6 +53,7 @@ function loadevents() {
                     }
 
                     var additional_data = body;
+                    additional_data.link = event_link;
 
                     facebook.request(event_id + '/invited?summary=1&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
                         additional_data.invited_summary = body.summary;

@@ -26,7 +26,21 @@
                     <div class="message short hideoverflow">
                         {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                     </div>
-                    {% if post.data.type === "link" %}
+                    {% if post.data.type === "link" && post.additional_data %}
+                        <div class="event">
+                            {% if post.additional_data.picture %}
+                                <a href="{{ post.additional_data.link }}" class="picture-link"><img src="{{ post.additional_data.picture.url|facebook_picture }}" class="picture" alt="{{ post.additional_data.name }}" /></a>
+                            {% endif %}
+                            <div class="meta">
+                                <a href="{{ post.additional_data.link }}" class="name">{{ post.additional_data.name }}</a>
+                                <div class="date"><a href="https://www.facebook.com/events/calendar/{{ post.additional_data.start_time|date("Y/F/j") }}">{{ post.additional_data.start_time|date("F j") }}</a>{% if !post.additional_data.is_date_only %} at {{ post.additional_data.start_time|date("g:ia") }}{% endif %}</div>
+                                {% if post.additional_data.location %}
+                                    <div class="location">{% if post.additional_data.venue %}<a href="https://www.facebook.com/{{ post.additional_data.venue.id }}">{% endif %}{{ post.additional_data.location }}{% if post.additional_data.venue %}</a>{% endif %}</div>
+                                {% endif %}
+                                <div class="invite"><a href="{{ post.additional_data.link }}" class="invite-link"><span class="invite-icon"> </span> Join</a>{% if post.additional_data.invited_summary.attending_count %} · {{ post.additional_data.invited_summary.attending_count }} {% if event_in_past %}went{% else %}is going{% endif %}{% endif %}</div>
+                            </div>
+                        </div>
+                    {% else if post.data.type === "link" && post.data.link %}
                         <div class="link">
                             {% if post.data.picture %}
                                 <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />

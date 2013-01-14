@@ -310,3 +310,54 @@ body {
     margin: 10px;
     display: none;
 }
+
+.facebook-post .invite-icon {
+    background-image: url("facebook-buttons2.png");
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    display: inline-block;
+    background-position: 0 -164px;
+    width: 12px;
+    height: 10px;
+    top: 2px;
+    left: 0;
+    position: absolute;
+    vertical-align: middle;
+}
+
+.facebook-post .invite-link {
+    padding-left: 17px;
+    position: relative;
+}
+
+.facebook-post .event {
+    vertical-align: top;
+}
+
+.facebook-post .event .meta a {
+    font-size: 11px;
+}
+
+.facebook-post .event .meta .date a, .facebook-post .event .meta .location a {
+    font-size: 11px;
+    color: gray;
+    font-weight: normal;
+}
+
+.facebook-post .event .picture-link {
+    float: left;
+    margin-right: 10px;
+}
+
+.facebook-post .event .picture {
+    width: 50px;
+    height: 50px;
+}
+
+.facebook-post .event .name {
+    display: block;
+}
+
+.facebook-post .event .invite {
+    margin-top: 10px;
+}

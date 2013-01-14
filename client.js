@@ -22,8 +22,6 @@ function createPost(post) {
                 'post': post
             })).data('foreign_timestamp', post.foreign_timestamp);
         case 'facebook':
-            // TODO: Remove
-            console.log(post.data, post.additional_data);
             var post_id = null;
             var post_link = null;
             var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
@@ -46,10 +44,18 @@ function createPost(post) {
                 });
             }
 
+            var event_in_past = false;
+            if (post.data.type === 'link' && post.additional_data && post.additional_data.start_time) {
+                if (new Date(post.additional_data.start_time) < new Date()) {
+                    event_in_past = true;
+                }
+            }
+
             return $(templates.facebook({
                 'post': post,
                 'post_link': post_link,
-                'post_id': post_id
+                'post_id': post_id,
+                'event_in_past': event_in_past
             })).data('foreign_timestamp', post.foreign_timestamp);
         default:
             console.error("Unknown post type: %s", post.type, post);

@@ -9,8 +9,9 @@ var request = require('request');
 
 var $ = require('jquery');
 
-var settings = require('./settings');
+var facebook = require('./facebook');
 var models = require('./models');
+var settings = require('./settings');
 
 swig.init({
     'root': __dirname + '/templates',
@@ -98,6 +99,12 @@ var sock = shoe(function (stream) {
                 posts = $.map(posts, function (post, i) {
                     post.fetch_timestamp = post._id.getTimestamp();
                     delete post._id;
+
+                    if (post.additional_data && post.additional_data.invited) {
+                        // Deletes list of invited people to Facebook event
+                        delete post.additional_data.invited;
+                    }
+
                     return post;
                 });
 
@@ -142,7 +149,7 @@ function connectToTwitterStream() {
                 models.storeTweet(data, notifyClients);
             }
             else {
-                console.log("Invalid Tweet", data);
+                console.error("Invalid Tweet", data);
                 throw new Error("Invalid Tweet");
             }
         }).on('delete', function (data) {
@@ -188,25 +195,12 @@ connectToTwitterStream();
 function fetchFacebookLatest() {
     var keywords = settings.FACEBOOK_QUERY.slice(0);
 
-    function processResponse(keyword, error, res, body) {
-        if (error || !res || res.statusCode !== 200) {
-            console.error("Facebook search (%s) fetch error", keyword, error, res && res.statusCode, body);
-            return;
-        }
-
-        try {
-            body = JSON.parse(body);
-        }
-        catch (e) {
-            console.error("Facebook search (%s) fetch error", keyword, e);
-            return;
-        }
-
+    function processResponse(keyword, body) {
         $.each(body.data, function (i, post) {
             models.storeFacebookPost(post, notifyClients);
         });
 
-        console.log("Facebook search done (%s)", keyword);
+        console.log("Facebook search done: %s", keyword);
     }
 
     function fetchFirst() {
@@ -217,10 +211,10 @@ function fetchFacebookLatest() {
         var keyword = keywords[0];
         keywords = keywords.slice(1);
 
-        console.log("Doing Facebook search (%s)", keyword);
+        console.log("Doing Facebook search: %s", keyword);
 
-        request('https://graph.facebook.com/search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (error, res, body) {
-            processResponse(keyword, error, res, body);
+        facebook.request('search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (body) {
+            processResponse(keyword, body);
             setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
         });
     }
@@ -231,20 +225,7 @@ function fetchFacebookLatest() {
 function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 
-    request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (error, res, body) {
-        if (error || !res || res.statusCode !== 200) {
-            console.error("Facebook page fetch error", error, res && res.statusCode, body);
-            return;
-        }
-
-        try {
-            body = JSON.parse(body);
-        }
-        catch (e) {
-            console.error("Facebook page fetch error", e);
-            return;
-        }
-
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (body) {
         $.each(body.data, function (i, post) {
             models.storeFacebookPost(post, notifyClients);
         });
@@ -254,20 +235,7 @@ function fetchFacebookPageLatest(limit) {
 }
 
 function checkFacebookPageAdded(cb) {
-    request('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (error, res, body) {
-        if (error || !res || res.statusCode !== 200) {
-            console.error("Facebook app check add to the page error", error, res && res.statusCode, body);
-            return;
-        }
-
-        try {
-            body = JSON.parse(body);
-        }
-        catch (e) {
-            console.error("Facebook app check add to the page error", e);
-            return;
-        }
-
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
         // TODO: Implement check and only if OK, call callback
 
         console.log("Facebook app %s added to the page %s", settings.FACEBOOK_APP_ID, settings.FACEBOOK_PAGE_ID);

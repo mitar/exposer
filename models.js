@@ -5,8 +5,9 @@ var $ = require('jquery');
 var settings = require('./settings');
 
 var db = mongoose.createConnection(settings.MONGODB_URL).on('error', function (err) {
-    // TODO: Handle (just throw an exception and let us be respawned?)
     console.error("MongoDB connection error: %s", err);
+    // TODO: Handle better, depending on the error?
+    throw new Error("MongoDB connection error");
 }).once('open', function () {
     console.log("MongoDB connection successful");
 });
@@ -31,6 +32,10 @@ var schema = mongoose.Schema({
         'required': true
     },
     'original_data': {
+        'type': mongoose.Schema.Types.Mixed,
+        'required': false
+    },
+    'additional_data': {
         'type': mongoose.Schema.Types.Mixed,
         'required': false
     }
@@ -73,7 +78,7 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
             // Post was not already stored
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
-            Post.findOne($.extend({}, {'$where': postNotFiltered}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true}).lean(true).exec(function (err, post) {
+            Post.findOne($.extend({}, {'$where': postNotFiltered}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'additional_data': true}).lean(true).exec(function (err, post) {
                 if (err) {
                     console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
                     return;

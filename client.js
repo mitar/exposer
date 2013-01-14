@@ -23,7 +23,7 @@ function createPost(post) {
             })).data('foreign_timestamp', post.foreign_timestamp);
         case 'facebook':
             // TODO: Remove
-            console.log(post.data);
+            console.log(post.data, post.additional_data);
             var post_id = null;
             var post_link = null;
             var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);

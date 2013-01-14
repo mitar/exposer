@@ -52,29 +52,14 @@ function loadevents() {
                         body.picture = body.picture.data;
                     }
 
-                    var additional_data = body;
-                    additional_data.link = event_link;
+                    post.additional_data = body;
+                    post.additional_data.link = event_link;
 
                     facebook.request(event_id + '/invited?summary=1&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
-                        additional_data.invited_summary = body.summary;
-                        additional_data.invited = body.data;
+                        post.additional_data.invited_summary = body.summary;
+                        post.save();
 
-                        function fetchInvited(body) {
-                            if (body.paging && body.paging.next) {
-                                facebook.request(body.paging.next + '&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
-                                    additional_data.invited.push.apply(additional_data.invited, body.data);
-                                    fetchInvited(body);
-                                });
-                            }
-                            else {
-                                post.additional_data = additional_data;
-                                post.save();
-
-                                console.log("Processed Facebook post and event: %s -> %s", post.foreign_id, event_id);
-                            }
-                        }
-
-                        fetchInvited(body);
+                        console.log("Processed Facebook post and event: %s -> %s", post.foreign_id, event_id);
                     });
                 });
             });

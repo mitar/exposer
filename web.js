@@ -100,11 +100,6 @@ var sock = shoe(function (stream) {
                     post.fetch_timestamp = post._id.getTimestamp();
                     delete post._id;
 
-                    if (post.additional_data && post.additional_data.invited) {
-                        // Deletes list of invited people to Facebook event
-                        delete post.additional_data.invited;
-                    }
-
                     return post;
                 });
 

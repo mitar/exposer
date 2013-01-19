@@ -35,13 +35,15 @@ function loadtweets() {
         }
 
         async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, function (err) {
+            models.Post.storeTweet(tweet, function (err, tweet) {
                 if (err) {
                     console.error(err);
                     return;
                 }
 
-                count++;
+                if (tweet) {
+                    count++;
+                }
             });
 
             // We handle error independently

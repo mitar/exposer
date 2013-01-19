@@ -177,7 +177,7 @@ $(document).ready(function () {
         'itemSelector': '.post',
         'getSortData': {
             'foreign_timestamp': function (elem) {
-                return elem.data('foreign_timestamp');
+                return Date.parse(elem.data('foreign_timestamp'));
             }
         },
         'sortBy': 'foreign_timestamp',

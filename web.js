@@ -7,6 +7,7 @@ var shoe = require('shoe');
 var swig = require('swig');
 var twitter = require('ntwitter');
 var url = require('url');
+var util = require('util');
 
 var _ = require('underscore');
 
@@ -105,12 +106,14 @@ var sock = shoe(function (stream) {
                     if (post.facebook_event_id) {
                         models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, {'event_id': true, 'data': true, 'invited_summary': true}).lean(true).exec(function (err, event) {
                             if (err) {
-                                cb(err, null);
+                                // TODO: Do we really want to pass an error about accessing the database to the client?
+                                cb(err);
                                 return;
                             }
 
                             if (!event) {
-                                cb("Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found", null);
+                                // TODO: Do we really want to pass an error about accessing the database to the client?
+                                cb("Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found");
                                 return;
                             }
 
@@ -151,7 +154,12 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-function notifyClients(post, event) {
+function notifyClients(err, post, event) {
+    if (err) {
+        console.error(err);
+        return;
+    }
+
     if (post) {
         async.forEach(clients, function (client, cb) {
             client.newPost(post);
@@ -213,10 +221,11 @@ function fetchTwitterLatest() {
         }
 
         async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, function (tweet) {
-                notifyClients(tweet);
+            models.Post.storeTweet(tweet, function (err, tweet) {
+                notifyClients(err, tweet);
+                // We handle error independently
+                cb(null);
             });
-            cb(null);
         }, function (err) {
             console.log("Twitter fetch done");
         });
@@ -226,20 +235,8 @@ function fetchTwitterLatest() {
 fetchTwitterLatest();
 connectToTwitterStream();
 
-function fetchFacebookLatest() {
+function fetchFacebookLatest(limit) {
     var keywords = settings.FACEBOOK_QUERY.slice(0);
-
-    function processResponse(keyword, body, callback) {
-        async.forEach(body.data, function (post, cb) {
-            models.Post.storeFacebookPost(post, function (post, event) {
-                notifyClients(post, event);
-            });
-            cb(null);
-        }, function (err) {
-            console.log("Facebook search done: %s", keyword);
-            callback();
-        });
-    }
 
     function fetchFirst() {
         if (keywords.length == 0) {
@@ -251,10 +248,24 @@ function fetchFacebookLatest() {
 
         console.log("Doing Facebook search: %s", keyword);
 
-        facebook.request('search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (body) {
-            processResponse(keyword, body, function () {
+        // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page
+        facebook.request('search?limit=' + limit + '&type=post&q=' + encodeURIComponent(keyword), function (err, body) {
+            if (err) {
+                console.error(err);
                 setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
-            });
+            }
+            else {
+                async.forEach(body.data, function (post, cb) {
+                    models.Post.storeFacebookPost(post, function (err, post, event) {
+                        notifyClients(err, post, event);
+                        // We handle error independently
+                        cb(null);
+                    });
+                }, function (err) {
+                    console.log("Facebook search done: %s", keyword);
+                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+                });
+            }
         });
     }
 
@@ -264,12 +275,13 @@ function fetchFacebookLatest() {
 function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 
-    facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (body) {
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?limit=' + limit, function (err, body) {
         async.forEach(body.data, function (post, cb) {
-            models.Post.storeFacebookPost(post, function (post, event) {
-                notifyClients(post, event);
+            models.Post.storeFacebookPost(post, function (err, post, event) {
+                notifyClients(err, post, event);
+                // We handle error independently
+                cb(null);
             });
-            cb(null);
         }, function (err) {
             console.log("Facebook page fetch done");
         });
@@ -277,18 +289,22 @@ function fetchFacebookPageLatest(limit) {
 }
 
 function checkFacebookPageAdded(cb) {
-    facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
-        // TODO: Implement check and only if OK, call callback
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs', function (err, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
 
+        // TODO: Implement check and only if OK, call callback
         console.log("Facebook app %s added to the page %s", settings.FACEBOOK_APP_ID, settings.FACEBOOK_PAGE_ID);
-        cb();
+        cb(null);
     });
 }
 
 function addAppToFacebookPage(cb) {
-    request.post('https://graph.facebook.com/' + settings.FACEBOOK_PAGE_ID + '/tabs?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&app_id=' + settings.FACEBOOK_APP_ID, function (error, res, body) {
-        if (error || !res || res.statusCode !== 200) {
-            console.error("Facebook app add to the page error", error, res && res.statusCode, body);
+    facebook.request.post(settings.FACEBOOK_PAGE_ID + '/tabs?app_id=' + settings.FACEBOOK_APP_ID, function (err, body) {
+        if (err) {
+            cb(err);
             return;
         }
 
@@ -296,9 +312,12 @@ function addAppToFacebookPage(cb) {
     });
 }
 
-function subscribeToFacebook() {
+function subscribeToFacebook(err) {
+    if (err) {
+        console.error(err);
+    }
     // TODO: Implement, currently set manually through Facebook web interface
-    // request.post('https://graph.facebook.com/' + settings.FACEBOOK_APP_ID + '/subscriptions', function (error, res, body) {
+    // facebook.request.post(settings.FACEBOOK_APP_ID + '/subscriptions', function (err, body) {
 }
 
 function enableFacebookStream() {

@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var util = require('util');
 
 var _ = require('underscore');
 
@@ -70,35 +71,38 @@ postSchema.statics.NOT_FILTERED =
         } \
     ";
 
-postSchema.methods.fetchFacebookEvent = function (callback) {
+postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
 
     if (post.data.type !== 'link' || post.data.link) {
         // Not a link to a Facebook event
-        callback(null);
+        cb(null, null);
         return;
     }
 
-    var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
+    var post_match = FACEBOOK_POST_REGEXP.exec(post.foreign_id);
     if (post_match) {
         var post_id = post_match[2];
     }
     else {
-        console.warning("Facebook post does not have ID: %s", post.foreign_id, post);
-        callback(null);
+        cb("Facebook post ID does not match regex: " + post.foreign_id);
         return;
     }
-    facebook.request(post_id + '?access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
+
+    facebook.request(post_id, function (err, body) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
         if (!body.link) {
-            console.error("Facebook post missing link: %s", post.foreign_id, body);
-            callback(null);
+            cb("Facebook post (" + post.foreign_id + ") is missing link: " + util.inspect(body));
             return;
         }
 
         var link_match = FACEBOOK_EVENT_REGEXP.exec(body.link);
         if (!link_match) {
-            console.warning("Facebook post invalid event link: %s", post.foreign_id, body);
-            callback(null);
+            cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body));
             return;
         }
 
@@ -109,7 +113,12 @@ postSchema.methods.fetchFacebookEvent = function (callback) {
             event_link = 'https://www.facebook.com' + event_link;
         }
 
-        facebook.request(event_id + '?fields=id,owner,name,description,start_time,end_time,timezone,is_date_only,location,venue,privacy,updated_time,picture&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
+        facebook.request(event_id + '?fields=id,owner,name,description,start_time,end_time,timezone,is_date_only,location,venue,privacy,updated_time,picture', function (err, body) {
+            if (err) {
+                cb(err);
+                return;
+            }
+
             if (body.picture && body.picture.data) {
                 body.picture = body.picture.data;
             }
@@ -120,13 +129,23 @@ postSchema.methods.fetchFacebookEvent = function (callback) {
             };
             event.data.link = event_link;
 
-            facebook.request(event_id + '/invited?summary=1&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
+            facebook.request(event_id + '/invited?summary=1', function (err, body) {
+                if (err) {
+                    cb(err);
+                    return;
+                }
+
                 event.invited_summary = body.summary;
                 event.invited = body.data;
 
                 function fetchInvited(body) {
                     if (body.paging && body.paging.next) {
-                        facebook.request(body.paging.next + '&access_token=' + settings.FACEBOOK_ACCESS_TOKEN, function (body) {
+                        facebook.request(body.paging.next, function (err, body) {
+                            if (err) {
+                                cb(err);
+                                return;
+                            }
+
                             event.invited.push.apply(event.invited, body.data);
                             fetchInvited(body);
                         });
@@ -134,8 +153,7 @@ postSchema.methods.fetchFacebookEvent = function (callback) {
                     else {
                         FacebookEvent.findOneAndUpdate({'event_id': event_id}, event, {'upsert': true}, function (err, facebook_event) {
                             if (err) {
-                                console.error("Facebook event (%s) store error: %s", event_id, err);
-                                callback(null);
+                                cb("Facebook event (" + event_id + ") store error: " + err);
                                 return;
                             }
 
@@ -145,12 +163,11 @@ postSchema.methods.fetchFacebookEvent = function (callback) {
                             post.facebook_event_id = facebook_event.event_id;
                             post.save(function (err, obj) {
                                 if (err) {
-                                    console.error("Facebook post (%s) store error: %s", post.foreign_id, err);
-                                    callback(null);
+                                    cb("Facebook post (" + post.foreign_id + ") store error: " + err);
                                     return;
                                 }
 
-                                callback(_.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                                cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
                             });
                         });
                     }
@@ -162,19 +179,18 @@ postSchema.methods.fetchFacebookEvent = function (callback) {
     });
 };
 
-postSchema.statics.fetchFacebookEvent = function (post_id, callback) {
+postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
     Post.findOne(_.extend({}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
         if (err) {
-            console.error("Post (%s/%s) load error: %s", 'facebook', post_id, err);
-            callback(null);
+            cb("Facebook post (" + post_id + ") load error: " + err);
             return;
         }
 
-        post.fetchFacebookEvent(callback);
+        post.fetchFacebookEvent(cb);
     });
 };
 
-postSchema.statics.storeTweet = function (tweet, callback) {
+postSchema.statics.storeTweet = function (tweet, cb) {
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
@@ -182,24 +198,41 @@ postSchema.statics.storeTweet = function (tweet, callback) {
         'text': tweet.text
     };
 
-    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet, callback);
+    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet, cb);
 };
 
-postSchema.statics.storeFacebookPost = function (post, callback) {
-    storePost(post.id, 'facebook', new Date(post.created_time), post, null, function (callback_post) {
+postSchema.statics.storeFacebookPost = function (post, cb) {
+    storePost(post.id, 'facebook', new Date(post.created_time), post, null, function (err, callback_post) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (!callback_post) {
+            cb(null, null);
+            return;
+        }
+
         var new_event = !callback_post.facebook_event_id;
         delete callback_post.facebook_event_id;
 
         // We check callback_post here, too, to optimize database access
         if (callback_post.data.type === 'link' && !callback_post.data.link) {
             // We fetch Facebook event for the first time or update existing
-            Post.fetchFacebookEvent(post.id, function (event) {
+            Post.fetchFacebookEvent(post.id, function (err, event) {
+                if (err) {
+                    // Just log the error and continue
+                    console.error(err);
+                }
+
+                event = event || null;
+
                 callback_post.facebook_event = event;
-                callback(callback_post, new_event ? event : null);
+                cb(null, callback_post, new_event ? event : null);
             });
         }
         else {
-            callback(callback_post, null);
+            cb(null, callback_post, null);
         }
     });
 };
@@ -228,12 +261,11 @@ var facebookEventSchema = mongoose.Schema({
 
 var FacebookEvent = db.model('FacebookEvent', facebookEventSchema);
 
-function storePost(foreign_id, type, foreign_timestamp, data, original_data, callback) {
+function storePost(foreign_id, type, foreign_timestamp, data, original_data, cb) {
     var query = {'foreign_id': foreign_id, 'type': type};
-    // TODO: Does this clear event_id on update?
     Post.findOneAndUpdate(query, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
-            console.error("Post (%s/%s) store error: %s", type, foreign_id, err);
+            cb("Post (" + type + "/" + foreign_id + ") store error: " + err);
             return;
         }
 
@@ -244,12 +276,13 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
             // We also want just some fields and a lean object
             Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).lean(true).exec(function (err, post) {
                 if (err) {
-                    console.error("Post (%s/%s) load error: %s", type, foreign_id, err);
+                    cb("Post (" + type + "/" + foreign_id + ") load error: " + err);
                     return;
                 }
 
                 if (!post) {
                     // Filtered out
+                    cb(null, null);
                     return;
                 }
 
@@ -261,10 +294,12 @@ function storePost(foreign_id, type, foreign_timestamp, data, original_data, cal
                     delete post.facebook_event_id;
                 }
 
-                if (callback) {
-                    callback(post);
-                }
+                cb(null, post);
             });
+        }
+        else {
+            // Post was already stored
+            cb(null, null);
         }
     });
 }

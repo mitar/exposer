@@ -28,27 +28,30 @@ function loadtweets() {
             return;
         }
 
-        console.log("Processing");
-
         if (data.statuses.length === 0) {
-            console.log("%s new tweets fetched", count, max_id);
+            console.log("%s new tweets fetched overall", count);
             process.exit(0);
+            return;
         }
 
         async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, function () {
-                count++;
-
-                if (count % 100 == 0) {
-                    console.log("%s new tweets fetched", count, max_id);
+            models.Post.storeTweet(tweet, function (err) {
+                if (err) {
+                    console.error(err);
+                    return;
                 }
 
-                cb(null);
+                count++;
             });
+
+            // We handle error independently
+            cb(null);
         }, function (err) {
+            console.log("%s new tweets fetched overall", count);
+
             var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
             if (!max_id_match) {
-                // TODO: Should exit here, no?
+                process.exit(0);
                 return;
             }
 

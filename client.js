@@ -1,5 +1,5 @@
-var shoe = require('shoe');
 var dnode = require('dnode');
+var shoe = require('shoe');
 var swig = require('swig/lib/swig');
 
 var templates = {
@@ -45,8 +45,8 @@ function createPost(post) {
             }
 
             var event_in_past = false;
-            if (post.data.type === 'link' && post.additional_data && post.additional_data.start_time) {
-                if (new Date(post.additional_data.start_time) < new Date()) {
+            if (post.facebook_event && post.facebook_event.start_time) {
+                if (new Date(post.facebook_event.start_time) < new Date()) {
                     event_in_past = true;
                 }
             }
@@ -167,6 +167,11 @@ function loadMorePosts(remote) {
     });
 }
 
+function displayNewEvent(event) {
+    // TOOD: Implement
+    console.log(event);
+}
+
 $(document).ready(function () {
     $('#posts').isotope({
         'itemSelector': '.post',
@@ -187,6 +192,9 @@ $(document).ready(function () {
     var d = dnode({
         'newPost': function (post) {
             displayNewPost(post);
+        },
+        'newEvent': function (event) {
+            displayNewEvent(event);
         }
     });
     d.on('remote', function (remote) {

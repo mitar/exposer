@@ -1,13 +1,14 @@
-var http = require('http');
-var url = require('url');
-var shoe = require('shoe');
-var ecstatic = require('ecstatic')(__dirname + '/static');
+var async = require('async');
 var dnode = require('dnode');
-var twitter = require('ntwitter');
-var swig = require('swig');
+var ecstatic = require('ecstatic')(__dirname + '/static');
+var http = require('http');
 var request = require('request');
+var shoe = require('shoe');
+var swig = require('swig');
+var twitter = require('ntwitter');
+var url = require('url');
 
-var $ = require('jquery');
+var _ = require('underscore');
 
 var facebook = require('./facebook');
 var models = require('./models');
@@ -90,20 +91,46 @@ var sock = shoe(function (stream) {
             // TODO: Fix comment
             // Sorted by _id which is monotonic and we are using a simple counter because we are not deleting any posts
             // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
-            models.Post.find($.extend({}, {'$where': models.postNotFiltered}, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'additional_data': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
+            models.Post.find(_.extend({}, {'$where': models.Post.NOT_FILTERED}, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
+                    // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err);
                     return;
                 }
 
-                posts = $.map(posts, function (post, i) {
+                async.map(posts, function (post, cb) {
                     post.fetch_timestamp = post._id.getTimestamp();
                     delete post._id;
 
-                    return post;
-                });
+                    if (post.facebook_event_id) {
+                        models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, {'event_id': true, 'data': true, 'invited_summary': true}).lean(true).exec(function (err, event) {
+                            if (err) {
+                                cb(err, null);
+                                return;
+                            }
 
-                cb(null, posts);
+                            if (!event) {
+                                cb("Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found", null);
+                                return;
+                            }
+
+                            event.fetch_timestamp = event._id.getTimestamp();
+                            delete event._id;
+
+                            post.facebook_event = event;
+                            delete post.facebook_event_id;
+
+                            cb(null, post);
+                        });
+                    }
+                    else {
+                        delete post.facebook_event_id;
+                        cb(null, post);
+                    }
+                }, function (err, posts) {
+                    // TODO: Do we really want to pass an error about accessing the database to the client?
+                    cb(err, posts);
+                });
             });
         }
     });
@@ -124,10 +151,19 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
-function notifyClients(post) {
-    $.each(clients, function (i, client) {
-        client.newPost(post);
-    });
+function notifyClients(post, event) {
+    if (post) {
+        async.forEach(clients, function (client, cb) {
+            client.newPost(post);
+            cb(null);
+        });
+    }
+    if (event) {
+        async.forEach(clients, function (client, cb) {
+            client.newEvent(event);
+            cb(null);
+        });
+    }
 }
 
 function connectToTwitterStream() {
@@ -141,7 +177,7 @@ function connectToTwitterStream() {
                 connectToTwitterStream();
             }
             else if (data.from_user || data.user) {
-                models.storeTweet(data, notifyClients);
+                models.Post.storeTweet(data, notifyClients);
             }
             else {
                 console.error("Invalid Tweet", data);
@@ -176,11 +212,14 @@ function fetchTwitterLatest() {
             return;
         }
 
-        $.each(data.statuses, function (i, tweet) {
-            models.storeTweet(tweet, notifyClients);
+        async.forEach(data.statuses, function (tweet, cb) {
+            models.Post.storeTweet(tweet, function (tweet) {
+                notifyClients(tweet);
+            });
+            cb(null);
+        }, function (err) {
+            console.log("Twitter fetch done");
         });
-
-        console.log("Twitter fetch done");
     });
 }
 
@@ -190,12 +229,16 @@ connectToTwitterStream();
 function fetchFacebookLatest() {
     var keywords = settings.FACEBOOK_QUERY.slice(0);
 
-    function processResponse(keyword, body) {
-        $.each(body.data, function (i, post) {
-            models.storeFacebookPost(post, notifyClients);
+    function processResponse(keyword, body, callback) {
+        async.forEach(body.data, function (post, cb) {
+            models.Post.storeFacebookPost(post, function (post, event) {
+                notifyClients(post, event);
+            });
+            cb(null);
+        }, function (err) {
+            console.log("Facebook search done: %s", keyword);
+            callback();
         });
-
-        console.log("Facebook search done: %s", keyword);
     }
 
     function fetchFirst() {
@@ -209,8 +252,9 @@ function fetchFacebookLatest() {
         console.log("Doing Facebook search: %s", keyword);
 
         facebook.request('search?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=1000&type=post&q=' + encodeURIComponent(keyword), function (body) {
-            processResponse(keyword, body);
-            setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+            processResponse(keyword, body, function () {
+                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+            });
         });
     }
 
@@ -221,11 +265,14 @@ function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?access_token=' + settings.FACEBOOK_ACCESS_TOKEN + '&limit=' + limit, function (body) {
-        $.each(body.data, function (i, post) {
-            models.storeFacebookPost(post, notifyClients);
+        async.forEach(body.data, function (post, cb) {
+            models.Post.storeFacebookPost(post, function (post, event) {
+                notifyClients(post, event);
+            });
+            cb(null);
+        }, function (err) {
+            console.log("Facebook page fetch done");
         });
-
-        console.log("Facebook page fetch done");
     });
 }
 

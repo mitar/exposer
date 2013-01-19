@@ -1,9 +1,8 @@
+var async = require('async');
 var twitter = require('ntwitter');
 
-var $ = require('jquery');
-
-var settings = require('./settings');
 var models = require('./models');
+var settings = require('./settings');
 
 // Rate limit is 180 requests per 15 minutes
 var LOAD_INTERVAL = 15 * 60 * 1000 / 180;
@@ -29,31 +28,34 @@ function loadtweets() {
             return;
         }
 
-        console.log("Processing")
+        console.log("Processing");
 
         if (data.statuses.length === 0) {
             console.log("%s new tweets fetched", count, max_id);
             process.exit(0);
         }
 
-        $.each(data.statuses, function (i, tweet) {
-            models.storeTweet(tweet, function () {
+        async.forEach(data.statuses, function (tweet, cb) {
+            models.Post.storeTweet(tweet, function () {
                 count++;
 
                 if (count % 100 == 0) {
                     console.log("%s new tweets fetched", count, max_id);
                 }
+
+                cb(null);
             });
+        }, function (err) {
+            var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
+            if (!max_id_match) {
+                // TODO: Should exit here, no?
+                return;
+            }
+
+            max_id = max_id_match[1];
+
+            setTimeout(loadtweets, LOAD_INTERVAL);
         });
-
-        var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
-        if (!max_id_match) {
-            return;
-        }
-
-        max_id = max_id_match[1];
-
-        setTimeout(loadtweets, LOAD_INTERVAL);
     });
 }
 

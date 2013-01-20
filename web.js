@@ -260,20 +260,20 @@ function fetchFacebookLatest(limit) {
         facebook.request('search?limit=' + limit + '&type=post&q=' + encodeURIComponent(keyword), function (err, body) {
             if (err) {
                 console.error(err);
-                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                return;
             }
-            else {
-                async.forEach(body.data, function (post, cb) {
-                    models.Post.storeFacebookPost(post, 'search', function (err, post, event) {
-                        notifyClients(err, post, event);
-                        // We handle error independently
-                        cb(null);
-                    });
-                }, function (err) {
-                    console.log("Facebook search done: %s", keyword);
-                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_BETWEEN_KEYWORDS);
+
+            async.forEach(body.data, function (post, cb) {
+                models.Post.storeFacebookPost(post, 'search', function (err, post, event) {
+                    notifyClients(err, post, event);
+                    // We handle error independently
+                    cb(null);
                 });
-            }
+            }, function (err) {
+                console.log("Facebook search done: %s", keyword);
+                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+            });
         });
     }
 

@@ -144,7 +144,8 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
 
             var event = {
                 'event_id': event_id,
-                'data': body
+                'data': body,
+                '$addToSet': {'posts': post.foreign_id}
             };
             event.data.link = event_link;
 
@@ -176,17 +177,25 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                                 return;
                             }
 
-                            facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
-                            delete facebook_event._id;
-
-                            post.facebook_event_id = facebook_event.event_id;
-                            post.save(function (err, obj) {
+                            facebook_event.postFetch(function (err) {
                                 if (err) {
-                                    cb("Facebook post (" + post.foreign_id + ") store error: " + err);
+                                    cb("Facebook event (" + event_id + ") post fetch error: " + err);
                                     return;
                                 }
 
-                                cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                                facebook_event = facebook_event.toObject();
+                                facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
+                                delete facebook_event._id;
+
+                                post.facebook_event_id = facebook_event.event_id;
+                                post.save(function (err, obj) {
+                                    if (err) {
+                                        cb("Facebook post (" + post.foreign_id + ") store error: " + err);
+                                        return;
+                                    }
+
+                                    cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                                });
                             });
                         });
                     }
@@ -256,6 +265,10 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
     });
 };
 
+postSchema.statics.createTypeForeignId = function (type, foreign_id) {
+    return type + '/' + foreign_id;
+};
+
 var Post = db.model('Post', postSchema);
 
 var facebookEventSchema = mongoose.Schema({
@@ -275,8 +288,33 @@ var facebookEventSchema = mongoose.Schema({
     'invited': [{
         'type': mongoose.Schema.Types.Mixed,
         'required': false
-    }]
+    }],
+    'posts': [{
+        'type': String,
+        'required': false
+    }],
+    'recursive': {
+        'type': Boolean,
+        'index': true,
+        'required': true
+    }
 });
+
+facebookEventSchema.methods.postFetch = function (cb) {
+    var event = this;
+
+    Post.find(_.extend({}, {'type': 'facebook', 'sources': 'tagged', 'foreign_id': {'$in': event.posts}}, settings.POSTS_FILTER)).count(function (err, count) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        event.recursive = count > 0;
+        event.save(function (err, obj) {
+            cb(err);
+        });
+    });
+};
 
 var FacebookEvent = db.model('FacebookEvent', facebookEventSchema);
 
@@ -287,9 +325,9 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
         source = [source];
     }
 
-    Post.findOneAndUpdate(query, {'type_foreign_id': type + '/' + foreign_id, 'foreign_timestamp': foreign_timestamp, '$addToSet': {'sources': {'$each': source}}, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
+    Post.findOneAndUpdate(query, {'type_foreign_id': Post.createTypeForeignId(type, foreign_id), 'foreign_timestamp': foreign_timestamp, '$addToSet': {'sources': {'$each': source}}, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
-            cb("Post (" + type + "/" + foreign_id + ") store error: " + err);
+            cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") store error: " + err);
             return;
         }
 
@@ -300,7 +338,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
             // We also want just some fields and a lean object
             Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).lean(true).exec(function (err, post) {
                 if (err) {
-                    cb("Post (" + type + "/" + foreign_id + ") load error: " + err);
+                    cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") load error: " + err);
                     return;
                 }
 

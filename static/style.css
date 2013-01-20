@@ -361,3 +361,23 @@ body {
 .facebook-post .event .invite {
     margin-top: 10px;
 }
+
+.facebook-post .like-icon {
+    background-image: url("facebook-buttons1.png");
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    background-position: 0 -52px;
+    display: block;
+    height: 13px;
+    width: 15px;
+}
+
+.facebook-post .like-link, .facebook-post .like-nolink {
+    margin-right: 5px;
+    margin-top: -1px;
+    display: block;
+}
+
+.facebook-post .like-link-float {
+    float: left;
+}

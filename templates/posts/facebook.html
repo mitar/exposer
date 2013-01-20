@@ -113,7 +113,16 @@
                         {% endif %}
                     </div>
                     {% if post.data.likes %}
-                        <div class="likes"><a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{{ post.data.likes.count }} people</a> like this.</div>
+                        <div class="likes">
+                            <div class="like-link-float">
+                                {% if post.data.actions.like %}
+                                    <a class="like-link" href="{{ post.data.actions.like.link }}" title="Like this item"><span class="like-icon"> </span></a>
+                                {% else %}
+                                    <span class="like-icon like-nolink"> </span>
+                                {% endif %}
+                            </div>
+                            <a href="https://www.facebook.com/browse/likes?id={{ post_id }}">{{ post.data.likes.count }} people</a> like this.
+                        </div>
                     {% endif %}
                 </div>
             </blockquote>

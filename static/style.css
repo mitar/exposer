@@ -158,6 +158,7 @@ body {
 
 .facebook-post .actions .shares {
     float: right;
+    margin-left: 5px;
 }
 
 .facebook-post .likes {
@@ -380,4 +381,22 @@ body {
 
 .facebook-post .like-link-float {
     float: left;
+}
+
+.facebook-post .share-icon {
+    background-image: url("facebook-buttons3.png");
+    background-repeat: no-repeat;
+    background-size: auto auto;
+    display: block;
+    background-position: -36px -76px;
+    height: 16px;
+    left: 0;
+    position: absolute;
+    top: -1px;
+    width: 14px;
+}
+
+.facebook-post .share-link {
+    padding-left: 18px;
+    position: relative;
 }

@@ -35,7 +35,7 @@ function loadtweets() {
         }
 
         async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, function (err, tweet) {
+            models.Post.storeTweet(tweet, 'search', function (err, tweet) {
                 if (err) {
                     console.error(err);
                     return;

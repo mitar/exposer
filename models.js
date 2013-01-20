@@ -20,6 +20,7 @@ var db = mongoose.createConnection(settings.MONGODB_URL).on('error', function (e
 var postSchema = mongoose.Schema({
     'type': {
         'type': String,
+        'index': true,
         'required': true
     },
     'foreign_id': {
@@ -45,8 +46,13 @@ var postSchema = mongoose.Schema({
         'type': mongoose.Schema.Types.Mixed,
         'required': false
     },
+    'sources': [{
+        'type': String,
+        'required': false
+    }],
     'facebook_event_id': {
         'type': String,
+        'index': true,
         'required': false
     }
 });
@@ -67,8 +73,16 @@ postSchema.statics.NOT_FILTERED =
                 } \
                 return false; \
             } \
+            function trusted() { \
+                for (var i in this) { \
+                    if (this[i] === 'tagged') { \
+                        return true; \
+                    } \
+                } \
+                return false; \
+            } \
             if (this.type === 'facebook') { \
-                return regexMatch(this); \
+                return trusted() || regexMatch(this); \
             } \
             else { \
                 return true; \
@@ -195,7 +209,7 @@ postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
     });
 };
 
-postSchema.statics.storeTweet = function (tweet, cb) {
+postSchema.statics.storeTweet = function (tweet, source, cb) {
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
@@ -203,11 +217,11 @@ postSchema.statics.storeTweet = function (tweet, cb) {
         'text': tweet.text
     };
 
-    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), data, tweet, cb);
+    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), source, data, tweet, cb);
 };
 
-postSchema.statics.storeFacebookPost = function (post, cb) {
-    storePost(post.id, 'facebook', new Date(post.created_time), post, null, function (err, callback_post) {
+postSchema.statics.storeFacebookPost = function (post, source, cb) {
+    storePost(post.id, 'facebook', new Date(post.created_time), source, post, null, function (err, callback_post) {
         if (err) {
             cb(err);
             return;
@@ -266,9 +280,14 @@ var facebookEventSchema = mongoose.Schema({
 
 var FacebookEvent = db.model('FacebookEvent', facebookEventSchema);
 
-function storePost(foreign_id, type, foreign_timestamp, data, original_data, cb) {
+function storePost(foreign_id, type, foreign_timestamp, source, data, original_data, cb) {
     var query = {'foreign_id': foreign_id, 'type': type};
-    Post.findOneAndUpdate(query, {'type_foreign_id': type + '/' + foreign_id, 'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
+
+    if (!_.isArray(source)) {
+        source = [source];
+    }
+
+    Post.findOneAndUpdate(query, {'type_foreign_id': type + '/' + foreign_id, 'foreign_timestamp': foreign_timestamp, '$addToSet': {'sources': {'$each': source}}, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
             cb("Post (" + type + "/" + foreign_id + ") store error: " + err);
             return;

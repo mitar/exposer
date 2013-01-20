@@ -193,7 +193,7 @@ function connectToTwitterStream() {
                 connectToTwitterStream();
             }
             else if (data.from_user || data.user) {
-                models.Post.storeTweet(data, notifyClients);
+                models.Post.storeTweet(data, 'stream', notifyClients);
             }
             else {
                 console.error("Invalid Tweet", data);
@@ -229,7 +229,7 @@ function fetchTwitterLatest() {
         }
 
         async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, function (err, tweet) {
+            models.Post.storeTweet(tweet, 'search', function (err, tweet) {
                 notifyClients(err, tweet);
                 // We handle error independently
                 cb(null);
@@ -264,7 +264,7 @@ function fetchFacebookLatest(limit) {
             }
             else {
                 async.forEach(body.data, function (post, cb) {
-                    models.Post.storeFacebookPost(post, function (err, post, event) {
+                    models.Post.storeFacebookPost(post, 'search', function (err, post, event) {
                         notifyClients(err, post, event);
                         // We handle error independently
                         cb(null);
@@ -285,7 +285,7 @@ function fetchFacebookPageLatest(limit) {
 
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?limit=' + limit, function (err, body) {
         async.forEach(body.data, function (post, cb) {
-            models.Post.storeFacebookPost(post, function (err, post, event) {
+            models.Post.storeFacebookPost(post, 'tagged', function (err, post, event) {
                 notifyClients(err, post, event);
                 // We handle error independently
                 cb(null);

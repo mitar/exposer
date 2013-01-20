@@ -12,8 +12,9 @@ var $ = require('jquery-browserify');
 var FACEBOOK_POST_REGEXP = /(\d+)_(\d+)/;
 var DOTS = /\.\.\.$/;
 
-var postsCount = 0;
 var displayedPosts = {};
+var oldestDisplayedPostsDate = null;
+var oldestDisplayedPostsIds = {};
 
 function createPost(post) {
     switch (post.type) {
@@ -100,38 +101,28 @@ function shortenPosts() {
 }
 
 function displayNewPost(post) {
-    if (displayedPosts[post.type + '-' + post.foreign_id]) {
-        return;
-    }
-    displayedPosts[post.type + '-' + post.foreign_id] = true;
-    postsCount++;
-
-    var postElement = createPost(post);
-    if (postElement) {
-        $('#posts').isotope('insert', postElement, function () {
-            renderTweets();
-            shortenPosts();
-
-            // Twitter and Facebook posts can resize after loading
-            // because images and other media can be loaded, so we
-            // wait a bit and relayout posts again
-            // TODO: Should call this probably after all DOM manipulations and media has loaded - is there such an event?
-            setTimeout(postsRelayout, 1000);
-            setTimeout(postsRelayout, 5000);
-            setTimeout(postsRelayout, 30000);
-            setTimeout(postsRelayout, 60000);
-        });
-    }
+    displayOldPosts([post]);
 }
 
 function displayOldPosts(posts) {
     var postElements = $();
     $.each(posts, function (i, post) {
-        if (displayedPosts[post.type + '-' + post.foreign_id]) {
+        var id = post.type + '/' + post.foreign_id;
+
+        if (displayedPosts[id]) {
             return;
         }
-        displayedPosts[post.type + '-' + post.foreign_id] = true;
-        postsCount++;
+        displayedPosts[id] = true;
+
+        var newPostDate = new Date(post.foreign_timestamp);
+        if (!oldestDisplayedPostsDate || newPostDate < oldestDisplayedPostsDate) {
+            oldestDisplayedPostsDate = newPostDate;
+            oldestDisplayedPostsIds = {};
+            oldestDisplayedPostsIds[id] = true;
+        }
+        else if (newPostDate === oldestDisplayedPostsDate) {
+            oldestDisplayedPostsIds[id] = true;
+        }
 
         postElements = postElements.add(createPost(post));
     });
@@ -153,11 +144,16 @@ function displayOldPosts(posts) {
     }
 }
 
+function objectKeys(obj) {
+    var keys = [];
+    $.each(obj, function (key, value) {
+        keys.push(key);
+    });
+    return keys;
+}
+
 function loadMorePosts(remote) {
-    // TODO: Fix comment
-    // We can use a simple counter because we are not deleting any posts
-    // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
-    remote.getPosts(postsCount, 10, function (err, posts) {
+    remote.getPosts(oldestDisplayedPostsDate, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
         if (err) {
             console.error(err);
             return;
@@ -198,14 +194,7 @@ $(document).ready(function () {
         }
     });
     d.on('remote', function (remote) {
-        remote.getPosts(0, 10, function (err, posts) {
-            if (err) {
-                console.error(err);
-                return;
-            }
-
-            displayOldPosts(posts);
-        });
+        loadMorePosts(remote);
 
         $('#load-posts').click(function (event) {
             loadMorePosts(remote);
@@ -215,7 +204,7 @@ $(document).ready(function () {
             // Two screens before the end we start loading more posts
             if (document.body.scrollHeight - $(this).scrollTop() <= 3 * $(this).height()) {
                 // Make sure initial posts have been already loaded
-                if (postsCount > 0) {
+                if (!$.isEmptyObject(displayedPosts)) {
                     loadMorePosts(remote);
                 }
             }

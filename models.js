@@ -24,6 +24,11 @@ var postSchema = mongoose.Schema({
     },
     'foreign_id': {
         'type': String,
+        'index': true,
+        'required': true
+    },
+    'type_foreign_id': {
+        'type': String,
         'unique': true,
         'required': true
     },
@@ -263,7 +268,7 @@ var FacebookEvent = db.model('FacebookEvent', facebookEventSchema);
 
 function storePost(foreign_id, type, foreign_timestamp, data, original_data, cb) {
     var query = {'foreign_id': foreign_id, 'type': type};
-    Post.findOneAndUpdate(query, {'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
+    Post.findOneAndUpdate(query, {'type_foreign_id': type + '/' + foreign_id, 'foreign_timestamp': foreign_timestamp, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
             cb("Post (" + type + "/" + foreign_id + ") store error: " + err);
             return;

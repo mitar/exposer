@@ -83,16 +83,24 @@ var clients = [];
 
 var sock = shoe(function (stream) {
     var d = dnode({
-        'getPosts': function (skip, limit, cb) {
-            skip = parseInt(skip) || 0;
+        'getPosts': function (since, except, limit, cb) {
             limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
             if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
                 limit = settings.MAX_POSTS_PER_REQUEST;
             }
-            // TODO: Fix comment
-            // Sorted by _id which is monotonic and we are using a simple counter because we are not deleting any posts
-            // Otherwise, if we would be deleting posts, simply counting could make us skip some posts
-            models.Post.find(_.extend({}, {'$where': models.Post.NOT_FILTERED}, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).sort({'foreign_timestamp': 'desc'}).skip(skip).limit(limit).lean(true).exec(function (err, posts) {
+
+            var query = {'$where': models.Post.NOT_FILTERED};
+            if (since) {
+                since = new Date(since);
+                if (isFinite(since)) {
+                    query.foreign_timestamp = {'$lte': since};
+                }
+            }
+            if (_.isArray(except)) {
+                query.type_foreign_id = {'$nin': except};
+            }
+
+            models.Post.find(_.extend({}, query, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err);

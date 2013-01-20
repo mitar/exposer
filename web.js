@@ -280,6 +280,7 @@ function fetchFacebookLatest(limit) {
     fetchFirst();
 }
 
+// TODO: If limit is larger than reponse page limit we should request multiple response pages
 function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 

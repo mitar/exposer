@@ -29,7 +29,7 @@ var postSchema = mongoose.Schema({
     },
     'type_foreign_id': {
         'type': String,
-        'index': true,
+        'unique': true,
         'required': true
     },
     'foreign_timestamp': {

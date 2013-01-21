@@ -255,8 +255,8 @@ function fetchFacebookLatest(limit) {
 
         console.log("Doing Facebook search: %s", keyword);
 
-        // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page
-        facebook.request('search?limit=' + limit + '&type=post&q=' + encodeURIComponent(keyword), function (err, body) {
+        // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page (5000)
+        facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit || 5000, function (err, body) {
             if (err) {
                 console.error(err);
                 setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
@@ -279,11 +279,10 @@ function fetchFacebookLatest(limit) {
     fetchFirst();
 }
 
-// TODO: If limit is larger than reponse page limit we should request multiple response pages
 function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 
-    facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged?limit=' + limit, function (err, body) {
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged', limit, function (err, body) {
         async.forEach(body.data, function (post, cb) {
             models.Post.storeFacebookPost(post, 'tagged', function (err, post, event) {
                 notifyClients(err, post, event);
@@ -313,8 +312,7 @@ function fetchFacebookRecursiveEventsLatest(limit) {
 
             console.log("Doing Facebook recursive event fetch: %s", event.event_id);
 
-            // TODO: If limit is larger than reponse page limit we should request multiple response pages
-            facebook.request(event.event_id + '/feed?limit=' + limit, function (err, body) {
+            facebook.request(event.event_id + '/feed', limit, function (err, body) {
                 if (err) {
                     console.error(err);
                     setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
@@ -339,7 +337,7 @@ function fetchFacebookRecursiveEventsLatest(limit) {
 }
 
 function checkFacebookPageAdded(cb) {
-    facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs', function (err, body) {
+    facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs', null, function (err, body) {
         if (err) {
             cb(err);
             return;
@@ -374,16 +372,16 @@ function enableFacebookStream() {
     addAppToFacebookPage(subscribeToFacebook);
 }
 
-// TODO: We should fetch into the past until we get to posts we already have
-fetchFacebookPageLatest(1000);
-fetchFacebookLatest(1000);
-fetchFacebookRecursiveEventsLatest(1000);
+// Fetch all posts
+fetchFacebookLatest(5000);
+fetchFacebookPageLatest(0);
+fetchFacebookRecursiveEventsLatest(0);
+
 enableFacebookStream();
 
 function facebookPolling() {
-    // TODO: We should fetch into the past until we get to posts we already have
-    fetchFacebookPageLatest(1000);
     fetchFacebookLatest(1000);
+    fetchFacebookPageLatest(1000);
     fetchFacebookRecursiveEventsLatest(1000);
 }
 

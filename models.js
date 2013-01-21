@@ -123,7 +123,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
         return;
     }
 
-    facebook.request(post_id, function (err, body) {
+    facebook.request(post_id, null, function (err, body) {
         if (err) {
             cb(err);
             return;
@@ -160,7 +160,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             event_link = 'https://www.facebook.com' + event_link;
         }
 
-        facebook.request(event_id + '?fields=id,owner,name,description,start_time,end_time,timezone,is_date_only,location,venue,privacy,updated_time,picture', function (err, body) {
+        facebook.request(event_id + '?fields=id,owner,name,description,start_time,end_time,timezone,is_date_only,location,venue,privacy,updated_time,picture', null, function (err, body) {
             if (err) {
                 cb(err);
                 return;
@@ -177,7 +177,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             };
             event.data.link = event_link;
 
-            facebook.request(event_id + '/invited?summary=1', function (err, body) {
+            facebook.request(event_id + '/invited?summary=1', 0, function (err, body) {
                 if (err) {
                     cb(err);
                     return;
@@ -186,51 +186,34 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                 event.invited_summary = body.summary;
                 event.invited = body.data;
 
-                function fetchInvited(body) {
-                    if (body.paging && body.paging.next) {
-                        facebook.request(body.paging.next, function (err, body) {
+                FacebookEvent.findOneAndUpdate({'event_id': event_id}, event, {'upsert': true}, function (err, facebook_event) {
+                    if (err) {
+                        cb("Facebook event (" + event_id + ") store error: " + err);
+                        return;
+                    }
+
+                    facebook_event.postFetch(function (err) {
+                        if (err) {
+                            cb("Facebook event (" + event_id + ") post fetch error: " + err);
+                            return;
+                        }
+
+                        facebook_event = facebook_event.toObject();
+                        facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
+                        delete facebook_event._id;
+
+                        post.facebook_event_id = facebook_event.event_id;
+                        post.save(function (err, obj) {
                             if (err) {
-                                cb(err);
+                                cb("Facebook post (" + post.foreign_id + ") store error: " + err);
                                 return;
                             }
 
-                            event.invited.push.apply(event.invited, body.data);
-                            fetchInvited(body);
+                            // TODO: Do we really want to return all data?
+                            cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
                         });
-                    }
-                    else {
-                        FacebookEvent.findOneAndUpdate({'event_id': event_id}, event, {'upsert': true}, function (err, facebook_event) {
-                            if (err) {
-                                cb("Facebook event (" + event_id + ") store error: " + err);
-                                return;
-                            }
-
-                            facebook_event.postFetch(function (err) {
-                                if (err) {
-                                    cb("Facebook event (" + event_id + ") post fetch error: " + err);
-                                    return;
-                                }
-
-                                facebook_event = facebook_event.toObject();
-                                facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
-                                delete facebook_event._id;
-
-                                post.facebook_event_id = facebook_event.event_id;
-                                post.save(function (err, obj) {
-                                    if (err) {
-                                        cb("Facebook post (" + post.foreign_id + ") store error: " + err);
-                                        return;
-                                    }
-
-                                    // TODO: Do we really want to return all data?
-                                    cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
-                                });
-                            });
-                        });
-                    }
-                }
-
-                fetchInvited(body);
+                    });
+                });
             });
         });
     });

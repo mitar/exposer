@@ -54,7 +54,13 @@ var postSchema = mongoose.Schema({
         'type': String,
         'index': true,
         'required': false
-    }
+    },
+    'merged_to': {
+        'type': String
+    },
+    'merged_from': [{
+        'type': String
+    }]
 });
 
 postSchema.statics.NOT_FILTERED =

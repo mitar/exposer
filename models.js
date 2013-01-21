@@ -389,7 +389,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
             // We also want just some fields and a lean object
-            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
+            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED, 'merged_to': null}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
                 if (err) {
                     cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") load error: " + err);
                     return;

@@ -1,49 +1,90 @@
 var async = require('async');
+var moment = require('moment');
 
 var _ = require('underscore');
 
 var models = require('./models');
 var settings = require('./settings');
 
-var EQUALITY_POST_FIELDS = ['from', 'to', 'message', 'message_tags', 'type', 'link', 'name', 'caption', 'picture', 'description', 'story', 'story_tags'];
+var EQUALITY_POST_FIELDS = {
+    'from': '$data.from',
+    'to': '$data.to',
+    'message': '$data.message',
+    'message_tags': '$data.message_tags',
+    'type': '$data.type',
+    'link': '$data.link',
+    'name': '$data.name',
+    'caption': '$data.caption',
+    'picture': '$data.picture',
+    'description': '$data.description',
+    'facebook_event_id': '$facebook_event_id'
+};
 
-var EQUALITY_POST_FIELDS_GROUP = {};
-_.each(EQUALITY_POST_FIELDS, function (field, i, list) {
-    EQUALITY_POST_FIELDS_GROUP[field] = '$data.' + field;
-});
-
-function combineposts(posts) {
-    if (posts.length === 0) {
-        return [];
+function compare(a, b) {
+    // We prefer more public posts
+    if (a.data.actions && !b.data.actions) {
+        return -1;
     }
-    else if (posts.length === 1) {
-        return [posts];
+    else if (!a.data.actions && b.data.actions) {
+        return 1;
     }
-
-    var first = _.first(posts);
-    var rest = _.rest(posts);
-
-    var same = [first];
-    var others = [];
-    var f = _.pick(first, EQUALITY_POST_FIELDS);
-
-    _.each(rest, function (post, i, list) {
-        var p = _.pick(post, EQUALITY_POST_FIELDS);
-        if (_.isEqual(f, p)) {
-            same.push(post);
-        }
-        else {
-            others.push(post);
-        }
-    });
-
-    return [same].concat(combineposts(others));
+    // We prefer posts with more likes
+    else if (a.data.likes && !b.data.likes) {
+        return -1;
+    }
+    else if (!a.data.likes && b.data.likes) {
+        return 1;
+    }
+    else if (a.data.likes && _.isFinite(a.data.likes.count) && b.data.likes && _.isFinite(b.data.likes.count)) {
+        return b.data.likes.count - a.data.likes.count;
+    }
+    // We prefer posts with more comments
+    else if (a.data.comments && !b.data.comments) {
+        return -1;
+    }
+    else if (!a.data.comments && b.data.comments) {
+        return 1;
+    }
+    else if (a.data.comments && _.isFinite(a.data.comments.count) && b.data.comments && _.isFinite(b.data.comments.count)) {
+        return b.data.comments.count - a.data.comments.count;
+    }
+    // We prefer posts which have story
+    if (a.data.story && !b.data.story) {
+        return -1;
+    }
+    else if (!a.data.story && b.data.story) {
+        return 1;
+    }
+    // We prefer bigger posts
+    var size = _.size(b) - _.size(a);
+    if (size !== 0) {
+        return size;
+    }
+    // We prefer older (original, first) posts
+    var created_a = moment(a.data.created_time);
+    var created_b = moment(b.data.created_time);
+    if (created_a < created_b) {
+        return -1;
+    }
+    else if (created_b < created_a) {
+        return 1;
+    }
+    // We prefer posts which were updated recently
+    var updated_a = moment(a.data.updated_time);
+    var updated_b = moment(b.data.updated_time);
+    if (updated_a < updated_b) {
+        return 1;
+    }
+    else if (updated_b < created_a) {
+        return -1;
+    }
+    return 0;
 }
 
 function mergeposts() {
     models.Post.aggregate([
-        {'$match': {'type': 'facebook', 'merged_to': null}},
-        {'$group': {'_id': EQUALITY_POST_FIELDS_GROUP, 'count': {'$sum': 1}, 'posts': {'$push': '$data'}}},
+        {'$match': {'type': 'facebook'}},
+        {'$group': {'_id': EQUALITY_POST_FIELDS, 'count': {'$sum': 1}, 'posts': {'$push': {'foreign_id': '$foreign_id', 'data': '$data', 'sources': '$sources', 'merged_from': '$merged_from'}}}},
         {'$match': {'count': {'$gt': 1}}}
     ], function (err, results) {
         if (err) {
@@ -53,20 +94,37 @@ function mergeposts() {
         }
 
         async.forEach(results, function (result, cb) {
-            var posts = _.filter(combineposts(result.posts), function (combined) {
-                return combined.length > 1;
+            var posts = result.posts.sort(compare);
+
+            var first_id = _.first(posts).foreign_id;
+
+            var rest = _.rest(posts);
+            var rest_ids = _.pluck(rest, 'foreign_id');
+
+            models.Post.update({'foreign_id': first_id}, {'$addToSet': {'merged_from': rest_ids}, '$unset': {'merged_to': true}}, {'multi': true}, function (err, numberAffected, rawResponse) {
+                if (err) {
+                    console.error(err);
+                }
+                else if (numberAffected !== 1) {
+                    console.error("Invalid number of Facebook posts set as main: %s", numberAffected, first_id, rawResponse);
+                }
+                else {
+                    models.Post.update({'foreign_id': {'$in': rest_ids}}, {'$set': {'merged_to': first_id}, '$unset': {'merged_from': true}}, {'multi': true}, function (err, numberAffected, rawResponse) {
+                        if (err) {
+                            console.error(err);
+                        }
+                        else if (numberAffected !== rest_ids.length) {
+                            console.error("Invalid number of Facebook posts set as merged: %s/%s", numberAffected, rest_ids.length, first_id, rest_ids, rawResponse);
+                        }
+                        else {
+                            console.log("Merged Facebook posts: %s -> %s", rest_ids, first_id);
+                        }
+
+                        // We handle error independently
+                        cb(null);
+                    });
+                }
             });
-
-            if (posts.length === 0) {
-                cb(null);
-                return;
-            }
-
-            console.log(posts.length);
-            var util = require('util');
-            console.log(util.inspect(posts, false, 10));
-            console.log();
-            cb(null);
         }, function (err) {
             process.exit(0);
         });

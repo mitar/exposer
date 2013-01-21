@@ -1,3 +1,4 @@
+var moment = require('moment');
 var mongoose = require('mongoose');
 var util = require('util');
 
@@ -238,11 +239,11 @@ postSchema.statics.storeTweet = function (tweet, source, cb) {
         'text': tweet.text
     };
 
-    storePost(tweet.id_str, 'twitter', new Date(tweet.created_at), source, data, tweet, cb);
+    storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);
 };
 
 postSchema.statics.storeFacebookPost = function (post, source, cb) {
-    storePost(post.id, 'facebook', new Date(post.created_time), source, post, null, function (err, callback_post) {
+    storePost(post.id, 'facebook', moment(post.created_time).toDate(), source, post, null, function (err, callback_post) {
         if (err) {
             cb(err);
             return;

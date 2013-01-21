@@ -2,6 +2,7 @@ var async = require('async');
 var dnode = require('dnode');
 var ecstatic = require('ecstatic')(__dirname + '/static');
 var http = require('http');
+var moment = require('moment');
 var request = require('request');
 var shoe = require('shoe');
 var swig = require('swig');
@@ -91,9 +92,9 @@ var sock = shoe(function (stream) {
 
             var query = {'$where': models.Post.NOT_FILTERED};
             if (since) {
-                since = new Date(since);
-                if (isFinite(since)) {
-                    query.foreign_timestamp = {'$lte': since};
+                since = moment(since);
+                if (since.isValid()) {
+                    query.foreign_timestamp = {'$lte': since.toDate()};
                 }
             }
             if (_.isArray(except)) {

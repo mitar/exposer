@@ -1,4 +1,5 @@
 var filters = require('swig/lib/filters');
+var moment = require('moment');
 
 var $ = require('jquery-browserify');
 
@@ -47,4 +48,9 @@ exports.facebook_picture = function (input) {
     else {
         return input;
     }
+};
+
+// TODO: Use moment also to display/format dates, instead of current filters?
+exports.fix_date = function (date) {
+    return moment(date).toDate();
 };

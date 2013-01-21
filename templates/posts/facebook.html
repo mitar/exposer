@@ -18,7 +18,7 @@
                                     <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
                                 </div>
                             {% endif %}
-                            <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|date("r") }}">{{ post.data.created_time|date("j M y") }}</abbr></a>
+                            <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|fix_date|date("r") }}">{{ post.data.created_time|fix_date|date("j M y") }}</abbr></a>
                         </div>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                             {% endif %}
                             <div class="meta">
                                 <a href="{{ post.facebook_event.data.link }}" class="name">{{ post.facebook_event.data.name }}</a>
-                                <div class="date"><a href="https://www.facebook.com/events/calendar/{{ post.facebook_event.data.start_time|date("Y/F/j") }}">{{ post.facebook_event.data.start_time|date("F j") }}</a>{% if !post.facebook_event.data.is_date_only %} at {{ post.facebook_event.data.start_time|date("g:ia") }}{% endif %}</div>
+                                <div class="date"><a href="https://www.facebook.com/events/calendar/{{ post.facebook_event.data.start_time|fix_date|date("Y/F/j") }}">{{ post.facebook_event.data.start_time|fix_date|date("F j") }}</a>{% if !post.facebook_event.data.is_date_only %} at {{ post.facebook_event.data.start_time|fix_date|date("g:ia") }}{% endif %}</div>
                                 {% if post.facebook_event.data.location %}
                                     <div class="location">{% if post.facebook_event.data.venue.id %}<a href="https://www.facebook.com/{{ post.facebook_event.data.venue.id }}">{% endif %}{{ post.facebook_event.data.location }}{% if post.facebook_event.data.venue.id %}</a>{% endif %}</div>
                                 {% endif %}

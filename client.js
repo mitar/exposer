@@ -1,4 +1,5 @@
 var dnode = require('dnode');
+var moment = require('moment');
 var shoe = require('shoe');
 var swig = require('swig/lib/swig');
 
@@ -47,7 +48,7 @@ function createPost(post) {
 
             var event_in_past = false;
             if (post.facebook_event && post.facebook_event.start_time) {
-                if (new Date(post.facebook_event.start_time) < new Date()) {
+                if (moment(post.facebook_event.start_time) < moment()) {
                     event_in_past = true;
                 }
             }
@@ -114,7 +115,7 @@ function displayOldPosts(posts) {
         }
         displayedPosts[id] = true;
 
-        var newPostDate = new Date(post.foreign_timestamp);
+        var newPostDate = moment(post.foreign_timestamp);
         if (!oldestDisplayedPostsDate || newPostDate < oldestDisplayedPostsDate) {
             oldestDisplayedPostsDate = newPostDate;
             oldestDisplayedPostsIds = {};
@@ -153,7 +154,7 @@ function objectKeys(obj) {
 }
 
 function loadMorePosts(remote) {
-    remote.getPosts(oldestDisplayedPostsDate, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
+    remote.getPosts(oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
         if (err) {
             console.error(err);
             return;
@@ -173,7 +174,7 @@ $(document).ready(function () {
         'itemSelector': '.post',
         'getSortData': {
             'foreign_timestamp': function (elem) {
-                return Date.parse(elem.data('foreign_timestamp'));
+                return moment(elem.data('foreign_timestamp')).valueOf();
             }
         },
         'sortBy': 'foreign_timestamp',

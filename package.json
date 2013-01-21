@@ -12,7 +12,8 @@
         "swig": "0.13.x",
         "request": "2.12.x",
         "async": "0.1.x",
-        "underscore": "1.4.x"
+        "underscore": "1.4.x",
+        "moment": "1.7.x"
     },
     "engines": {
         "node": "0.8.x",

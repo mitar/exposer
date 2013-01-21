@@ -6,19 +6,10 @@ var _ = require('underscore');
 var models = require('./models');
 var settings = require('./settings');
 
-var EQUALITY_POST_FIELDS = {
-    'from': '$data.from',
-    'to': '$data.to',
-    'message': '$data.message',
-    'message_tags': '$data.message_tags',
-    'type': '$data.type',
-    'link': '$data.link',
-    'name': '$data.name',
-    'caption': '$data.caption',
-    'picture': '$data.picture',
-    'description': '$data.description',
-    'facebook_event_id': '$facebook_event_id'
-};
+var POST_EQUALITY_FIELDS = {};
+_.each(models.Post.EQUALITY_FIELDS, function (value, field, list) {
+    POST_EQUALITY_FIELDS[field.replace('.', '_')] = '$' + field;
+});
 
 function compare(a, b) {
     // We prefer more public posts
@@ -84,7 +75,7 @@ function compare(a, b) {
 function mergeposts() {
     models.Post.aggregate([
         {'$match': {'type': 'facebook'}},
-        {'$group': {'_id': EQUALITY_POST_FIELDS, 'count': {'$sum': 1}, 'posts': {'$push': {'foreign_id': '$foreign_id', 'data': '$data', 'sources': '$sources', 'merged_from': '$merged_from'}}}},
+        {'$group': {'_id': POST_EQUALITY_FIELDS, 'count': {'$sum': 1}, 'posts': {'$push': {'foreign_id': '$foreign_id', 'data': '$data', 'sources': '$sources', 'merged_from': '$merged_from'}}}},
         {'$match': {'count': {'$gt': 1}}}
     ], function (err, results) {
         if (err) {

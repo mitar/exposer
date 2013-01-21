@@ -104,7 +104,107 @@ postSchema.statics.PUBLIC_FIELDS = {
     'facebook_event_id': true
 };
 
+postSchema.statics.EQUALITY_FIELDS = {
+    'data.from': true,
+    'data.to': true,
+    'data.message': true,
+    'data.message_tags': true,
+    'data.type': true,
+    'data.link': true,
+    'data.name': true,
+    'data.caption': true,
+    'data.picture': true,
+    'data.description': true,
+    'facebook_event_id': true
+};
+
 postSchema.statics.FACEBOOK_ID_REGEXP = /(\d+)_(\d+)/;
+
+postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
+    Post.findOne(_.extend({}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
+        if (err) {
+            cb("Facebook post (" + post_id + ") load error: " + err);
+            return;
+        }
+
+        post.fetchFacebookEvent(cb);
+    });
+};
+
+postSchema.statics.storeTweet = function (tweet, source, cb) {
+    var data = {
+        'from_user': tweet.from_user || tweet.user.screen_name,
+        'in_reply_to_status_id': tweet.in_reply_to_status_id,
+        'in_reply_to_status_id_str': tweet.in_reply_to_status_id_str,
+        'text': tweet.text
+    };
+
+    storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);
+};
+
+postSchema.statics.storeFacebookPost = function (post, source, cb) {
+    storePost(post.id, 'facebook', moment(post.created_time).toDate(), source, post, null, function (err, callback_post) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        if (!callback_post) {
+            cb(null, null);
+            return;
+        }
+
+        var new_event = !callback_post.facebook_event_id;
+        delete callback_post.facebook_event_id;
+
+        // We check callback_post here, too, to optimize database access
+        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link))) {
+            // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
+            Post.fetchFacebookEvent(post.id, function (err, event) {
+                if (err) {
+                    // Just log the error and continue
+                    console.error(err);
+                }
+
+                event = event || null;
+
+                callback_post.facebook_event = event;
+                cb(null, callback_post, new_event ? event : null);
+            });
+        }
+        else {
+            cb(null, callback_post, null);
+        }
+    });
+};
+
+postSchema.statics.createTypeForeignId = function (type, foreign_id) {
+    return type + '/' + foreign_id;
+};
+
+// If existing, "facebook_event_id" is left and should be exchanged for real data ("facebook_event") or deleted
+postSchema.statics.cleanPost = function (post) {
+    post.fetch_timestamp = post._id.getTimestamp();
+    delete post._id;
+
+    // Don't expose some Facebook fields
+    if (post.data && post.data.likes && post.data.likes.data) {
+        delete post.data.likes.data;
+    }
+    if (post.data && post.data.comments && post.data.comments.data) {
+        delete post.data.comments.data;
+    }
+    if (post.data && post.data.shares && post.data.shares.data) {
+        delete post.data.shares.data;
+    }
+
+    if (!post.facebook_event_id) {
+        // If false, null, or non-existent, we remove it (so that it is not available in tweets, for example
+        delete post.facebook_event_id;
+    }
+
+    return post;
+};
 
 postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
@@ -218,92 +318,6 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             });
         });
     });
-};
-
-postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
-    Post.findOne(_.extend({}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
-        if (err) {
-            cb("Facebook post (" + post_id + ") load error: " + err);
-            return;
-        }
-
-        post.fetchFacebookEvent(cb);
-    });
-};
-
-postSchema.statics.storeTweet = function (tweet, source, cb) {
-    var data = {
-        'from_user': tweet.from_user || tweet.user.screen_name,
-        'in_reply_to_status_id': tweet.in_reply_to_status_id,
-        'in_reply_to_status_id_str': tweet.in_reply_to_status_id_str,
-        'text': tweet.text
-    };
-
-    storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);
-};
-
-postSchema.statics.storeFacebookPost = function (post, source, cb) {
-    storePost(post.id, 'facebook', moment(post.created_time).toDate(), source, post, null, function (err, callback_post) {
-        if (err) {
-            cb(err);
-            return;
-        }
-
-        if (!callback_post) {
-            cb(null, null);
-            return;
-        }
-
-        var new_event = !callback_post.facebook_event_id;
-        delete callback_post.facebook_event_id;
-
-        // We check callback_post here, too, to optimize database access
-        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link))) {
-            // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
-            Post.fetchFacebookEvent(post.id, function (err, event) {
-                if (err) {
-                    // Just log the error and continue
-                    console.error(err);
-                }
-
-                event = event || null;
-
-                callback_post.facebook_event = event;
-                cb(null, callback_post, new_event ? event : null);
-            });
-        }
-        else {
-            cb(null, callback_post, null);
-        }
-    });
-};
-
-postSchema.statics.createTypeForeignId = function (type, foreign_id) {
-    return type + '/' + foreign_id;
-};
-
-// If existing, "facebook_event_id" is left and should be exchanged for real data ("facebook_event") or deleted
-postSchema.statics.cleanPost = function (post) {
-    post.fetch_timestamp = post._id.getTimestamp();
-    delete post._id;
-
-    // Don't expose some Facebook fields
-    if (post.data && post.data.likes && post.data.likes.data) {
-        delete post.data.likes.data;
-    }
-    if (post.data && post.data.comments && post.data.comments.data) {
-        delete post.data.comments.data;
-    }
-    if (post.data && post.data.shares && post.data.shares.data) {
-        delete post.data.shares.data;
-    }
-
-    if (!post.facebook_event_id) {
-        // If false, null, or non-existent, we remove it (so that it is not available in tweets, for example
-        delete post.facebook_event_id;
-    }
-
-    return post;
 };
 
 var Post = db.model('Post', postSchema);

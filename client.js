@@ -9,7 +9,7 @@ var templates = {
 
 var $ = require('jquery-browserify');
 
-var FACEBOOK_POST_REGEXP = /(\d+)_(\d+)/;
+var FACEBOOK_ID_REGEXP = /(\d+)_(\d+)/;
 var DOTS = /\.\.\.$/;
 
 var displayedPosts = {};
@@ -25,7 +25,7 @@ function createPost(post) {
         case 'facebook':
             var post_id = null;
             var post_link = null;
-            var post_match = FACEBOOK_POST_REGEXP.exec(post.data.id);
+            var post_match = FACEBOOK_ID_REGEXP.exec(post.data.id);
             if (post_match) {
                 post_id = post_match[2];
                 post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];

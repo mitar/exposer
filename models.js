@@ -6,9 +6,6 @@ var _ = require('underscore');
 var facebook = require('./facebook');
 var settings = require('./settings');
 
-var FACEBOOK_POST_REGEXP = /(\d+)_(\d+)/;
-var FACEBOOK_EVENT_REGEXP = /^\/events\/(\d+)\/$/;
-
 var db = mongoose.createConnection(settings.MONGODB_URL).on('error', function (err) {
     console.error("MongoDB connection error: %s", err);
     // TODO: Handle better, depending on the error?
@@ -79,16 +76,18 @@ postSchema.statics.NOT_FILTERED =
                 } \
                 return false; \
             } \
-            function trusted() { \
-                for (var i in this) { \
-                    if (this[i] === 'tagged') { \
-                        return true; \
+            function trusted(sources) { \
+                for (var i in sources) { \
+                    if (sources.hasOwnProperty(i)) { \
+                        if (sources[i] === 'tagged' || sources[i] === 'event') { \
+                            return true; \
+                        } \
                     } \
                 } \
                 return false; \
             } \
             if (this.type === 'facebook') { \
-                return trusted() || regexMatch(this); \
+                return trusted(this.sources) || regexMatch(this); \
             } \
             else { \
                 return true; \
@@ -96,16 +95,26 @@ postSchema.statics.NOT_FILTERED =
         } \
     ";
 
+postSchema.statics.PUBLIC_FIELDS = {
+    'type': true,
+    'foreign_id': true,
+    'foreign_timestamp': true,
+    'data': true,
+    'facebook_event_id': true
+};
+
+postSchema.statics.FACEBOOK_ID_REGEXP = /(\d+)_(\d+)/;
+
 postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
 
-    if (post.data.type !== 'link' || post.data.link) {
+    if (post.data.type !== 'link' || (post.data.link && !FacebookEvent.LINK_REGEXP.test(post.data.link))) {
         // Not a link to a Facebook event
         cb(null, null);
         return;
     }
 
-    var post_match = FACEBOOK_POST_REGEXP.exec(post.foreign_id);
+    var post_match = Post.FACEBOOK_ID_REGEXP.exec(post.foreign_id);
     if (post_match) {
         var post_id = post_match[2];
     }
@@ -120,12 +129,25 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             return;
         }
 
+        // To allow for possible Facebook link in existing post data
+        body.link = body.link || post.data.link;
+
         if (!body.link) {
-            cb("Facebook post (" + post.foreign_id + ") is missing link: " + util.inspect(body));
-            return;
+            // Facebook does not like links to events and link is sometimes missing even when requesting post directly
+            // Let's try to find it manually in the message
+            // This could introduce some errors if message content was changed to some other event link after the
+            // initial event link was set on the post
+            var link_search = FacebookEvent.URL_REGEXP.exec(body.message);
+            if (!link_search) {
+                cb("Facebook post (" + post.foreign_id + ") is missing link: " + util.inspect(body));
+                return;
+            }
+
+            // We patch-up missing link from what we found in the message
+            body.link = link_search[1] + '/';
         }
 
-        var link_match = FACEBOOK_EVENT_REGEXP.exec(body.link);
+        var link_match = FacebookEvent.LINK_REGEXP.exec(body.link);
         if (!link_match) {
             cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body));
             return;
@@ -200,6 +222,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                                         return;
                                     }
 
+                                    // TODO: Do we really want to return all data?
                                     cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
                                 });
                             });
@@ -251,8 +274,8 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
         delete callback_post.facebook_event_id;
 
         // We check callback_post here, too, to optimize database access
-        if (callback_post.data.type === 'link' && !callback_post.data.link) {
-            // We fetch Facebook event for the first time or update existing
+        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link))) {
+            // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
             Post.fetchFacebookEvent(post.id, function (err, event) {
                 if (err) {
                     // Just log the error and continue
@@ -273,6 +296,30 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
 
 postSchema.statics.createTypeForeignId = function (type, foreign_id) {
     return type + '/' + foreign_id;
+};
+
+// If existing, "facebook_event_id" is left and should be exchanged for real data ("facebook_event") or deleted
+postSchema.statics.cleanPost = function (post) {
+    post.fetch_timestamp = post._id.getTimestamp();
+    delete post._id;
+
+    // Don't expose some Facebook fields
+    if (post.data && post.data.likes && post.data.likes.data) {
+        delete post.data.likes.data;
+    }
+    if (post.data && post.data.comments && post.data.comments.data) {
+        delete post.data.comments.data;
+    }
+    if (post.data && post.data.shares && post.data.shares.data) {
+        delete post.data.shares.data;
+    }
+
+    if (!post.facebook_event_id) {
+        // If false, null, or non-existent, we remove it (so that it is not available in tweets, for example
+        delete post.facebook_event_id;
+    }
+
+    return post;
 };
 
 var Post = db.model('Post', postSchema);
@@ -305,6 +352,10 @@ var facebookEventSchema = mongoose.Schema({
         'required': true
     }
 });
+
+facebookEventSchema.statics.URL_REGEXP = /facebook\.com(\/events\/\d+)/i; // Case-insensitive because domain name can be case insensitive
+
+facebookEventSchema.statics.LINK_REGEXP = /^\/events\/(\d+)\/$/;
 
 facebookEventSchema.methods.postFetch = function (cb) {
     var event = this;
@@ -346,12 +397,15 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
             return;
         }
 
-        if (!obj.toObject()) {
+        // "merged_from" and "sources" are from some reason always returned, probably because they are lists
+        obj = _.omit(obj.toObject() || {}, 'merged_from', 'sources');
+
+        if (_.isEmpty(obj)) {
             // Post was not already stored
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
             // We also want just some fields and a lean object
-            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED}, settings.POSTS_FILTER, query), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).lean(true).exec(function (err, post) {
+            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
                 if (err) {
                     cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") load error: " + err);
                     return;
@@ -363,13 +417,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
                     return;
                 }
 
-                post.fetch_timestamp = post._id.getTimestamp();
-                delete post._id;
-
-                if (!post.facebook_event_id) {
-                    // If false, null, or non-existent, we remove it (so that it is not available in tweets, for example
-                    delete post.facebook_event_id;
-                }
+                post = Post.cleanPost(post);
 
                 cb(null, post);
             });

@@ -100,7 +100,7 @@ var sock = shoe(function (stream) {
                 query.type_foreign_id = {'$nin': except};
             }
 
-            models.Post.find(_.extend({}, query, settings.POSTS_FILTER), {'type': true, 'foreign_id': true, 'foreign_timestamp': true, 'data': true, 'facebook_event_id': true}).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
+            models.Post.find(_.extend({}, query, settings.POSTS_FILTER), models.Post.PUBLIC_FIELDS).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err);
@@ -108,8 +108,7 @@ var sock = shoe(function (stream) {
                 }
 
                 async.map(posts, function (post, cb) {
-                    post.fetch_timestamp = post._id.getTimestamp();
-                    delete post._id;
+                    post = models.Post.cleanPost(post);
 
                     if (post.facebook_event_id) {
                         models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, {'event_id': true, 'data': true, 'invited_summary': true}).lean(true).exec(function (err, event) {
@@ -297,6 +296,48 @@ function fetchFacebookPageLatest(limit) {
     });
 }
 
+function fetchFacebookRecursiveEventsLatest(limit) {
+    models.FacebookEvent.find({'recursive': true}, function (err, events) {
+        if (err) {
+            console.error("Facebook recursive events fetch error: %s", err);
+            return;
+        }
+
+        function fetchFirst() {
+            if (events.length == 0) {
+                return;
+            }
+
+            var event = events[0];
+            events = events.slice(1);
+
+            console.log("Doing Facebook recursive event fetch: %s", event.event_id);
+
+            // TODO: If limit is larger than reponse page limit we should request multiple response pages
+            facebook.request(event.event_id + '/feed?limit=' + limit, function (err, body) {
+                if (err) {
+                    console.error(err);
+                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                    return;
+                }
+
+                async.forEachSeries(body.data, function (post, cb) {
+                    models.Post.storeFacebookPost(post, ['event', 'event/' + event.event_id], function (err, post, event) {
+                        notifyClients(err, post, event);
+                        // We handle error independently
+                        cb(null);
+                    });
+                }, function (err) {
+                    console.log("Facebook recursive event fetch done: %s", event.event_id);
+                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                });
+            });
+        }
+
+        fetchFirst();
+    });
+}
+
 function checkFacebookPageAdded(cb) {
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tabs', function (err, body) {
         if (err) {
@@ -336,12 +377,14 @@ function enableFacebookStream() {
 // TODO: We should fetch into the past until we get to posts we already have
 fetchFacebookPageLatest(1000);
 fetchFacebookLatest(1000);
+fetchFacebookRecursiveEventsLatest(1000);
 enableFacebookStream();
 
 function facebookPolling() {
     // TODO: We should fetch into the past until we get to posts we already have
-    fetchFacebookPageLatest(100);
+    fetchFacebookPageLatest(1000);
     fetchFacebookLatest(1000);
+    fetchFacebookRecursiveEventsLatest(1000);
 }
 
 setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);

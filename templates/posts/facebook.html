@@ -78,7 +78,7 @@
                             {# TODO: Icon for video overlay #}
                             {# TODO: Replace with video player when clicked? #}
                             {% if post.data.picture %}
-                                <a href="{{ post_link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /></a>
+                                <a href="{{ post_link }}"><img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" /><span class="video-icon"> </span></a>
                             {% endif %}
                             <div class="meta-outside">
                                 <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">

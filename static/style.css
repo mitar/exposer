@@ -224,6 +224,15 @@ body {
     border-left: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+.facebook-post .video-icon {
+    background: url("video.png") no-repeat scroll 0 0 transparent;
+    bottom: 5px;
+    height: 26px;
+    left: 5px;
+    position: absolute;
+    width: 35px;
+}
+
 .facebook-post .video .picture, .facebook-post .link .picture {
     float: left;
     border-right: 1px solid rgba(0, 0, 0, 0.08);

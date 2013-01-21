@@ -309,17 +309,26 @@ var facebookEventSchema = mongoose.Schema({
 facebookEventSchema.methods.postFetch = function (cb) {
     var event = this;
 
-    Post.find(_.extend({}, {'type': 'facebook', 'sources': 'tagged', 'foreign_id': {'$in': event.posts}}, settings.POSTS_FILTER)).count(function (err, count) {
+    Post.find(_.extend({}, {'type': 'facebook', 'foreign_id': {'$in': event.posts}}, settings.POSTS_FILTER)).exec(function (err, posts) {
         if (err) {
             cb(err);
             return;
         }
 
-        event.recursive = count > 0;
+        event.recursive = _.some(posts, function (post) {
+            // Whether we got it from "tagged" source or we have a tag in the message
+            return _.indexOf(post.sources, 'tagged') !== -1 || _.some(post.data.message_tags || {}, function (tags) {
+                return _.some(tags, function (tag) {
+                    return tag.id === settings.FACEBOOK_PAGE_ID;
+                });
+            });
+        });
+
         event.save(function (err, obj) {
             cb(err);
         });
     });
+
 };
 
 var FacebookEvent = db.model('FacebookEvent', facebookEventSchema);

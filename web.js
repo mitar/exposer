@@ -259,7 +259,7 @@ function fetchFacebookLatest(limit) {
         // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page (5000)
         facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit || 5000, function (err, body) {
             if (err) {
-                console.error(err);
+                console.error("Facebook search error (%s): %s", keyword, err);
                 setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
                 return;
             }
@@ -284,6 +284,11 @@ function fetchFacebookPageLatest(limit) {
     console.log("Doing Facebook page fetch");
 
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged', limit, function (err, body) {
+        if (err) {
+            console.error("Facebook page fetch error: %s", err);
+            return;
+        }
+
         async.forEach(body.data, function (post, cb) {
             models.Post.storeFacebookPost(post, 'tagged', function (err, post, event) {
                 notifyClients(err, post, event);
@@ -315,7 +320,7 @@ function fetchFacebookRecursiveEventsLatest(limit) {
 
             facebook.request(event.event_id + '/feed', limit, function (err, body) {
                 if (err) {
-                    console.error(err);
+                    console.error("Facebook recursive events fetch error (%s): %s", event.event_id, err);
                     setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
                     return;
                 }

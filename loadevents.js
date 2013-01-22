@@ -4,7 +4,7 @@ var models = require('./models');
 var settings = require('./settings');
 
 function loadevents() {
-    models.Post.find({'type': 'facebook', 'data.type': 'link', $or: [{'data.link': null}, {'data.link': models.FacebookEvent.LINK_REGEXP}]}, function (err, posts) {
+    models.Post.find({'type': 'facebook', 'data.type': 'link', $or: [{'data.link': null}, {'data.link': models.FacebookEvent.LINK_REGEXP}, {'data.link': models.FacebookEvent.URL_REGEXP}]}, function (err, posts) {
         if (err) {
             console.error(err);
             process.exit(1);

@@ -158,7 +158,7 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
         delete callback_post.facebook_event_id;
 
         // We check callback_post here, too, to optimize database access
-        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link))) {
+        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link) || FacebookEvent.URL_REGEXP.test(callback_post.data.link))) {
             // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
             Post.fetchFacebookEvent(post.id, function (err, event) {
                 if (err) {
@@ -209,7 +209,7 @@ postSchema.statics.cleanPost = function (post) {
 postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
 
-    if (post.data.type !== 'link' || (post.data.link && !FacebookEvent.LINK_REGEXP.test(post.data.link))) {
+    if (post.data.type !== 'link' || (post.data.link && !FacebookEvent.LINK_REGEXP.test(post.data.link) && !FacebookEvent.URL_REGEXP.test(post.data.link))) {
         // Not a link to a Facebook event
         cb(null, null);
         return;
@@ -245,13 +245,16 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             }
 
             // We patch-up missing link from what we found in the message
-            body.link = link_search[1] + '/';
+            body.link = '/events/' + link_search[1] + '/';
         }
 
         var link_match = FacebookEvent.LINK_REGEXP.exec(body.link);
         if (!link_match) {
-            cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body));
-            return;
+            link_match = FacebookEvent.URL_REGEXP.exec(body.link);
+            if (!link_match) {
+                cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body));
+                return;
+            }
         }
 
         var event_id = link_match[1];
@@ -351,7 +354,7 @@ var facebookEventSchema = mongoose.Schema({
     }
 });
 
-facebookEventSchema.statics.URL_REGEXP = /facebook\.com(\/events\/\d+)/i; // Case-insensitive because domain name can be case insensitive
+facebookEventSchema.statics.URL_REGEXP = /facebook\.com\/events\/(\d+)/i; // Case-insensitive because domain name can be case insensitive
 
 facebookEventSchema.statics.LINK_REGEXP = /^\/events\/(\d+)\/$/;
 

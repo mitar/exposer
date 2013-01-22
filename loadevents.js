@@ -1,7 +1,6 @@
 var async = require('async');
 
 var models = require('./models');
-var settings = require('./settings');
 
 function loadevents() {
     // See postSchema.statics.hasEvent comment for explanation of this query

@@ -110,7 +110,6 @@ postSchema.statics.EQUALITY_FIELDS = {
     'data.from': true,
     'data.to': true,
     'data.message': true,
-    'data.message_tags': true,
     'data.type': true,
     'data.link': true,
     'data.name': true,
@@ -165,8 +164,15 @@ postSchema.statics.storeTweet = function (tweet, source, cb) {
 
 // Not all post fields are necessary available, depending on the projection in "mergeposts" function
 function compare(a, b) {
+    // We prefer posts with tags
+    if (a.data.message_tags && !b.data.message_tags) {
+        return -1;
+    }
+    else if (!a.data.message_tags && b.data.message_tags) {
+        return 1;
+    }
     // We prefer more public posts
-    if (a.data.actions && !b.data.actions) {
+    else if (a.data.actions && !b.data.actions) {
         return -1;
     }
     else if (!a.data.actions && b.data.actions) {
@@ -200,7 +206,7 @@ function compare(a, b) {
         return 1;
     }
     // We prefer bigger posts
-    var size = _.size(b) - _.size(a);
+    var size = _.size(b.data) - _.size(a.data);
     if (size !== 0) {
         return size;
     }

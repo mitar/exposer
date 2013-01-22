@@ -80,7 +80,7 @@ postSchema.statics.NOT_FILTERED =
             function trusted(sources) { \
                 for (var i in sources) { \
                     if (sources.hasOwnProperty(i)) { \
-                        if (sources[i] === 'tagged' || sources[i] === 'event') { \
+                        if (sources[i] === 'tagged' || sources[i] === 'taggedalt' || sources[i] === 'event') { \
                             return true; \
                         } \
                     } \
@@ -118,7 +118,13 @@ postSchema.statics.EQUALITY_FIELDS = {
     'facebook_event_id': true
 };
 
-postSchema.statics.FACEBOOK_ID_REGEXP = /(\d+)_(\d+)/;
+postSchema.statics.FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
+
+postSchema.statics.hasEvent = function (post) {
+    // It seems that links to events are of type "link" and without data.link field,
+    // but sometimes type is not set, but link field exists and points to the event
+    return (post.data.type === 'link' || post.data.link) && (!post.data.link || FacebookEvent.LINK_REGEXP.test(post.data.link) || FacebookEvent.URL_REGEXP.test(post.data.link));
+};
 
 postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
     Post.findOne(_.extend({}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
@@ -158,7 +164,7 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
         delete callback_post.facebook_event_id;
 
         // We check callback_post here, too, to optimize database access
-        if (callback_post.data.type === 'link' && (!callback_post.data.link || FacebookEvent.LINK_REGEXP.test(callback_post.data.link) || FacebookEvent.URL_REGEXP.test(callback_post.data.link))) {
+        if (Post.hasEvent(callback_post)) {
             // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
             Post.fetchFacebookEvent(post.id, function (err, event) {
                 if (err) {
@@ -209,19 +215,18 @@ postSchema.statics.cleanPost = function (post) {
 postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
 
-    if (post.data.type !== 'link' || (post.data.link && !FacebookEvent.LINK_REGEXP.test(post.data.link) && !FacebookEvent.URL_REGEXP.test(post.data.link))) {
+    if (!Post.hasEvent(post)) {
         // Not a link to a Facebook event
         cb(null, null);
         return;
     }
 
+    var post_id = post.foreign_id;
     var post_match = Post.FACEBOOK_ID_REGEXP.exec(post.foreign_id);
     if (post_match) {
-        var post_id = post_match[2];
-    }
-    else {
-        cb("Facebook post ID does not match regex: " + post.foreign_id);
-        return;
+        // Facebook ID is from two parts, then the second part is post ID
+        // Such post ID (only from the second part) contains link more often than full Facebook ID
+        post_id = post_match[2];
     }
 
     facebook.request(post_id, null, function (err, body) {
@@ -231,7 +236,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
         }
 
         // To allow for possible Facebook link in existing post data
-        body.link = body.link || post.data.link;
+        body.link = body.link || post.data.link || null;
 
         if (!body.link) {
             // Facebook does not like links to events and link is sometimes missing even when requesting post directly
@@ -368,8 +373,8 @@ facebookEventSchema.methods.postFetch = function (cb) {
         }
 
         event.recursive = _.some(posts, function (post) {
-            // Whether we got it from "tagged" source or we have a tag in the message
-            return _.indexOf(post.sources, 'tagged') !== -1 || _.some(post.data.message_tags || {}, function (tags) {
+            // Whether we got it from "tagged" or "taggedalt" source or we have a tag in the message
+            return _.indexOf(post.sources, 'tagged') !== -1 || _.indexOf(post.sources, 'taggedalt') !== -1 || _.some(post.data.message_tags || {}, function (tags) {
                 return _.some(tags, function (tag) {
                     return tag.id === settings.FACEBOOK_PAGE_ID;
                 });

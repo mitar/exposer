@@ -11,6 +11,7 @@ var url = require('url');
 var util = require('util');
 
 var _ = require('underscore');
+var $ = require('jquery');
 
 var facebook = require('./facebook');
 var models = require('./models');
@@ -23,6 +24,8 @@ swig.init({
 
 var indexTemplate = swig.compileFile('index.html');
 var facebookTemplate = swig.compileFile('facebook.html');
+
+var FACEBOOK_POST_ID_REGEXP = /(\d+)$/;
 
 var server = http.createServer(function (req, res) {
     var req_url = url.parse(req.url, true);
@@ -301,6 +304,96 @@ function fetchFacebookPageLatest(limit) {
     });
 }
 
+function fetchFacebookPageLatestAlternative() {
+    console.log("Doing Facebook page alternative fetch");
+
+    request({
+        'url': 'https://www.facebook.com/' + settings.FACEBOOK_PAGE_ID + '?filter=2',
+        'headers': {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:18.0) Gecko/20100101 Firefox/18.0'
+        }
+    }, function (error, res, body) {
+        if (error || !res || res.statusCode !== 200) {
+            console.error("Facebook page alternative fetch error", error, res && res.statusCode, body);
+            return;
+        }
+
+        var post_ids = [];
+        var post_ids2 = [];
+
+        $('*', body).contents().filter(function (i) {
+            // Only comments
+            return this.nodeType === 8;
+        }).each(function (i, comment) {
+            // Facebook stores displayed content in comments, so we parse comments again and find links to posts
+            $('[role="article"]', comment.nodeValue).find('a.uiLinkSubtle:first').each(function (j, link) {
+                var post_match = FACEBOOK_POST_ID_REGEXP.exec($(link).attr('href'));
+                if (post_match) {
+                    post_ids.push(post_match[1]);
+                }
+                else {
+                    console.warn("Facebook page alternative fetch found link, but doesn't match: %s", $(link).attr('href'));
+                }
+            });
+            $('[name="feedback_params"]', comment.nodeValue).each(function (j, input) {
+                try {
+                    var params = JSON.parse($(input).attr('value'));
+                }
+                catch (e) {
+                    return;
+                }
+                post_ids2.push(params.target_profile_id + '_' + params.target_fbid);
+            })
+        });
+
+        async.forEachSeries(post_ids, function (post_id, cb) {
+            facebook.request(post_id, null, function (err, body) {
+                if (err) {
+                    // Silenced, because we are guessing IDs here and some are not correct
+                    //console.error("Facebook page alternative fetch error (%s): %s", post_id, err);
+                    // We handle error independently
+                    cb(null);
+                }
+                else {
+                    // Try to get post version with more information
+                    facebook.request(body.from.id + '_' + post_id, null, function (err, better_body) {
+                        if (err) {
+                            // We will have to use more limited version, it seems
+                            better_body = body;
+                        }
+
+                        models.Post.storeFacebookPost(better_body, 'taggedalt', function (err, post, event) {
+                            notifyClients(err, post, event);
+                            // We handle error independently
+                            cb(null);
+                        });
+                    });
+                }
+            });
+        }, function (err) {
+            async.forEachSeries(post_ids2, function (post_id, cb) {
+                facebook.request(post_id, null, function (err, body) {
+                    if (err) {
+                        // Silenced, because we are guessing IDs here and some are not correct
+                        //console.error("Facebook page alternative fetch error (%s): %s", post_id, err);
+                        // We handle error independently
+                        cb(null);
+                    }
+                    else {
+                        models.Post.storeFacebookPost(body, 'taggedalt', function (err, post, event) {
+                            notifyClients(err, post, event);
+                            // We handle error independently
+                            cb(null);
+                        });
+                    }
+                });
+            }, function (err) {
+                console.log("Facebook page alternative fetch done");
+            });
+        });
+    });
+}
+
 function fetchFacebookRecursiveEventsLatest(limit) {
     models.FacebookEvent.find({'recursive': true}, function (err, events) {
         if (err) {
@@ -310,6 +403,11 @@ function fetchFacebookRecursiveEventsLatest(limit) {
 
         function fetchFirst() {
             if (events.length == 0) {
+                // We enqueue next polling
+                function polling() {
+                    fetchFacebookRecursiveEventsLatest(1000);
+                }
+                setTimeout(polling, settings.FACEBOOK_POLL_INTERVAL);
                 return;
             }
 
@@ -381,14 +479,15 @@ function enableFacebookStream() {
 // Fetch all posts
 fetchFacebookLatest(5000);
 fetchFacebookPageLatest(0);
-fetchFacebookRecursiveEventsLatest(0);
+fetchFacebookPageLatestAlternative();
 
+fetchFacebookRecursiveEventsLatest(0);
 enableFacebookStream();
 
 function facebookPolling() {
     fetchFacebookLatest(1000);
     fetchFacebookPageLatest(1000);
-    fetchFacebookRecursiveEventsLatest(1000);
+    fetchFacebookPageLatestAlternative();
 }
 
 setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);

@@ -60,14 +60,22 @@ function compare(a, b) {
     else if (created_b < created_a) {
         return 1;
     }
-    // We prefer posts which were updated recently
-    var updated_a = moment(a.data.updated_time);
-    var updated_b = moment(b.data.updated_time);
-    if (updated_a < updated_b) {
+    if (a.data.updated_time && !b.data.updated_time) {
+        return -1;
+    }
+    else if (!a.data.updated_time && b.data.updated_time) {
         return 1;
     }
-    else if (updated_b < created_a) {
-        return -1;
+    else if (a.data.updated_time && b.data.updated_time) {
+        // We prefer posts which were updated recently
+        var updated_a = moment(a.data.updated_time);
+        var updated_b = moment(b.data.updated_time);
+        if (updated_a < updated_b) {
+            return 1;
+        }
+        else if (updated_b < created_a) {
+            return -1;
+        }
     }
     return 0;
 }

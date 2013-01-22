@@ -10,7 +10,7 @@ var templates = {
 
 var $ = require('jquery-browserify');
 
-var FACEBOOK_ID_REGEXP = /(\d+)_(\d+)/;
+var FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 var DOTS = /\.\.\.$/;
 
 var displayedPosts = {};
@@ -31,8 +31,11 @@ function createPost(post) {
                 post_id = post_match[2];
                 post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];
             }
+            else if (post.data.from && post.data.from.id) {
+                post_link = 'https://www.facebook.com/' + post.data.from.id + '/posts/' + post.data.id;
+            }
             else {
-                console.warning("Facebook post does not have a link and ID: %s", post.foreign_id, post);
+                console.warn("Facebook post does not have a link and ID: %s", post.foreign_id, post);
             }
 
             // Override with a better version

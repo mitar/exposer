@@ -307,6 +307,7 @@ function collectSimilarPosts(post, skip_ids, cb) {
 
         // In series to avoid possible race conditions (to prevent duplicate/parallel fetching of same posts)
         async.forEachSeries(all_posts, function (post, cb) {
+            // We recursively collect posts so that we collect all posts not matter the order in which we start collecting them
             collectSimilarPosts(post, skip_ids, function (err, posts) {
                 if (err) {
                     cb(err);

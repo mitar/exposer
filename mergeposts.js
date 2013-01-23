@@ -26,7 +26,7 @@ function mergeposts() {
 
             models.Post.merge(post, function (err, post_merged, first_id, rest_ids) {
                 if (err) {
-                    console.log(err);
+                    console.log("Error while merging post (%s): %s", post.foreign_id, err);
                     cb(null);
                 }
                 else if (first_id && rest_ids) {
@@ -46,7 +46,7 @@ function mergeposts() {
                 else {
                     models.Post.update({'type': 'facebook', 'foreign_id': post.foreign_id}, {'$unset': {'merged_to': true, 'merged_from': true}}, function (err, numberAffected, rawResponse) {
                         if (err) {
-                            console.error(err);
+                            console.error("Error while setting post as not merged (%s): %s", post.foreign_id, err);
                         }
                         else if (numberAffected !== 1) {
                             console.error("Invalid number of Facebook posts set as not merged (" + post.foreign_id + ", " + numberAffected + "): " + rawResponse);

@@ -1,3 +1,4 @@
+var async = require('async');
 var moment = require('moment');
 var mongoose = require('mongoose');
 var util = require('util');
@@ -104,22 +105,6 @@ postSchema.statics.PUBLIC_FIELDS = {
     'facebook_event_id': true
 };
 
-// Must be a subset of PUBLIC_FIELDS and should not contain fields
-// which are removed in "cleanPost" for "merge" function bellow to work
-postSchema.statics.EQUALITY_FIELDS = [
-    'data.from',
-    'data.to',
-    'data.message',
-    'data.type',
-    'data.link',
-    'data.story',
-    'data.name',
-    'data.caption',
-    'data.picture',
-    'data.description',
-    'facebook_event_id'
-];
-
 postSchema.statics.FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 
 postSchema.statics.hasEvent = function (post) {
@@ -147,20 +132,7 @@ postSchema.statics.storeTweet = function (tweet, source, cb) {
         'text': tweet.text
     };
 
-    storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, function (err, tweet) {
-        if (err) {
-            cb(err);
-            return;
-        }
-
-        if (!tweet) {
-            cb(null, null);
-            return;
-        }
-
-        delete tweet.facebook_event_id;
-        cb(null, tweet);
-    });
+    storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);
 };
 
 // Not all post fields are necessary available, depending on the projection in "mergeposts" function
@@ -273,16 +245,7 @@ function doMerge(posts, cb) {
     });
 }
 
-postSchema.statics.merge = function (post, cb, skip_ids) {
-    var query = {};
-
-    // We assume "post" contains all EQUALITY_FIELDS fields if they do exist in the database for it
-    _.each(Post.EQUALITY_FIELDS, function (field, i, list) {
-        query[field] = _.reduce(field.split('.'), function (memo, f) {
-            return memo ? (memo[f] || null) : null;
-        }, post);
-    });
-
+function collectSimilarPosts(post, skip_ids, cb) {
     var long_id;
     var short_id;
     var post_match = Post.FACEBOOK_ID_REGEXP.exec(post.foreign_id);
@@ -295,10 +258,11 @@ postSchema.statics.merge = function (post, cb, skip_ids) {
         short_id = post.foreign_id;
     }
 
-    query = {
+    var timestamp = moment(post.foreign_timestamp);
+    var query = {
         'type': 'facebook',
         '$or': [
-            query,
+            // Variations on post ID
             {
                 'foreign_id': long_id
             },
@@ -314,8 +278,8 @@ postSchema.statics.merge = function (post, cb, skip_ids) {
                 'data.to': post.data.to || null,
                 'data.message': post.data.message,
                 'foreign_timestamp': {
-                    '$gte': moment(post.foreign_timestamp).subtract('seconds', 5).toDate(),
-                    '$lte': moment(post.foreign_timestamp).add('seconds', 5).toDate()
+                    '$gte': moment(timestamp).subtract('seconds', 5).toDate(),
+                    '$lte': moment(timestamp).add('seconds', 5).toDate()
                 }
             },
             {
@@ -323,22 +287,51 @@ postSchema.statics.merge = function (post, cb, skip_ids) {
                 'data.message': post.data.message,
                 'facebook_event_id': post.facebook_event_id || null,
                 'foreign_timestamp': {
-                    '$gte': moment(post.foreign_timestamp).subtract('seconds', 5).toDate(),
-                    '$lte': moment(post.foreign_timestamp).add('seconds', 5).toDate()
+                    '$gte': moment(timestamp).subtract('seconds', 5).toDate(),
+                    '$lte': moment(timestamp).add('seconds', 5).toDate()
                 }
             }
         ]
     };
 
-    if (skip_ids) {
-        query['foreign_id'] = {'$nin': skip_ids};
-    }
+    skip_ids = skip_ids || [];
+    query['foreign_id'] = {'$nin': skip_ids};
 
-    Post.find(query).lean(true).exec(function (err, posts) {
+    Post.find(query).lean(true).exec(function (err, all_posts) {
         if (err) {
-            // Just log the error and continue
-            console.error("Error while merging post (%s): %s", post.foreign_id, err);
-            cb(null, false);
+            cb(err);
+            return;
+        }
+
+        skip_ids.push.apply(skip_ids, _.pluck(all_posts, 'foreign_id'));
+
+        // In series to avoid possible race conditions (to prevent duplicate/parallel fetching of same posts)
+        async.forEachSeries(all_posts, function (post, cb) {
+            collectSimilarPosts(post, skip_ids, function (err, posts) {
+                if (err) {
+                    cb(err);
+                    return;
+                }
+
+                all_posts.push.apply(all_posts, posts);
+                cb(null);
+            });
+        }, function (err) {
+            if (err) {
+                cb(err);
+                return;
+            }
+
+            cb(null, all_posts);
+        });
+    });
+}
+
+// Only Facebook posts
+postSchema.statics.merge = function (post, cb, skip_ids) {
+    collectSimilarPosts(post, skip_ids || [], function (err, posts) {
+        if (err) {
+            cb(err);
             return;
         }
 
@@ -350,9 +343,7 @@ postSchema.statics.merge = function (post, cb, skip_ids) {
 
         doMerge(posts, function (err, first_id, rest_ids) {
             if (err) {
-                // Just log the error and continue
-                console.error("Error while merging post (%s): %s", post.foreign_id, err);
-                cb(null, false);
+                cb(err);
                 return;
             }
 
@@ -361,6 +352,7 @@ postSchema.statics.merge = function (post, cb, skip_ids) {
                 cb(null, true, first_id, rest_ids);
             }
             else {
+                // Post was not merged
                 cb(null, false, first_id, rest_ids);
             }
         });
@@ -381,8 +373,8 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
 
         Post.merge(callback_post, function (err, post_merged) {
             if (err) {
-                cb(err);
-                return;
+                // Just log the error and continue
+                console.error("Error while merging post (%s): %s", callback_post.foreign_id, err);
             }
 
             var new_event = !callback_post.facebook_event_id;
@@ -391,10 +383,10 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
             // We check callback_post here, too, to optimize database access
             if (Post.hasEvent(callback_post)) {
                 // We fetch Facebook event for the first time or update existing (if multiple posts link to the same event, for example)
-                Post.fetchFacebookEvent(post.id, function (err, event) {
+                Post.fetchFacebookEvent(callback_post.foreign_id, function (err, event) {
                     if (err) {
                         // Just log the error and continue
-                        console.error(err);
+                        console.error("Facebook event fetch error (%s): %s", callback_post.foreign_id, err);
                     }
 
                     event = event || null;
@@ -414,7 +406,7 @@ postSchema.statics.createTypeForeignId = function (type, foreign_id) {
     return type + '/' + foreign_id;
 };
 
-// "facebook_event_id" should be exchanged for real data ("facebook_event") or deleted
+// If existing, "facebook_event_id" is left and should be exchanged for real data ("facebook_event") or deleted
 postSchema.statics.cleanPost = function (post) {
     post.fetch_timestamp = post._id.getTimestamp();
     delete post._id;
@@ -428,6 +420,11 @@ postSchema.statics.cleanPost = function (post) {
     }
     if (post.data && post.data.shares && post.data.shares.data) {
         delete post.data.shares.data;
+    }
+
+    if (!post.facebook_event_id) {
+        // If false, null, or non-existent, we remove it (so that it is not available in tweets, for example
+        delete post.facebook_event_id;
     }
 
     return post;

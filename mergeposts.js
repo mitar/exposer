@@ -4,34 +4,58 @@ var _ = require('underscore');
 
 var models = require('./models');
 
-var POST_EQUALITY_FIELDS = {};
-_.each(models.Post.EQUALITY_FIELDS, function (value, field, list) {
-    POST_EQUALITY_FIELDS[field.replace('.', '_')] = '$' + field;
-});
-
 function mergeposts() {
-    models.Post.aggregate([
-        {'$match': {'type': 'facebook'}},
-        {'$group': {'_id': POST_EQUALITY_FIELDS, 'count': {'$sum': 1}, 'posts': {'$push': {'foreign_id': '$foreign_id', 'data': '$data'}}}},
-        {'$match': {'count': {'$gt': 1}}}
-    ], function (err, results) {
+    var processed_ids_set = {};
+    var processed_ids_list = [];
+
+    models.Post.find({'type': 'facebook'}, models.Post.PUBLIC_FIELDS).lean(true).exec(function (err, posts) {
         if (err) {
             console.error(err);
             process.exit(1);
             return;
         }
 
-        async.forEach(results, function (result, cb) {
-            models.Post.doMerge(result.posts, function (err, first_id, rest_ids) {
+        // In series, otherwise we could have some funny race conditions (we have them anyway, but to a lesser extent)
+        async.forEachSeries(posts, function (post, cb) {
+            if (processed_ids_set[post.foreign_id]) {
+                cb(null);
+                return;
+            }
+
+            post = models.Post.cleanPost(post);
+
+            models.Post.merge(post, function (err, post_merged, first_id, rest_ids) {
                 if (err) {
                     console.log(err);
+                    cb(null);
+                }
+                else if (first_id && rest_ids) {
+                    if (processed_ids_set[first_id]) throw new Error("Assertion failed");
+
+                    processed_ids_set[first_id] = true;
+                    processed_ids_list.push(first_id);
+                    _.each(rest_ids, function (id, i, list) {
+                        if (processed_ids_set[id]) throw new Error("Assertion failed");
+                        processed_ids_set[id] = true;
+                        processed_ids_list.push(id);
+                    });
+
+                    console.log("Merged Facebook posts: %s -> %s", rest_ids, first_id);
+                    cb(null);
                 }
                 else {
-                    console.log("Merged Facebook posts: %s -> %s", rest_ids, first_id);
+                    models.Post.update({'type': 'facebook', 'foreign_id': post.foreign_id}, {'$unset': {'merged_to': true, 'merged_from': true}}, function (err, numberAffected, rawResponse) {
+                        if (err) {
+                            console.error(err);
+                        }
+                        else if (numberAffected !== 1) {
+                            console.error("Invalid number of Facebook posts set as not merged (" + post.foreign_id + ", " + numberAffected + "): " + rawResponse);
+                        }
+                        // We handle error independently
+                        cb(null);
+                    });
                 }
-                // We handle error independently
-                cb(null);
-            });
+            }, processed_ids_list);
         }, function (err) {
             process.exit(0);
         });

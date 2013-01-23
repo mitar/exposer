@@ -106,18 +106,19 @@ postSchema.statics.PUBLIC_FIELDS = {
 
 // Must be a subset of PUBLIC_FIELDS and should not contain fields
 // which are removed in "cleanPost" for "merge" function bellow to work
-postSchema.statics.EQUALITY_FIELDS = {
-    'data.from': true,
-    'data.to': true,
-    'data.message': true,
-    'data.type': true,
-    'data.link': true,
-    'data.name': true,
-    'data.caption': true,
-    'data.picture': true,
-    'data.description': true,
-    'facebook_event_id': true
-};
+postSchema.statics.EQUALITY_FIELDS = [
+    'data.from',
+    'data.to',
+    'data.message',
+    'data.type',
+    'data.link',
+    'data.story',
+    'data.name',
+    'data.caption',
+    'data.picture',
+    'data.description',
+    'facebook_event_id'
+];
 
 postSchema.statics.FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 
@@ -239,7 +240,7 @@ function compare(a, b) {
     return 0;
 }
 
-postSchema.statics.doMerge = function (posts, cb) {
+function doMerge(posts, cb) {
     posts = posts.sort(compare);
 
     var first_id = _.first(posts).foreign_id;
@@ -247,7 +248,7 @@ postSchema.statics.doMerge = function (posts, cb) {
     var rest = _.rest(posts);
     var rest_ids = _.pluck(rest, 'foreign_id');
 
-    Post.update({'foreign_id': first_id}, {'$addToSet': {'merged_from': rest_ids}, '$unset': {'merged_to': true}}, {'multi': true}, function (err, numberAffected, rawResponse) {
+    Post.update({'foreign_id': first_id}, {'$set': {'merged_from': rest_ids}, '$unset': {'merged_to': true}}, {'multi': true}, function (err, numberAffected, rawResponse) {
         if (err) {
             cb("Error merging posts: " + err);
             return;
@@ -270,20 +271,68 @@ postSchema.statics.doMerge = function (posts, cb) {
             cb(null, first_id, rest_ids);
         });
     });
-};
+}
 
-postSchema.statics.merge = function (post, cb) {
+postSchema.statics.merge = function (post, cb, skip_ids) {
     var query = {};
 
     // We assume "post" contains all EQUALITY_FIELDS fields if they do exist in the database for it
-    _.each(Post.EQUALITY_FIELDS, function (value, field, list) {
-        var v = _.reduce(field.split('.'), function (memo, f) {
-            return _.isUndefined(memo) ? undefined : memo[f];
+    _.each(Post.EQUALITY_FIELDS, function (field, i, list) {
+        query[field] = _.reduce(field.split('.'), function (memo, f) {
+            return memo ? (memo[f] || null) : null;
         }, post);
-        if (!_.isUndefined(v)) {
-            query[field] = v;
-        }
     });
+
+    var long_id;
+    var short_id;
+    var post_match = Post.FACEBOOK_ID_REGEXP.exec(post.foreign_id);
+    if (post_match) {
+        long_id = post.foreign_id;
+        short_id = post_match[2];
+    }
+    else {
+        long_id = post.data.from.id + '_' + post.foreign_id;
+        short_id = post.foreign_id;
+    }
+
+    query = {
+        'type': 'facebook',
+        '$or': [
+            query,
+            {
+                'foreign_id': long_id
+            },
+            {
+                'foreign_id': short_id,
+                'data.from.id': post.data.from.id
+            },
+            // Posts retrieved through tagged feed are sometimes few seconds off, so
+            // we are trying to match them here to better version as they are invalid
+            // in many respects (for example, they have strange, unusable, post ID)
+            {
+                'data.from': post.data.from,
+                'data.to': post.data.to || null,
+                'data.message': post.data.message,
+                'foreign_timestamp': {
+                    '$gte': moment(post.foreign_timestamp).subtract('seconds', 5).toDate(),
+                    '$lte': moment(post.foreign_timestamp).add('seconds', 5).toDate()
+                }
+            },
+            {
+                'data.from': post.data.from,
+                'data.message': post.data.message,
+                'facebook_event_id': post.facebook_event_id || null,
+                'foreign_timestamp': {
+                    '$gte': moment(post.foreign_timestamp).subtract('seconds', 5).toDate(),
+                    '$lte': moment(post.foreign_timestamp).add('seconds', 5).toDate()
+                }
+            }
+        ]
+    };
+
+    if (skip_ids) {
+        query['foreign_id'] = {'$nin': skip_ids};
+    }
 
     Post.find(query).lean(true).exec(function (err, posts) {
         if (err) {
@@ -299,7 +348,7 @@ postSchema.statics.merge = function (post, cb) {
             return;
         }
 
-        Post.doMerge(posts, function (err, first_id, rest_ids) {
+        doMerge(posts, function (err, first_id, rest_ids) {
             if (err) {
                 // Just log the error and continue
                 console.error("Error while merging post (%s): %s", post.foreign_id, err);
@@ -309,10 +358,10 @@ postSchema.statics.merge = function (post, cb) {
 
             if (_.indexOf(rest_ids, post.foreign_id) !== -1) {
                 // Post was merged into one another, we set "post_merged" to true, so that it is not send further in the callback
-                cb(null, true);
+                cb(null, true, first_id, rest_ids);
             }
             else {
-                cb(null, false);
+                cb(null, false, first_id, rest_ids);
             }
         });
     });

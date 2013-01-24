@@ -11,7 +11,7 @@ function loadevents() {
             return;
         }
 
-        async.forEachSeries(posts, function (post, cb) {
+        async.forEach(posts, function (post, cb) {
             var first_fetch = !post.facebook_event_id;
             post.fetchFacebookEvent(function (err, event) {
                 if (err) {

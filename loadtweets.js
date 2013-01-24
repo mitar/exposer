@@ -5,6 +5,7 @@ var models = require('./models');
 var settings = require('./settings');
 
 // Rate limit is 180 requests per 15 minutes
+// TODO: Use limiter for proper limiting of all Tweeter requests
 var LOAD_INTERVAL = 15 * 60 * 1000 / 180;
 var MAX_ID_REGEXP = /max_id=(\d+)/;
 

@@ -15,8 +15,11 @@ exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@goto
 exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'fertikje', 'demonstracije'];
 exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.MAX_POSTS_PER_REQUEST = 50;
-exports.FACEBOOK_POLL_INTERVAL = 3 * 60 * 1000; // ms
-exports.FACEBOOK_INTERVAL_WHEN_ITERATING = 5 * 1000; // ms (they say that one request per second rate is OK, so we do one every five seconds)
+exports.FACEBOOK_POLL_INTERVAL = process.env.FACEBOOK_POLL_INTERVAL || 3 * 60 * 1000; // ms
+exports.FACEBOOK_THROTTLE = {
+    'requests': 600,
+    'interval': 600 * 1000 // ms
+};
 exports.POSTS_FILTER = {
     // Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting
     'data.from.id': {'$ne': '100000591290520'}

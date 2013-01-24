@@ -247,23 +247,15 @@ fetchTwitterLatest();
 connectToTwitterStream();
 
 function fetchFacebookLatest(limit) {
-    var keywords = settings.FACEBOOK_QUERY.slice(0);
-
-    function fetchFirst() {
-        if (keywords.length == 0) {
-            return;
-        }
-
-        var keyword = keywords[0];
-        keywords = keywords.slice(1);
-
+    async.forEach(settings.FACEBOOK_QUERY, function (keyword, cb) {
         console.log("Doing Facebook search: %s", keyword);
 
         // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page (5000)
         facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit || 5000, function (err, body) {
             if (err) {
                 console.error("Facebook search error (%s): %s", keyword, err);
-                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                // We handle error independently
+                cb(null);
                 return;
             }
 
@@ -275,12 +267,10 @@ function fetchFacebookLatest(limit) {
                 });
             }, function (err) {
                 console.log("Facebook search done: %s", keyword);
-                setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                cb(null);
             });
         });
-    }
-
-    fetchFirst();
+    });
 }
 
 function fetchFacebookPageLatest(limit) {
@@ -394,36 +384,25 @@ function fetchFacebookPageLatestAlternative() {
     });
 }
 
-function fetchFacebookRecursiveEventsLatest(limit) {
+function fetchFacebookRecursiveEventsLatest(limit, cb) {
     models.FacebookEvent.find({'recursive': true}, function (err, events) {
         if (err) {
             console.error("Facebook recursive events fetch error: %s", err);
             return;
         }
 
-        function fetchFirst() {
-            if (events.length == 0) {
-                // We enqueue next polling
-                function polling() {
-                    fetchFacebookRecursiveEventsLatest(1000);
-                }
-                setTimeout(polling, settings.FACEBOOK_POLL_INTERVAL);
-                return;
-            }
-
-            var event = events[0];
-            events = events.slice(1);
-
+        async.forEach(events, function (event, cb) {
             console.log("Doing Facebook recursive event fetch: %s", event.event_id);
 
             facebook.request(event.event_id + '/feed', limit, function (err, body) {
                 if (err) {
                     console.error("Facebook recursive events fetch error (%s): %s", event.event_id, err);
-                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                    // We handle error independently
+                    cb(null);
                     return;
                 }
 
-                async.forEachSeries(body.data, function (post, cb) {
+                async.forEach(body.data, function (post, cb) {
                     models.Post.storeFacebookPost(post, ['event', 'event/' + event.event_id], function (err, post, event) {
                         notifyClients(err, post, event);
                         // We handle error independently
@@ -431,12 +410,14 @@ function fetchFacebookRecursiveEventsLatest(limit) {
                     });
                 }, function (err) {
                     console.log("Facebook recursive event fetch done: %s", event.event_id);
-                    setTimeout(fetchFirst, settings.FACEBOOK_INTERVAL_WHEN_ITERATING);
+                    cb(null);
                 });
             });
-        }
-
-        fetchFirst();
+        }, function (err) {
+            if (cb) {
+                cb(err);
+            }
+        });
     });
 }
 
@@ -481,8 +462,22 @@ fetchFacebookLatest(5000);
 fetchFacebookPageLatest(0);
 fetchFacebookPageLatestAlternative();
 
-fetchFacebookRecursiveEventsLatest(0);
 enableFacebookStream();
+
+function pollFacebookRecursiveEventsLatest() {
+    // The first time we read all posts
+    fetchFacebookRecursiveEventsLatest(0, function (err) {
+        // We enqueue next polling
+        function polling() {
+            fetchFacebookRecursiveEventsLatest(1000, function (err) {
+                setTimeout(polling, settings.FACEBOOK_POLL_INTERVAL);
+            });
+        }
+        setTimeout(polling, settings.FACEBOOK_POLL_INTERVAL);
+    });
+}
+
+pollFacebookRecursiveEventsLatest();
 
 function facebookPolling() {
     fetchFacebookLatest(1000);

@@ -1,3 +1,4 @@
+var limiter = require('limiter');
 var request = require('request');
 var util = require('util');
 
@@ -7,7 +8,9 @@ var settings = require('./settings');
 
 var QUERY_STRING_EXIST = /\?/;
 
-exports.request = function (url_orig, limit, cb, payload) {
+var facebookQueue = [];
+
+function facebookRequest(url_orig, limit, cb, payload) {
     var url = url_orig;
     if (url.substring(0, 4) !== 'http') {
         url = 'https://graph.facebook.com/' + url;
@@ -65,6 +68,38 @@ exports.request = function (url_orig, limit, cb, payload) {
     }
 
     page(url, cb);
+}
+
+var facebookLimiter = new limiter.RateLimiter(settings.FACEBOOK_THROTTLE.requests, settings.FACEBOOK_THROTTLE.interval);
+
+var queueWarning = _.throttle(function () {
+    console.warn("Queue has grown to %s elements", facebookQueue.length);
+}, 10 * 1000); // Warn only once per 10 s
+
+function processQueue() {
+    var f = facebookQueue.pop();
+    if (!f) {
+        return;
+    }
+
+    if (facebookQueue.length > 1000) {
+        // Ups, queue is really long
+        queueWarning();
+    }
+
+    facebookLimiter.removeTokens(1, function(err, remainingRequests) {
+        f()
+    });
+}
+
+exports.request = function (url_orig, limit, cb, payload) {
+    facebookQueue.unshift(function () {
+        facebookRequest(url_orig, limit, function () {
+            processQueue();
+            cb.apply(this, arguments);
+        }, payload);
+    });
+    processQueue();
 };
 
 exports.request.post = function (url, cb, payload) {

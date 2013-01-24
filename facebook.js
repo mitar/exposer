@@ -76,6 +76,10 @@ var queueWarning = _.throttle(function () {
     console.warn("Queue has grown to %s elements", facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
+var limiterWarning = _.throttle(function (remainingRequests) {
+    console.warn("Limiter has only %s requests left", remainingRequests);
+}, 10 * 1000); // Warn only once per 10 s
+
 function processQueue() {
     var f = facebookQueue.pop();
     if (!f) {
@@ -88,7 +92,11 @@ function processQueue() {
     }
 
     facebookLimiter.removeTokens(1, function(err, remainingRequests) {
-        f()
+        f();
+
+        if (remainingRequests < 10) {
+            limiterWarning(remainingRequests);
+        }
     });
 }
 

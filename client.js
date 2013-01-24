@@ -14,6 +14,11 @@ var FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 var DOTS = /\.\.\.$/;
 var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
+var SECTIONS = {
+    'stream': true,
+    'links': true
+};
+
 var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
@@ -78,6 +83,15 @@ function renderTweets() {
     }
 
     twttr.widgets.load();
+
+    // Twitter and Facebook posts can resize after loading
+    // because images and other media can be loaded, so we
+    // wait a bit and relayout posts again
+    // TODO: Should call this probably after all DOM manipulations and media has loaded - is there such an event?
+    setTimeout(postsRelayout, 1000);
+    setTimeout(postsRelayout, 5000);
+    setTimeout(postsRelayout, 30000);
+    setTimeout(postsRelayout, 60000);
 }
 
 function shortenPosts() {
@@ -132,17 +146,8 @@ function displayOldPosts(posts) {
 
     if (postElements.length > 0) {
         $('#posts').isotope('insert', postElements, function () {
-            renderTweets();
             shortenPosts();
-
-            // Twitter and Facebook posts can resize after loading
-            // because images and other media can be loaded, so we
-            // wait a bit and relayout posts again
-            // TODO: Should call this probably after all DOM manipulations and media has loaded - is there such an event?
-            setTimeout(postsRelayout, 1000);
-            setTimeout(postsRelayout, 5000);
-            setTimeout(postsRelayout, 30000);
-            setTimeout(postsRelayout, 60000);
+            renderTweets();
         });
     }
 }
@@ -171,6 +176,33 @@ function displayNewEvent(event) {
     console.log(event);
 }
 
+function setActiveSection(section) {
+    $('#menu li').removeClass('active');
+    $('#menu li.' + section).addClass('active');
+    $('.section').removeClass('active');
+    $('.section.' + section).addClass('active');
+
+    if (section === 'stream') {
+        postsRelayout();
+        renderTweets();
+    }
+}
+
+function getSection(li) {
+    var section = null;
+    $.each($(li).attr('class').split(' '), function (i, cls) {
+        if (cls in SECTIONS) {
+            section = cls;
+            return false;
+        }
+    });
+    return section;
+}
+
+function getActiveSection() {
+    return getSection($('#menu li.active'));
+}
+
 $(document).ready(function () {
     postsRelayout = $.debounce(200, function () {
         $('#posts').isotope('reLayout');
@@ -188,6 +220,22 @@ $(document).ready(function () {
         // We disable animations
         'transformsEnabled': false,
         'animationEngine': 'css'
+    });
+
+    $(window).hashchange(function (event, data) {
+        var current_hash = data.currentHash;
+
+        if (current_hash) {
+            if (current_hash in SECTIONS) {
+                setActiveSection(current_hash);
+            }
+            else {
+                $(window).updatehash(getActiveSection());
+            }
+        }
+        else {
+            $(window).updatehash(getActiveSection());
+        }
     });
 
     var last_retry = 100; // ms

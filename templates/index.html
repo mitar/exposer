@@ -11,19 +11,31 @@
         <a href="https://github.com/mitar/exposer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
         <div id="header">
             <ul id="menu">
-                <li class="active stream"><a href="#stream">Stream</a></li>
+                <li class="stream active"><a href="#stream">Stream</a></li>
+                <li class="links"><a href="#links">Links</a></li>
                 <li><a href="https://github.com/mitar/exposer">Source Code</a></li>
                 <li><div class="fb-like" data-href="https://www.facebook.com/pages/Gotofje/448989388495867" data-send="false" data-layout="button_count" data-show-faces="false"></div></li>
             </ul>
-            <p>If you want your public posts to appear here, tag them with <tt>#gotofje</tt> hashtag on Twitter or tag <a href="https://www.facebook.com/pages/Gotofje/448989388495867" title="Gotofje Facebook page"><tt>@gotofje</tt></a> page on Facebook. (Some additional Twitter and Facebook posts are collected, too.)</p>
+            <div class="section stream active">
+                <p>If you want your public posts to appear here, tag them with <tt>#gotofje</tt> hashtag on Twitter or tag <a href="https://www.facebook.com/pages/Gotofje/448989388495867" title="Gotofje Facebook page"><tt>@gotofje</tt></a> page on Facebook. (Some additional Twitter and Facebook posts are collected, too.)</p>
+            </div>
+            <div class="section links">
+                <p>Links to related websites. Feel free to <a href="https://github.com/mitar/exposer/blob/master/templates/links.html">edit them</a>.</p>
+            </div>
         </div>
-        <div id="posts"></div>
-        <div id="load-posts"><button>Load more posts</button></div>
+        <div class="section stream active">
+            <div id="posts"></div>
+            <div id="load-posts"><button>Load more posts</button></div>
+        </div>
+        <div class="section links">
+            {% include "links.html" %}
+        </div>
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
         <script type="text/javascript" src="/bundle.js"></script>
         <script type="text/javascript" src="/jquery.dotdotdot.js"></script>
         <script type="text/javascript" src="/jquery.isotope.js"></script>
         <script type="text/javascript" src="/jquery.throttle.js"></script>
+        <script type="text/javascript" src="/jquery.hashchange.js"></script>
         <script type="text/javascript" src="/isotope.js"></script>
         <script type="text/javascript" src="/facebook.js"></script>
     </body>

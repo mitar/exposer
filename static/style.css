@@ -46,7 +46,7 @@ body {
     top: 0;
 }
 
-#header tt {
+#header tt, #header a {
     color: #DF0000;
     font-family: cursive;
     font-size: 33px;
@@ -82,7 +82,7 @@ body {
     padding: 15px;
 }
 
-.facebook-post .twt-border {
+.facebook-post .twt-border, .links-content {
     -moz-border-bottom-colors: none;
     -moz-border-left-colors: none;
     -moz-border-right-colors: none;
@@ -460,4 +460,19 @@ body {
 .facebook-post .share-link {
     padding-left: 18px;
     position: relative;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.links-content {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 1em;
 }

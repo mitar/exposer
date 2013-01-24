@@ -77,9 +77,9 @@ function renderTweets() {
     twttr.widgets.load();
 }
 
-function postsRelayout() {
+var postsRelayout = $.debounce(200, function () {
     $('#posts').isotope('reLayout');
-}
+});
 
 function shortenPosts() {
     $('#posts .short').dotdotdot({

@@ -12,10 +12,13 @@ var $ = require('jquery-browserify');
 
 var FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 var DOTS = /\.\.\.$/;
+var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
 var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
+
+var postsRelayout = null;
 
 function createPost(post) {
     switch (post.type) {
@@ -76,10 +79,6 @@ function renderTweets() {
 
     twttr.widgets.load();
 }
-
-var postsRelayout = $.debounce(200, function () {
-    $('#posts').isotope('reLayout');
-});
 
 function shortenPosts() {
     $('#posts .short').dotdotdot({
@@ -173,6 +172,10 @@ function displayNewEvent(event) {
 }
 
 $(document).ready(function () {
+    postsRelayout = $.debounce(200, function () {
+        $('#posts').isotope('reLayout');
+    });
+
     $('#posts').isotope({
         'itemSelector': '.post',
         'getSortData': {
@@ -187,34 +190,55 @@ $(document).ready(function () {
         'animationEngine': 'css'
     });
 
-    var stream = shoe('/dnode');
+    var last_retry = 100; // ms
 
-    var d = dnode({
-        'newPost': function (post) {
-            displayNewPost(post);
-        },
-        'newEvent': function (event) {
-            displayNewEvent(event);
-        }
-    });
-    d.on('remote', function (remote) {
-        loadMorePosts(remote);
+    function connect(callback) {
+        var stream = shoe('/dnode');
 
-        $('#load-posts').click(function (event) {
-            loadMorePosts(remote);
-        }).show();
-
-        $(window).scroll(function (event) {
-            // Two screens before the end we start loading more posts
-            if (document.body.scrollHeight - $(this).scrollTop() <= 3 * $(this).height()) {
-                // Make sure initial posts have been already loaded
-                if (!$.isEmptyObject(displayedPosts)) {
-                    loadMorePosts(remote);
-                }
+        var d = dnode({
+            'newPost': function (post) {
+                displayNewPost(post);
+            },
+            'newEvent': function (event) {
+                displayNewEvent(event);
             }
         });
-    }).on('end', function () {
-        // TODO: Handle better?
-        alert("Connection to the server failed. Please reload to continue with real-time updates.");
-    }).pipe(stream).pipe(d);
+        d.on('remote', function (remote) {
+            if (last_retry != 100) {
+                console.warn("Connection to the server restored.");
+
+                // Reset back
+                last_retry = 100;
+            }
+
+            if (callback) {
+                callback(remote);
+            }
+
+            $('#load-posts').click(function (event) {
+                loadMorePosts(remote);
+            }).show();
+
+            $(window).scroll(function (event) {
+                // Two screens before the end we start loading more posts
+                if (document.body.scrollHeight - $(this).scrollTop() <= 3 * $(this).height()) {
+                    // Make sure initial posts have been already loaded
+                    if (!$.isEmptyObject(displayedPosts)) {
+                        loadMorePosts(remote);
+                    }
+                }
+            });
+        }).on('end', function () {
+            console.warn("Connection to the server failed. Retrying in " + last_retry + " ms.");
+            setTimeout(connect, last_retry);
+            last_retry *= 2;
+            if (last_retry > MAX_RECONNECT_INTERVAL) {
+                last_retry = MAX_RECONNECT_INTERVAL;
+            }
+        }).pipe(stream).pipe(d);
+    }
+
+    connect(function (remote) {
+        loadMorePosts(remote);
+    });
 });

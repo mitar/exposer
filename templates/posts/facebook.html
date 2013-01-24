@@ -18,7 +18,7 @@
                                     <a href="https://www.facebook.com/{{ post.data.from.id }}">{{ post.data.from.name }}</a>
                                 </div>
                             {% endif %}
-                            <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|fix_date|date("r") }}">{{ post.data.created_time|fix_date|date("j M y") }}</abbr></a>
+                            <a href="{{ post_link }}" class="timestamp"><abbr title="{{ post.data.created_time|fix_date|date("r") }}">{{ post.data.created_time|fix_date|date("g:i A - j M y") }}</abbr></a>
                         </div>
                     </div>
                 </div>

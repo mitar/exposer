@@ -1,5 +1,5 @@
 body {
-    background: url("bg_wall.jpg") no-repeat fixed 0 0 #333333 !important;
+    background: url("bg_wall.jpg") no-repeat fixed 0 0 #333333;
     margin: 0;
 }
 
@@ -9,6 +9,10 @@ body {
     min-width: 350px;
     padding: 5px;
     vertical-align: top;
+}
+
+.twitter-tweet {
+    width: 350px;
 }
 
 #posts {
@@ -72,12 +76,31 @@ body {
     padding: 15px;
 }
 
+.facebook-post .twt-border {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    border-color: #EEEEEE #DDDDDD #BBBBBB;
+    border-image: none;
+    border-radius: 10px 10px 10px 10px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    display: block;
+    margin: 0;
+    max-width: 99%;
+    min-width: 220px;
+    background-color: #FFFFFF;
+    position: relative;
+}
+
 .facebook-post .twt-border, .facebook-post, .facebook-post .twt-border .body {
     color: #333333;
     direction: ltr;
     font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
-    font-size: 11px !important;
-    line-height: 1.28 !important;
+    font-size: 11px;
+    line-height: 1.28;
     text-align: left;
 }
 
@@ -89,7 +112,7 @@ body {
 .facebook-logo {
     float: right;
     margin-left: 5px;
-    marinn-bottom: 1px;
+    margin-bottom: 1px;
 }
 
 .facebook-post p {

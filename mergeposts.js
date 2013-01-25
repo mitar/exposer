@@ -1,4 +1,5 @@
 var async = require('async');
+var assert = require('assert');
 
 var _ = require('underscore');
 
@@ -30,12 +31,13 @@ function mergeposts() {
                     cb(null);
                 }
                 else if (first_id && rest_ids) {
-                    if (processed_ids_set[first_id]) throw new Error("Assertion failed");
+                    assert(!processed_ids_set[first_id]);
 
                     processed_ids_set[first_id] = true;
                     processed_ids_list.push(first_id);
                     _.each(rest_ids, function (id, i, list) {
-                        if (processed_ids_set[id]) throw new Error("Assertion failed");
+                        assert(!processed_ids_set[id]);
+
                         processed_ids_set[id] = true;
                         processed_ids_list.push(id);
                     });

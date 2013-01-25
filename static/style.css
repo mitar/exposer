@@ -1,36 +1,31 @@
+
 body {
     background: url("bg_wall.jpg") no-repeat fixed 0 0 #333333;
     margin: 0;
 }
-
 .post {
     display: inline-block;
+    margin: 0;
     max-width: 360px;
     min-width: 360px;
     padding: 0;
-    margin: 0;
     vertical-align: top;
 }
-
 .facebook-post {
     margin: 5px;
 }
-
 .twitter-tweet {
-    width: 347px; /* This is the calculated size for smaller version of rendered tweets when you calculate in the border */
-    display: none; /* Hide not (yet) rendered tweets */
+    display: none;
+    width: 347px;
 }
-
 .twitter-tweet-rendered {
     margin: 5px !important;
 }
-
 #posts {
+    margin-bottom: 10px;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 10px;
 }
-
 #header {
     background: url("paper.jpg") repeat scroll center bottom #DDDDDD;
     box-shadow: 0 0 10px 5px black;
@@ -40,12 +35,11 @@ body {
     letter-spacing: 0;
     margin: 0 0 20px;
     min-width: 250px;
-    padding: 10px 100px 10px 100px;
+    padding: 10px 100px;
     text-align: center;
     text-shadow: 0 0 1px #000088;
     top: 0;
 }
-
 #header tt, #header a {
     color: #DF0000;
     font-family: cursive;
@@ -53,54 +47,63 @@ body {
     font-weight: normal;
     text-shadow: 0 0 2px red;
 }
-
 #header a {
     text-decoration: none;
 }
-
 #menu {
+    background-color: #252525;
+    box-shadow: 0 0 3px 1px black;
+    display: inline-block;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
     list-style-type: none;
-    padding: 0;
     margin: 0;
+    padding: 5px;
+    width: 100%;
 }
-
 #menu a {
-    color: black;
+    color: white;
+    text-decoration: none;
 }
-
+#menu a:hover {
+    color: yellow;
+}
 #menu li {
     display: inline-block;
-    margin: 0 5px;
+    margin: 0 40px 0 0;
 }
-
-#menu li.active {
-    text-decoration: underline;
+#menu li.active:before {
+    color: silver;
+    content: "$ ";
 }
-
+#menu li.active a {
+    color: yellow;
+}
 .facebook-post .twt-border blockquote {
     margin: 0;
     padding: 15px;
 }
-
 .facebook-post .twt-border, .links-content {
     -moz-border-bottom-colors: none;
     -moz-border-left-colors: none;
     -moz-border-right-colors: none;
     -moz-border-top-colors: none;
+    background-color: #FFFFFF;
     border-color: #EEEEEE #DDDDDD #BBBBBB;
     border-image: none;
     border-radius: 10px 10px 10px 10px;
     border-style: solid;
     border-width: 1px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    color: white;
     display: block;
     margin: 0;
     max-width: 99%;
     min-width: 220px;
-    background-color: #FFFFFF;
     position: relative;
+    text-shadow: 0 0 1px white;
 }
-
 .facebook-post .twt-border, .facebook-post, .facebook-post .twt-border .body {
     color: #333333;
     direction: ltr;
@@ -109,43 +112,35 @@ body {
     line-height: 1.28;
     text-align: left;
 }
-
 .facebook-head {
     border-bottom: 1px solid #E9E9E9;
     padding-bottom: 10px;
 }
-
 .facebook-logo {
     float: right;
-    margin-left: 5px;
     margin-bottom: 1px;
+    margin-left: 5px;
 }
-
 .facebook-post p {
     padding: 10px 0 15px;
 }
-
 .facebook-post .head-pic {
     display: block;
     float: left;
 }
-
 .head-pic img {
     border-radius: 5px 5px 5px 5px;
     height: 32px;
     width: 32px;
 }
-
 .facebook-post .head-author {
     margin-left: 40px;
     vertical-align: middle;
 }
-
 .facebook-post .head-author .story {
     color: #999999;
     font-size: 13px;
 }
-
 .facebook-post a {
     color: #3B5998;
     cursor: pointer;
@@ -154,105 +149,87 @@ body {
     font-weight: bold;
     text-decoration: none;
 }
-
 .facebook-post .more a {
-	font-size: 11px;
-	font-weight: normal;
+    font-size: 11px;
+    font-weight: normal;
 }
-
 .facebook-post a.timestamp, .facebook-post a.timestamp abbr {
     border-bottom: medium none;
     color: #999999;
     font-size: 11px;
     font-weight: normal;
 }
-
 .facebook-post a:hover {
     text-decoration: underline;
 }
-
 .facebook-post .message {
-    margin: 10px 0 10px 0;
     color: #333333;
     font-size: 13px;
     line-height: 1.38;
-
+    margin: 10px 0;
 }
-
 .facebook-post .body a {
     font-weight: normal;
 }
-
 .facebook-post .picture {
     max-width: 100%;
 }
-
 .facebook-post .actions {
     background-color: #EDEFF4;
-    padding: 5px 12px;
     color: #999999;
     margin-top: 10px;
+    padding: 5px 12px;
 }
-
 .facebook-post .actions a {
     color: #3B5998;
     cursor: pointer;
-    text-decoration: none;
     font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 11px;
-    line-height: 1.28;
     font-weight: normal;
+    line-height: 1.28;
+    text-decoration: none;
 }
-
 .facebook-post .actions a:hover {
     text-decoration: underline;
 }
-
 .facebook-post .actions .shares {
     float: right;
     margin-left: 5px;
 }
-
 .facebook-post .likes {
     background-color: #F1F2F6;
-    margin-top: 1px;
     border: 0 none;
-    padding: 5px 12px;
     font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
     font-size: 11px;
-    line-height: 1.28;
     font-weight: normal;
+    line-height: 1.28;
+    margin-top: 1px;
+    padding: 5px 12px;
 }
-
 .facebook-post .likes a {
     font-size: 11px;
-    line-height: 1.28;
     font-weight: normal;
+    line-height: 1.28;
 }
-
 .facebook-post .photo .caption {
     border-left: 2px solid #CCCCCC;
+    font-size: 11px;
     margin-top: 10px;
     padding-left: 8px;
-    font-size: 11px;
 }
-
 .facebook-post .photo .caption a {
     font-size: 11px;
 }
-
 .facebook-post .photo .description, .facebook-post .photo .description a {
     font-size: 11px;
 }
-
 .facebook-post .video, .facebook-post .link {
+    background-color: #F7F7F7;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
     margin-bottom: 10px;
     margin-top: 10px;
     position: relative;
-    background-color: #F7F7F7;
-    border-left: 1px solid rgba(0, 0, 0, 0.08);
 }
-
 .facebook-post .video-icon {
     background: url("video.png") no-repeat scroll 0 0 transparent;
     bottom: 5px;
@@ -261,22 +238,18 @@ body {
     position: absolute;
     width: 35px;
 }
-
 .facebook-post .video .picture, .facebook-post .link .picture {
-    float: left;
     border-right: 1px solid rgba(0, 0, 0, 0.08);
+    float: left;
 }
-
 .facebook-post .video .picture {
-    width: 130px;
     height: 130px;
+    width: 130px;
 }
-
 .facebook-post .link .picture {
-    width: 90px;
     height: 90px;
+    width: 90px;
 }
-
 .facebook-post .top-border, .facebook-post .bottom-border {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     left: 1px;
@@ -284,195 +257,210 @@ body {
     right: 1px;
     top: 0;
 }
-
 .facebook-post .bottom-border {
-    top: auto;
     bottom: 0;
     right: 0;
+    top: auto;
 }
-
 .facebook-post .right-border {
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
     bottom: 0;
     position: absolute;
     right: 0;
     top: 0;
-    border-right: 1px solid rgba(0, 0, 0, 0.08);
 }
-
 .facebook-post .meta-outside {
     overflow: hidden;
 }
-
 .facebook-post .video .meta-link {
     display: block;
 }
-
 .facebook-post .video .meta-link-picture {
     min-height: 122px;
 }
-
 .facebook-post .meta-link:hover {
     text-decoration: none;
 }
-
 .facebook-post .video .meta {
-    max-height: 118px;
     display: block;
+    max-height: 118px;
 }
-
 .facebook-post .meta {
-    overflow: hidden;
-    font-size: 11px;
     color: gray;
+    font-size: 11px;
     font-weight: normal;
-    margin: 8px 10px 10px 10px;
+    margin: 8px 10px 10px;
+    overflow: hidden;
 }
-
 .facebook-post .meta .name {
     color: #3B5998;
     font-weight: bold;
 }
-
 .facebook-post .meta .name:hover {
     text-decoration: underline;
 }
-
 .facebook-post .meta .description {
     margin-top: 3px;
 }
-
 .facebook-post .link .meta-link {
     display: block;
 }
-
 .facebook-post .link .meta-link-picture {
     min-height: 82px;
 }
-
 .facebook-post .link .meta {
-    max-height: 75px;
     display: block;
+    max-height: 75px;
 }
-
 .facebook-post .meta-link span {
     display: block;
 }
-
 .facebook-post .short {
     max-height: 100px;
     overflow: hidden;
 }
-
 .facebook-post .hideoverflow {
     overflow: hidden;
 }
-
 #load-posts {
-    text-align: center;
-    margin: 10px;
+    background-color: #252525;
     display: none;
+    margin: 0;
+    text-align: center;
 }
-
 .facebook-post .invite-icon {
     background-image: url("facebook-buttons2.png");
+    background-position: 0 -164px;
     background-repeat: no-repeat;
     background-size: auto auto;
     display: inline-block;
-    background-position: 0 -164px;
-    width: 12px;
     height: 10px;
-    top: 2px;
     left: 0;
     position: absolute;
+    top: 2px;
     vertical-align: middle;
+    width: 12px;
 }
-
 .facebook-post .invite-link {
     padding-left: 17px;
     position: relative;
 }
-
 .facebook-post .event {
     vertical-align: top;
 }
-
 .facebook-post .event .meta a {
     font-size: 11px;
 }
-
 .facebook-post .event .meta .date a, .facebook-post .event .meta .location a {
-    font-size: 11px;
     color: gray;
+    font-size: 11px;
     font-weight: normal;
 }
-
 .facebook-post .event .picture-link {
     float: left;
     margin-right: 10px;
 }
-
 .facebook-post .event .picture {
-    width: 50px;
     height: 50px;
+    width: 50px;
 }
-
 .facebook-post .event .name {
     display: block;
 }
-
 .facebook-post .event .invite {
     margin-top: 10px;
 }
-
 .facebook-post .like-icon {
     background-image: url("facebook-buttons1.png");
+    background-position: 0 -52px;
     background-repeat: no-repeat;
     background-size: auto auto;
-    background-position: 0 -52px;
     display: block;
     height: 13px;
     width: 15px;
 }
-
 .facebook-post .like-link, .facebook-post .like-nolink {
+    display: block;
     margin-right: 5px;
     margin-top: -1px;
-    display: block;
 }
-
 .facebook-post .like-link-float {
     float: left;
 }
-
 .facebook-post .share-icon {
     background-image: url("facebook-buttons3.png");
+    background-position: -36px -76px;
     background-repeat: no-repeat;
     background-size: auto auto;
     display: block;
-    background-position: -36px -76px;
     height: 16px;
     left: 0;
     position: absolute;
     top: -1px;
     width: 14px;
 }
-
 .facebook-post .share-link {
     padding-left: 18px;
     position: relative;
 }
-
 .section {
     display: none;
 }
-
 .section.active {
     display: block;
 }
-
 .links-content {
-    max-width: 600px;
+    box-shadow: 0 0 15px 0 black;
+    color: black;
+    font-family: Tahoma;
     margin-left: auto;
     margin-right: auto;
-    padding: 0 1em;
+    max-width: 600px;
+    padding: 1em 2em;
+}
+.links-content dt *:link, .links-content dt *:visited {
+    color: #143C6E;
+    display: block;
+    font-family: permanent marker;
+    font-size: 21px;
+    letter-spacing: 4px;
+    margin: 20px 0 0;
+    text-decoration: none;
+    text-shadow: 0 0 1px #143C6E;
+}
+.links-content dt *:hover {
+    color: black;
+    text-shadow: 0 0 1px black;
+}
+.links-content dd {
+    color: black;
+    font-family: cursive;
+    font-size: 14px;
+}
+#load-posts {
+    background-color: transparent;
+    background-image: url("arrow.png");
+    bottom: 0;
+    display: none;
+    margin: 0;
+    padding: 16px 0 4px;
+    position: absolute;
+    text-align: center;
+    width: 100%;
+}
+#load-posts button:hover {
+    color: #DF0000;
+}
+#load-posts button {
+    background: none repeat scroll 0 0 transparent;
+    border: medium none;
+    color: white;
+    font-weight: bold;
+    width: 100%;
+    cursor: pointer;
+    font-family: cursive;
+    letter-spacing: 4px;
+}
+#load-posts button:after,#load-posts button:before {
+    content: " ... ";
 }

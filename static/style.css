@@ -1,4 +1,3 @@
-
 body {
     background: url("bg_wall.jpg") no-repeat fixed 0 0 #333333;
     margin: 0;
@@ -15,8 +14,8 @@ body {
     margin: 5px;
 }
 .twitter-tweet {
-    display: none;
-    width: 347px;
+    display: none; /* This is the calculated size for smaller version of rendered tweets when you calculate in the border */
+    width: 347px; /* Hide not (yet) rendered tweets */
 }
 .twitter-tweet-rendered {
     margin: 5px !important;
@@ -35,7 +34,7 @@ body {
     letter-spacing: 0;
     margin: 0 0 20px;
     min-width: 250px;
-    padding: 10px 100px;
+    padding: 1px 140px 10px 140px;
     text-align: center;
     text-shadow: 0 0 1px #000088;
     top: 0;
@@ -46,6 +45,7 @@ body {
     font-size: 33px;
     font-weight: normal;
     text-shadow: 0 0 2px red;
+    line-height: 17px;
 }
 #header a {
     text-decoration: none;
@@ -53,14 +53,14 @@ body {
 #menu {
     background-color: #252525;
     box-shadow: 0 0 3px 1px black;
-    display: inline-block;
+    display: block;
     font-family: monospace;
     font-size: 14px;
     font-weight: bold;
     list-style-type: none;
     margin: 0;
     padding: 5px;
-    width: 100%;
+    text-align: center;
 }
 #menu a {
     color: white;
@@ -70,12 +70,8 @@ body {
     color: yellow;
 }
 #menu li {
-    display: inline-block;
-    margin: 0 40px 0 0;
-}
-#menu li.active:before {
-    color: silver;
-    content: "$ ";
+    display: inline;
+    margin: 0 20px 0 20px;
 }
 #menu li.active a {
     color: yellow;
@@ -96,13 +92,11 @@ body {
     border-style: solid;
     border-width: 1px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    color: white;
     display: block;
     margin: 0;
     max-width: 99%;
     min-width: 220px;
     position: relative;
-    text-shadow: 0 0 1px white;
 }
 .facebook-post .twt-border, .facebook-post, .facebook-post .twt-border .body {
     color: #333333;
@@ -417,11 +411,12 @@ body {
     margin-right: auto;
     max-width: 600px;
     padding: 1em 2em;
+    margin-bottom: 10px;
 }
 .links-content dt *:link, .links-content dt *:visited {
     color: #143C6E;
     display: block;
-    font-family: permanent marker;
+    font-family: "Permanent Marker";
     font-size: 21px;
     letter-spacing: 4px;
     margin: 20px 0 0;
@@ -463,4 +458,9 @@ body {
 }
 #load-posts button:after,#load-posts button:before {
     content: " ... ";
+}
+#facebook-like {
+    position: absolute;
+    top: 80px;
+    right: 60px;
 }

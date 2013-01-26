@@ -2,6 +2,7 @@ body {
     background: url("bg_wall.jpg") no-repeat fixed 0 0 #333333;
     margin: 0;
 }
+
 .post {
     display: inline-block;
     margin: 0;
@@ -10,21 +11,26 @@ body {
     padding: 0;
     vertical-align: top;
 }
+
 .facebook-post {
     margin: 5px;
 }
+
 .twitter-tweet {
     display: none; /* This is the calculated size for smaller version of rendered tweets when you calculate in the border */
     width: 347px; /* Hide not (yet) rendered tweets */
 }
+
 .twitter-tweet-rendered {
     margin: 5px !important;
 }
+
 #posts {
     margin-bottom: 10px;
     margin-left: auto;
     margin-right: auto;
 }
+
 #header {
     background: url("paper.jpg") repeat scroll center bottom #DDDDDD;
     box-shadow: 0 0 10px 5px black;
@@ -39,6 +45,7 @@ body {
     text-shadow: 0 0 1px #000088;
     top: 0;
 }
+
 #header tt, #header a {
     color: #DF0000;
     font-family: cursive;
@@ -47,9 +54,11 @@ body {
     text-shadow: 0 0 2px red;
     line-height: 17px;
 }
+
 #header a {
     text-decoration: none;
 }
+
 #menu {
     background-color: #252525;
     box-shadow: 0 0 3px 1px black;
@@ -62,24 +71,30 @@ body {
     padding: 5px;
     text-align: center;
 }
+
 #menu a {
     color: white;
     text-decoration: none;
 }
+
 #menu a:hover {
     color: yellow;
 }
+
 #menu li {
     display: inline;
     margin: 0 20px 0 20px;
 }
+
 #menu li.active a {
     color: yellow;
 }
+
 .facebook-post .twt-border blockquote {
     margin: 0;
     padding: 15px;
 }
+
 .facebook-post .twt-border, .links-content {
     -moz-border-bottom-colors: none;
     -moz-border-left-colors: none;
@@ -98,6 +113,7 @@ body {
     min-width: 220px;
     position: relative;
 }
+
 .facebook-post .twt-border, .facebook-post, .facebook-post .twt-border .body {
     color: #333333;
     direction: ltr;
@@ -106,35 +122,43 @@ body {
     line-height: 1.28;
     text-align: left;
 }
+
 .facebook-head {
     border-bottom: 1px solid #E9E9E9;
     padding-bottom: 10px;
 }
+
 .facebook-logo {
     float: right;
     margin-bottom: 1px;
     margin-left: 5px;
 }
+
 .facebook-post p {
     padding: 10px 0 15px;
 }
+
 .facebook-post .head-pic {
     display: block;
     float: left;
 }
+
 .head-pic img {
     border-radius: 5px 5px 5px 5px;
     height: 32px;
     width: 32px;
 }
+
 .facebook-post .head-author {
     margin-left: 40px;
     vertical-align: middle;
 }
+
 .facebook-post .head-author .story {
     color: #999999;
     font-size: 13px;
 }
+
 .facebook-post a {
     color: #3B5998;
     cursor: pointer;
@@ -143,37 +167,45 @@ body {
     font-weight: bold;
     text-decoration: none;
 }
+
 .facebook-post .more a {
     font-size: 11px;
     font-weight: normal;
 }
+
 .facebook-post a.timestamp, .facebook-post a.timestamp abbr {
     border-bottom: medium none;
     color: #999999;
     font-size: 11px;
     font-weight: normal;
 }
+
 .facebook-post a:hover {
     text-decoration: underline;
 }
+
 .facebook-post .message {
     color: #333333;
     font-size: 13px;
     line-height: 1.38;
     margin: 10px 0;
 }
+
 .facebook-post .body a {
     font-weight: normal;
 }
+
 .facebook-post .picture {
     max-width: 100%;
 }
+
 .facebook-post .actions {
     background-color: #EDEFF4;
     color: #999999;
     margin-top: 10px;
     padding: 5px 12px;
 }
+
 .facebook-post .actions a {
     color: #3B5998;
     cursor: pointer;
@@ -183,13 +215,16 @@ body {
     line-height: 1.28;
     text-decoration: none;
 }
+
 .facebook-post .actions a:hover {
     text-decoration: underline;
 }
+
 .facebook-post .actions .shares {
     float: right;
     margin-left: 5px;
 }
+
 .facebook-post .likes {
     background-color: #F1F2F6;
     border: 0 none;
@@ -200,23 +235,28 @@ body {
     margin-top: 1px;
     padding: 5px 12px;
 }
+
 .facebook-post .likes a {
     font-size: 11px;
     font-weight: normal;
     line-height: 1.28;
 }
+
 .facebook-post .photo .caption {
     border-left: 2px solid #CCCCCC;
     font-size: 11px;
     margin-top: 10px;
     padding-left: 8px;
 }
+
 .facebook-post .photo .caption a {
     font-size: 11px;
 }
+
 .facebook-post .photo .description, .facebook-post .photo .description a {
     font-size: 11px;
 }
+
 .facebook-post .video, .facebook-post .link {
     background-color: #F7F7F7;
     border-left: 1px solid rgba(0, 0, 0, 0.08);
@@ -224,6 +264,7 @@ body {
     margin-top: 10px;
     position: relative;
 }
+
 .facebook-post .video-icon {
     background: url("video.png") no-repeat scroll 0 0 transparent;
     bottom: 5px;
@@ -232,18 +273,22 @@ body {
     position: absolute;
     width: 35px;
 }
+
 .facebook-post .video .picture, .facebook-post .link .picture {
     border-right: 1px solid rgba(0, 0, 0, 0.08);
     float: left;
 }
+
 .facebook-post .video .picture {
     height: 130px;
     width: 130px;
 }
+
 .facebook-post .link .picture {
     height: 90px;
     width: 90px;
 }
+
 .facebook-post .top-border, .facebook-post .bottom-border {
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     left: 1px;
@@ -251,11 +296,13 @@ body {
     right: 1px;
     top: 0;
 }
+
 .facebook-post .bottom-border {
     bottom: 0;
     right: 0;
     top: auto;
 }
+
 .facebook-post .right-border {
     border-right: 1px solid rgba(0, 0, 0, 0.08);
     bottom: 0;
@@ -263,22 +310,28 @@ body {
     right: 0;
     top: 0;
 }
+
 .facebook-post .meta-outside {
     overflow: hidden;
 }
+
 .facebook-post .video .meta-link {
     display: block;
 }
+
 .facebook-post .video .meta-link-picture {
     min-height: 122px;
 }
+
 .facebook-post .meta-link:hover {
     text-decoration: none;
 }
+
 .facebook-post .video .meta {
     display: block;
     max-height: 118px;
 }
+
 .facebook-post .meta {
     color: gray;
     font-size: 11px;
@@ -286,42 +339,53 @@ body {
     margin: 8px 10px 10px;
     overflow: hidden;
 }
+
 .facebook-post .meta .name {
     color: #3B5998;
     font-weight: bold;
 }
+
 .facebook-post .meta .name:hover {
     text-decoration: underline;
 }
+
 .facebook-post .meta .description {
     margin-top: 3px;
 }
+
 .facebook-post .link .meta-link {
     display: block;
 }
+
 .facebook-post .link .meta-link-picture {
     min-height: 82px;
 }
+
 .facebook-post .link .meta {
     display: block;
     max-height: 75px;
 }
+
 .facebook-post .meta-link span {
     display: block;
 }
+
 .facebook-post .short {
     max-height: 100px;
     overflow: hidden;
 }
+
 .facebook-post .hideoverflow {
     overflow: hidden;
 }
+
 #load-posts {
     background-color: #252525;
     display: none;
     margin: 0;
     text-align: center;
 }
+
 .facebook-post .invite-icon {
     background-image: url("facebook-buttons2.png");
     background-position: 0 -164px;
@@ -335,35 +399,44 @@ body {
     vertical-align: middle;
     width: 12px;
 }
+
 .facebook-post .invite-link {
     padding-left: 17px;
     position: relative;
 }
+
 .facebook-post .event {
     vertical-align: top;
 }
+
 .facebook-post .event .meta a {
     font-size: 11px;
 }
+
 .facebook-post .event .meta .date a, .facebook-post .event .meta .location a {
     color: gray;
     font-size: 11px;
     font-weight: normal;
 }
+
 .facebook-post .event .picture-link {
     float: left;
     margin-right: 10px;
 }
+
 .facebook-post .event .picture {
     height: 50px;
     width: 50px;
 }
+
 .facebook-post .event .name {
     display: block;
 }
+
 .facebook-post .event .invite {
     margin-top: 10px;
 }
+
 .facebook-post .like-icon {
     background-image: url("facebook-buttons1.png");
     background-position: 0 -52px;
@@ -373,14 +446,17 @@ body {
     height: 13px;
     width: 15px;
 }
+
 .facebook-post .like-link, .facebook-post .like-nolink {
     display: block;
     margin-right: 5px;
     margin-top: -1px;
 }
+
 .facebook-post .like-link-float {
     float: left;
 }
+
 .facebook-post .share-icon {
     background-image: url("facebook-buttons3.png");
     background-position: -36px -76px;
@@ -393,16 +469,20 @@ body {
     top: -1px;
     width: 14px;
 }
+
 .facebook-post .share-link {
     padding-left: 18px;
     position: relative;
 }
+
 .section {
     display: none;
 }
+
 .section.active {
     display: block;
 }
+
 .links-content {
     box-shadow: 0 0 15px 0 black;
     color: black;
@@ -413,6 +493,7 @@ body {
     padding: 1em 2em;
     margin-bottom: 10px;
 }
+
 .links-content dt *:link, .links-content dt *:visited {
     color: #143C6E;
     display: block;
@@ -423,15 +504,18 @@ body {
     text-decoration: none;
     text-shadow: 0 0 1px #143C6E;
 }
+
 .links-content dt *:hover {
     color: black;
     text-shadow: 0 0 1px black;
 }
+
 .links-content dd {
     color: black;
     font-family: cursive;
     font-size: 14px;
 }
+
 #load-posts {
     background-color: transparent;
     background-image: url("arrow.png");
@@ -443,9 +527,11 @@ body {
     text-align: center;
     width: 100%;
 }
+
 #load-posts button:hover {
     color: #DF0000;
 }
+
 #load-posts button {
     background: none repeat scroll 0 0 transparent;
     border: medium none;
@@ -456,9 +542,11 @@ body {
     font-family: cursive;
     letter-spacing: 4px;
 }
+
 #load-posts button:after,#load-posts button:before {
     content: " ... ";
 }
+
 #facebook-like {
     position: absolute;
     top: 80px;

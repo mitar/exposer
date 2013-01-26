@@ -514,31 +514,39 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                 event.invited_summary = body.summary;
                 event.invited = body.data;
 
-                FacebookEvent.findOneAndUpdate({'event_id': event_id}, event, {'upsert': true}, function (err, facebook_event) {
+                // We set "new" to false and load new event manually because of this bug: https://github.com/mongodb/node-mongodb-native/issues/699
+                FacebookEvent.findOneAndUpdate({'event_id': event_id}, event, {'upsert': true, 'new': false}, function (err, facebook_event) {
                     if (err) {
                         cb("Facebook event (" + event_id + ") store error: " + err);
                         return;
                     }
 
-                    facebook_event.postFetch(function (err) {
+                    FacebookEvent.findOne({'event_id': event_id}, function (err, facebook_event) {
                         if (err) {
-                            cb("Facebook event (" + event_id + ") post fetch error: " + err);
+                            cb("Facebook event (" + event_id + ") load error: " + err);
                             return;
                         }
 
-                        facebook_event = facebook_event.toObject();
-                        facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
-                        delete facebook_event._id;
-
-                        post.facebook_event_id = facebook_event.event_id;
-                        post.save(function (err, obj) {
+                        facebook_event.postFetch(function (err) {
                             if (err) {
-                                cb("Facebook post (" + post.foreign_id + ") store error: " + err);
+                                cb("Facebook event (" + event_id + ") post fetch error: " + err);
                                 return;
                             }
 
-                            // TODO: Do we really want to return all data?
-                            cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                            facebook_event = facebook_event.toObject();
+                            facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
+                            delete facebook_event._id;
+
+                            post.facebook_event_id = facebook_event.event_id;
+                            post.save(function (err, obj) {
+                                if (err) {
+                                    cb("Facebook post (" + post.foreign_id + ") store error: " + err);
+                                    return;
+                                }
+
+                                // TODO: Do we really want to return all data?
+                                cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                            });
                         });
                     });
                 });

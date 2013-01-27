@@ -276,6 +276,9 @@ function loadGraph() {
                     'padding': 5
                 },
                 'rangeSelector': {
+                    'buttonTheme': {
+                        'width': 50
+                    },
                     'buttons': [
                         {
                             'type': 'day',

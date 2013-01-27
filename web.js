@@ -174,7 +174,7 @@ var sock = shoe(function (stream) {
 sock.install(server, '/dnode');
 
 var twit = null;
-if (settings.TWITTER_ACCESS_TOKEN_KEY && settings.TWITTER_ACCESS_TOKEN_SECRET) {
+if (models && settings.TWITTER_ACCESS_TOKEN_KEY && settings.TWITTER_ACCESS_TOKEN_SECRET) {
     twit = new twitter({
         'consumer_key': settings.TWITTER_CONSUMER_KEY,
         'consumer_secret': settings.TWITTER_CONSUMER_SECRET,
@@ -499,7 +499,7 @@ function facebookPolling() {
     fetchFacebookPageLatestAlternative();
 }
 
-if (settings.FACEBOOK_ACCESS_TOKEN) {
+if (models && settings.FACEBOOK_ACCESS_TOKEN) {
     // Fetch all posts
     fetchFacebookLatest(5000);
     fetchFacebookPageLatest(0);

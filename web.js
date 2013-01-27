@@ -209,7 +209,7 @@ function connectToTwitterStream() {
         console.log("Twitter stream connected");
         stream.on('data', function (data) {
             if (data['disconnect']) {
-                console.warn("Twitter stream disconnected: %s", data['disconnect']);
+                console.warn("Twitter stream disconnected", data['disconnect']);
                 // TODO: Back-off
                 connectToTwitterStream();
             }
@@ -222,16 +222,16 @@ function connectToTwitterStream() {
             }
         }).on('delete', function (data) {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
-            console.log("Twitter delete: %s", data);
+            console.log("Twitter delete", data);
         }).on('scrub_geo', function (data) {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
-            console.log("Twitter scrub_geo: %s", data);
+            console.log("Twitter scrub_geo", data);
         }).on('end', function (res) {
-            console.warn("Twitter stream disconnected: %s", res);
+            console.warn("Twitter stream disconnected", res);
             // TODO: Back-off
             connectToTwitterStream();
         }).on('destroy', function (res) {
-            console.warn("Twitter stream disconnected: %s", res);
+            console.warn("Twitter stream disconnected", res);
             // TODO: Back-off
             connectToTwitterStream();
         });
@@ -245,7 +245,7 @@ function fetchTwitterLatest() {
     var params = {'include_entities': true, 'count': 100, 'q': settings.TWITTER_QUERY.join(' OR ')};
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error: %s", err);
+            console.error("Twitter fetch error", err);
             return;
         }
 

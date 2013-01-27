@@ -24,7 +24,7 @@ function loadtweets() {
     console.log("Making request, max_id = %s", max_id);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error: %s", err);
+            console.error("Twitter fetch error", err);
             process.exit(1);
             return;
         }

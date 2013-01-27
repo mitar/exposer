@@ -180,7 +180,9 @@ var sock = shoe(function (stream) {
                         cb(null, post);
                     }
                 }, function (err, posts) {
-                    console.error("getPosts error: %s", err);
+                    if (err) {
+                        console.error("getPosts error: %s", err);
+                    }
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err, posts);
                 });

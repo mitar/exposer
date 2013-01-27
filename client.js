@@ -241,7 +241,7 @@ $(document).ready(function () {
     var last_retry = 100; // ms
 
     function connect(callback) {
-        var stream = shoe('/dnode');
+        var stream = shoe((REMOTE || '') + '/dnode');
 
         var d = dnode({
             'newPost': function (post) {

@@ -47,7 +47,7 @@ Development installation
 
     foreman start -f Procfile-development
 
-   or (if you configure environment variables manually, see ``.env`` file for example) simply::
+   or (if you configure environment variables manually) simply::
 
     node web.js
 

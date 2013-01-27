@@ -14,8 +14,15 @@ var _ = require('underscore');
 var $ = require('jquery');
 
 var facebook = require('./facebook');
-var models = require('./models');
 var settings = require('./settings');
+
+if (!settings.REMOTE) {
+    // If we are not running with remote access to data
+    var models = require('./models');
+}
+else {
+    console.warn("Not connecting to the database, using remote data: %s", settings.REMOTE);
+}
 
 swig.init({
     'root': __dirname + '/templates',
@@ -32,7 +39,9 @@ var server = http.createServer(function (req, res) {
     switch (req_url.pathname) {
         case '/':
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-            res.write(indexTemplate.render({}));
+            res.write(indexTemplate.render({
+                'REMOTE': settings.REMOTE
+            }));
             res.end();
             break;
         case '/facebook.html':
@@ -164,12 +173,15 @@ var sock = shoe(function (stream) {
 
 sock.install(server, '/dnode');
 
-var twit = new twitter({
-    'consumer_key': settings.TWITTER_CONSUMER_KEY,
-    'consumer_secret': settings.TWITTER_CONSUMER_SECRET,
-    'access_token_key': settings.TWITTER_ACCESS_TOKEN_KEY,
-    'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
-});
+var twit = null;
+if (settings.TWITTER_ACCESS_TOKEN_KEY && settings.TWITTER_ACCESS_TOKEN_SECRET) {
+    twit = new twitter({
+        'consumer_key': settings.TWITTER_CONSUMER_KEY,
+        'consumer_secret': settings.TWITTER_CONSUMER_SECRET,
+        'access_token_key': settings.TWITTER_ACCESS_TOKEN_KEY,
+        'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
+    });
+}
 
 function notifyClients(err, post, event) {
     if (err) {
@@ -249,8 +261,13 @@ function fetchTwitterLatest() {
     });
 }
 
-fetchTwitterLatest();
-connectToTwitterStream();
+if (twit) {
+    fetchTwitterLatest();
+    connectToTwitterStream();
+}
+else {
+    console.warn("Not fetching content from Twitter.");
+}
 
 function fetchFacebookLatest(limit) {
     async.forEach(settings.FACEBOOK_QUERY, function (keyword, cb) {
@@ -463,13 +480,6 @@ function enableFacebookStream() {
     addAppToFacebookPage(subscribeToFacebook);
 }
 
-// Fetch all posts
-fetchFacebookLatest(5000);
-fetchFacebookPageLatest(0);
-fetchFacebookPageLatestAlternative();
-
-enableFacebookStream();
-
 function pollFacebookRecursiveEventsLatest() {
     // The first time we read all posts
     fetchFacebookRecursiveEventsLatest(0, function (err) {
@@ -483,15 +493,27 @@ function pollFacebookRecursiveEventsLatest() {
     });
 }
 
-pollFacebookRecursiveEventsLatest();
-
 function facebookPolling() {
     fetchFacebookLatest(1000);
     fetchFacebookPageLatest(1000);
     fetchFacebookPageLatestAlternative();
 }
 
-setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
+if (settings.FACEBOOK_ACCESS_TOKEN) {
+    // Fetch all posts
+    fetchFacebookLatest(5000);
+    fetchFacebookPageLatest(0);
+    fetchFacebookPageLatestAlternative();
+
+    enableFacebookStream();
+
+    pollFacebookRecursiveEventsLatest();
+
+    setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
+}
+else {
+    console.warn("Not fetching content from Facebook.");
+}
 
 function keepAlive() {
     request(settings.SITE_URL, function (error, res, body) {

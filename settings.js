@@ -23,9 +23,9 @@ exports.FACEBOOK_THROTTLE = {
 };
 exports.POSTS_FILTER = {
     'data.from.id': {'$nin': [
-    	// Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting
-		'100000591290520',
-		// Valentino Robboni (https://www.facebook.com/valentino.robboni.1) non-related nudity
-		'100004681320686'
-	]}
+        // Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting
+        '100000591290520',
+        // Valentino Robboni (https://www.facebook.com/valentino.robboni.1) non-related nudity
+        '100004681320686'
+    ]}
 };

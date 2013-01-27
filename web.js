@@ -140,6 +140,7 @@ var sock = shoe(function (stream) {
 
             models.Post.find(_.extend({}, query, settings.POSTS_FILTER), models.Post.PUBLIC_FIELDS).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
                 if (err) {
+                    console.error("getPosts error: %s", err);
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err);
                     return;
@@ -151,14 +152,17 @@ var sock = shoe(function (stream) {
                     if (post.facebook_event_id) {
                         models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, {'event_id': true, 'data': true, 'invited_summary': true}).lean(true).exec(function (err, event) {
                             if (err) {
+                                console.error("getPosts error: %s", err);
                                 // TODO: Do we really want to pass an error about accessing the database to the client?
                                 cb(err);
                                 return;
                             }
 
                             if (!event) {
+                                var err = "Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found";
+                                console.error("getPosts error: %s", err);
                                 // TODO: Do we really want to pass an error about accessing the database to the client?
-                                cb("Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found");
+                                cb(err);
                                 return;
                             }
 
@@ -176,6 +180,7 @@ var sock = shoe(function (stream) {
                         cb(null, post);
                     }
                 }, function (err, posts) {
+                    console.error("getPosts error: %s", err);
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err, posts);
                 });
@@ -272,6 +277,7 @@ var sock = shoe(function (stream) {
                 {'$sort': {'_id': 1}}
             ], function (err, results) {
                 if (err) {
+                    console.error("getStats error: %s", err);
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err);
                     return;

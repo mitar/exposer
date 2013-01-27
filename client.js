@@ -69,11 +69,26 @@ function createPost(post) {
                 }
             }
 
+            var like_link = null;
+            if (post.facebook_event) {
+                like_link = post.facebook_event.data.link;
+            }
+            else if (post.data.link) {
+                like_link = post.data.link;
+            }
+            else if (post.data.actions.like) {
+                like_link = post.data.actions.like.link;
+            }
+            else {
+                like_link = post_link;
+            }
+
             return $(templates.facebook({
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id,
-                'event_in_past': event_in_past
+                'event_in_past': event_in_past,
+                'like_link': like_link
             })).data('post', post);
         default:
             console.error("Unknown post type: %s", post.type, post);
@@ -153,6 +168,9 @@ function displayOldPosts(posts) {
         $('#posts').isotope('insert', postElements, function () {
             shortenPosts();
             renderTweets();
+        });
+        $.each(postElements, function (i, el) {
+            FB.XFBML.parse(el);
         });
     }
 }

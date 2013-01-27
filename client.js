@@ -280,26 +280,26 @@ function loadGraph() {
                         {
                             'type': 'day',
                             'count': 1,
-                            'text': 'd'
+                            'text': "day"
                         },
                         {
                             'type': 'week',
                             'count': 1,
-                            'text': 'w'
+                            'text': "week"
                         },
                         {
                             'type': 'month',
                             'count': 1,
-                            'text': 'm'
+                            'text': "month"
                         },
                         {
                             'type': 'year',
                             'count': 1,
-                            'text': 'y'
+                            'text': "year"
                         },
                         {
                             'type': 'all',
-                            'text': 'All'
+                            'text': "all"
                         }
                     ],
                     'selected': 4 // All

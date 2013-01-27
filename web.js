@@ -224,18 +224,18 @@ var sock = shoe(function (stream) {
             var enlarge = {'weeks': 2};
             var timespans = ['year', 'week'];
             if (from && to) {
-                if (to - from < 365 * 24 * 60 * 60 * 1000) { // 1 year
-                    // Max 365 values
+                if (to - from < 180 * 24 * 60 * 60 * 1000) { // 0.5 year
+                    // Max 180 values
                     timespans.push('dayOfYear');
                     enlarge = {'days': 2};
                 }
-                if (to - from < 2 * 7 * 24 * 60 * 60 * 1000) { // 2 weeks
-                    // Max 2 * 7 * 24 = 336 values
+                if (to - from < 7 * 24 * 60 * 60 * 1000) { // 1 week
+                    // Max 7 * 24 = 168 values
                     timespans.push('hour');
                     enlarge = {'hours': 2};
                 }
-                if (to - from <= 6 * 60 * 60 * 1000) { // 6 hours
-                    // Max 6 * 60 = 360 values
+                if (to - from <= 3 * 60 * 60 * 1000) { // 3 hours
+                    // Max 3 * 60 = 180 values
                     timespans.push('minute');
                     enlarge = {'minutes': 2};
                 }

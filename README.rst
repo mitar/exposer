@@ -34,6 +34,11 @@ Development installation
 
    This will install all node.js dependencies and compile client JavaScript file.
 
+   If you want client JavaScript file to be compiled automatically on any change to source files (so that it is easy
+   to develop), run with ``-w`` parameter::
+
+   browserify client.js -w -v -p ./swig -o static/bundljs
+
 4. You will need also various app keys for social networks (see ``constants.js`` file for the list). You have to
    put them into the process environment. If you are using Heroku_, you can put them into ``.env``
    file `in the root of the repository`_. You can maybe ask some other developer to provide you with the ``.env`` file.
@@ -42,7 +47,7 @@ Development installation
 
     foreman start -f Procfile-development
 
-   or (if you configure environment variables manually) simply::
+   or (if you configure environment variables manually, see ``.env`` file for example) simply::
 
     node web.js
 

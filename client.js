@@ -35,7 +35,7 @@ function createPost(post) {
         case 'twitter':
             return $(templates.twitter({
                 'post': post
-            })).data('foreign_timestamp', post.foreign_timestamp);
+            })).data('post', post);
         case 'facebook':
             var post_id = null;
             var post_link = null;
@@ -74,7 +74,7 @@ function createPost(post) {
                 'post_link': post_link,
                 'post_id': post_id,
                 'event_in_past': event_in_past
-            })).data('foreign_timestamp', post.foreign_timestamp);
+            })).data('post', post);
         default:
             console.error("Unknown post type: %s", post.type, post);
             return null;
@@ -361,7 +361,7 @@ $(document).ready(function () {
         'itemSelector': '.post',
         'getSortData': {
             'foreign_timestamp': function (elem) {
-                return moment(elem.data('foreign_timestamp')).valueOf();
+                return moment(elem.data('post').foreign_timestamp).valueOf();
             }
         },
         'sortBy': 'foreign_timestamp',
@@ -442,5 +442,41 @@ $(document).ready(function () {
 
     connect(function () {
         loadMorePosts();
+    });
+
+    FB.init({
+        'appId': FACEBOOK_APP_ID,
+        'status': true,
+        'cookie': true,
+        'xfbml': true,
+        'channelUrl': '/channel.html'
+    });
+
+    // For current and future .share-action elements
+    $(document).on('click', '.share-action', function (event) {
+        event.preventDefault();
+
+        var href = $(this).attr('href');
+        var post = $(this).closest('.post').data('post');
+
+        var request = {
+            'method': 'stream.share',
+            'display': 'popup'
+        };
+
+        if (post.facebook_event) {
+            request.u = post.facebook_event.data.link;
+        }
+        else if (post.data.link) {
+            request.u = post.data.link;
+        }
+        else {
+            request.u = href;
+        }
+
+        FB.ui(request, function (response) {
+            // TODO: Should we send this to the server so that it can fetch it?
+            // response['post_id'] contains post ID
+        });
     });
 });

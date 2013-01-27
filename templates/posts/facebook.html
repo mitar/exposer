@@ -107,7 +107,7 @@
                         {% if post.data.actions.comment %}
                             <a href="{{ post.data.actions.comment.link }}" title="Leave a comment">Comment</a> ·
                         {% endif %}
-                        <a href="{% if post.data.actions.share %}{{ post.data.actions.share.link }}{% else %}{{ post_link }}{% endif %}" title="Send this to friends or post it on your timeline">Share</a>
+                        <a href="{% if post.data.actions.share %}{{ post.data.actions.share.link }}{% else %}{{ post_link }}{% endif %}" title="Send this to friends or post it on your timeline" class="share-action">Share</a>
                         {% if post.data.shares %}
                             <span class="shares"><a href="https://www.facebook.com/shares/view?id={{ post_id }}" title="Show shares" class="share-link"><span class="share-icon"> </span> {{ post.data.shares.count }}</a></span>
                         {% endif %}

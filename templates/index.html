@@ -7,6 +7,8 @@
         <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Permanent+Marker" media="all" />
         <script type="text/javascript">
             var REMOTE = '{{ REMOTE|escape('js') }}';
+            var FACEBOOK_APP_ID = '{{ FACEBOOK_APP_ID|escape('js') }}';
+            var SITE_URL = '{{ SITE_URL|escape('js') }}';
         </script>
     </head>
     <body>
@@ -40,13 +42,13 @@
             {% include "stats.html" %}
         </div>
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+        <script type="text/javascript" src="https://connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/bundle.js"></script>
         <script type="text/javascript" src="/jquery.dotdotdot.js"></script>
         <script type="text/javascript" src="/jquery.isotope.js"></script>
         <script type="text/javascript" src="/jquery.throttle.js"></script>
         <script type="text/javascript" src="/jquery.hashchange.js"></script>
         <script type="text/javascript" src="/isotope.js"></script>
-        <script type="text/javascript" src="/facebook.js"></script>
         <script type="text/javascript" src="/highstock.js"></script>
         <script type="text/javascript" src="/highstock.exporting.js"></script>
     </body>

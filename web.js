@@ -55,7 +55,9 @@ var server = http.createServer(function (req, res) {
         case '/':
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
             res.write(indexTemplate.render({
-                'REMOTE': settings.REMOTE
+                'REMOTE': settings.REMOTE,
+                'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+                'SITE_URL': settings.SITE_URL
             }));
             res.end();
             break;

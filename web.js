@@ -80,6 +80,12 @@ var server = http.createServer(function (req, res) {
             break;
     }
 });
+
+server.on('error', function (e) {
+    console.error("Cannot start the server: %s", e);
+    process.exit(1);
+});
+
 server.listen(settings.PORT);
 
 // TODO: This should be distributed if we will have multiple instances

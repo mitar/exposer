@@ -552,3 +552,9 @@ body {
     top: 80px;
     right: 60px;
 }
+
+.stats-content {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}

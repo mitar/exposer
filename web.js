@@ -16,9 +16,24 @@ var $ = require('jquery');
 var facebook = require('./facebook');
 var settings = require('./settings');
 
+var firstPostTimestamp = null;
+
 if (!settings.REMOTE) {
     // If we are not running with remote access to data
     var models = require('./models');
+
+    models.once('ready', function () {
+        models.Post.findOne({'merged_to': null}).sort({'foreign_timestamp': 1}).exec(function (err, post) {
+            if (err) {
+                console.error("Could not find the first post: %s", err);
+                return;
+            }
+
+            if (post) {
+                firstPostTimestamp = post.foreign_timestamp;
+            }
+        });
+    });
 }
 else {
     console.warn("Not connecting to the database, using remote data: %s", settings.REMOTE);
@@ -103,6 +118,10 @@ var clients = [];
 var sock = shoe(function (stream) {
     var d = dnode({
         'getPosts': function (since, except, limit, cb) {
+            if (!cb) {
+                return;
+            }
+
             limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
             if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
                 limit = settings.MAX_POSTS_PER_REQUEST;
@@ -160,6 +179,130 @@ var sock = shoe(function (stream) {
                     // TODO: Do we really want to pass an error about accessing the database to the client?
                     cb(err, posts);
                 });
+            });
+        },
+        'getStats': function (from, to, cb) {
+            if (!cb) {
+                return;
+            }
+
+            var query = {'merged_to': null};
+
+            if (from) {
+                from = moment(from);
+                if (!from.isValid()) {
+                    cb("Invalid from timestamp");
+                    return;
+                }
+
+                if (!query.foreign_timestamp) {
+                    query.foreign_timestamp = {};
+                }
+                query.foreign_timestamp['$gte'] = from;
+            }
+            else {
+                // Approximate (for timespans to be correct), but we do not want to use it for query
+                from = firstPostTimestamp;
+            }
+            if (to) {
+                to = moment(to);
+                if (!to.isValid()) {
+                    cb("Invalid to timestamp");
+                    return;
+                }
+
+                if (!query.foreign_timestamp) {
+                    query.foreign_timestamp = {};
+                }
+                query.foreign_timestamp['$lte'] = to;
+            }
+            else {
+                // Approximate (for timespans to be correct), but we do not want to use it for query
+                to = moment();
+            }
+
+            var enlarge = {'weeks': 2};
+            var timespans = ['year', 'week'];
+            if (from && to) {
+                if (to - from < 365 * 24 * 60 * 60 * 1000) { // 1 year
+                    // Max 365 values
+                    timespans.push('dayOfYear');
+                    enlarge = {'days': 2};
+                }
+                if (to - from < 2 * 7 * 24 * 60 * 60 * 1000) { // 2 weeks
+                    // Max 2 * 7 * 24 = 336 values
+                    timespans.push('hour');
+                    enlarge = {'hours': 2};
+                }
+                if (to - from <= 6 * 60 * 60 * 1000) { // 6 hours
+                    // Max 6 * 60 = 360 values
+                    timespans.push('minute');
+                    enlarge = {'minutes': 2};
+                }
+            }
+
+            // Enlarge interval a bit and convert limits to Date objects
+            if (query.foreign_timestamp && query.foreign_timestamp['$gte']) {
+                query.foreign_timestamp['$gte'] = query.foreign_timestamp['$gte'].subtract(enlarge).toDate();
+            }
+            if (query.foreign_timestamp && query.foreign_timestamp['$lte']) {
+                query.foreign_timestamp['$lte'] = query.foreign_timestamp['$lte'].add(enlarge).toDate();
+            }
+
+            var id = {};
+            var project = {'$project': {
+                'is_twitter': {'$cond': [{'$eq': ['$type', 'twitter']}, 1, 0]},
+                'is_facebook': {'$cond': [{'$eq': ['$type', 'facebook']}, 1, 0]}
+            }};
+            _.each(timespans, function (timespan, i, list) {
+                project['$project'][timespan] = {};
+                project['$project'][timespan]['$' + timespan] = '$foreign_timestamp';
+                id[timespan] = '$' + timespan;
+            });
+
+            models.Post.aggregate([
+                {'$match': query},
+                project,
+                {'$group': {
+                    '_id': id,
+                    'count_all': {'$sum': 1},
+                    'count_twitter': {'$sum': '$is_twitter'},
+                    'count_facebook': {'$sum': '$is_facebook'}
+                }},
+                {'$sort': {'_id': 1}}
+            ], function (err, results) {
+                if (err) {
+                    // TODO: Do we really want to pass an error about accessing the database to the client?
+                    cb(err);
+                    return;
+                }
+
+                var stats = [];
+                _.each(results, function (result, i, list) {
+                    if (timespans.length > 2) {
+                        var timestamp = moment.utc(result._id.year + '-' + (result._id.dayOfYear || '0') + '-' + (result._id.hour || '0') + '-' + (result._id.minute || '0'), 'YYYY-DDD-HH-mm')
+                    }
+                    else {
+                        if (result._id.week === 0) {
+                            if (stats.length > 0) {
+                                stats[stats.length - 1][1] += result.count_all;
+                                stats[stats.length - 1][2] += result.count_twitter;
+                                stats[stats.length - 1][3] += result.count_facebook;
+                            }
+                            return;
+                        }
+                        else {
+                            var timestamp = moment.utc().startOf('year').year(result._id.year);
+                            while (timestamp.day() !== 0) {
+                                timestamp.add('days', 1);
+                            }
+                            timestamp.add('weeks', result._id.week - 1);
+                        }
+                    }
+                    stats.push([timestamp.valueOf(), result.count_all, result.count_twitter, result.count_facebook]);
+                });
+
+                cb(null, stats);
             });
         }
     });

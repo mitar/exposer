@@ -16,12 +16,17 @@ var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
 var SECTIONS = {
     'stream': true,
-    'links': true
+    'links': true,
+    'stats': true
 };
+
+var remotePromise = null;
+remote = null;
 
 var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
+var graph = null;
 
 var postsRelayout = null;
 
@@ -160,14 +165,16 @@ function objectKeys(obj) {
     return keys;
 }
 
-function loadMorePosts(remote) {
-    remote.getPosts(oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
-        if (err) {
-            console.error(err);
-            return;
-        }
+function loadMorePosts() {
+    remotePromise.done(function () {
+        remote.getPosts(oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
+            if (err) {
+                console.error(err);
+                return;
+            }
 
-        displayOldPosts(posts);
+            displayOldPosts(posts);
+        });
     });
 }
 
@@ -186,6 +193,9 @@ function setActiveSection(section) {
         postsRelayout();
         renderTweets();
     }
+    else if (section === 'stats') {
+        loadGraph();
+    }
 }
 
 function getSection(li) {
@@ -203,7 +213,143 @@ function getActiveSection() {
     return getSection($('#menu li.active'));
 }
 
+function convertStats(stats) {
+    var result = {
+        'all': [],
+        'twitter': [],
+        'facebook': []
+    };
+    $.each(stats, function (i, s) {
+        if (s[1] !== 0) {
+            result.all.push([s[0], s[1]]);
+        }
+        if (s[2] !== 0) {
+            result.twitter.push([s[0], s[2]]);
+        }
+        if (s[3] !== 0) {
+            result.facebook.push([s[0], s[3]]);
+        }
+    });
+    return result;
+}
+
+function loadGraphData(event) {
+    remote.getStats(event.min, event.max, function (err, stats) {
+        stats = convertStats(stats);
+        graph.series[0].setData(stats.all);
+        graph.series[1].setData(stats.twitter);
+        graph.series[2].setData(stats.facebook);
+    });
+}
+
+function loadGraph() {
+    if (graph) {
+        return;
+    }
+
+    remotePromise.done(function () {
+        remote.getStats(null, null, function (err, stats) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            stats = convertStats(stats);
+
+            graph = new Highcharts.StockChart({
+                'chart': {
+                    'renderTo': 'graph',
+                    'type': 'areaspline',
+                    'zoomType': 'x'
+                },
+                'credits': {
+                    'enabled': false
+                },
+                'navigator': {
+                    'adaptToUpdatedData': false,
+                    'baseSeries': 0
+                },
+                'legend': {
+                    'enabled': true,
+                    'verticalAlign': 'top',
+                    'floating': true,
+                    'padding': 5
+                },
+                'rangeSelector': {
+                    'buttons': [
+                        {
+                            'type': 'day',
+                            'count': 1,
+                            'text': 'd'
+                        },
+                        {
+                            'type': 'week',
+                            'count': 1,
+                            'text': 'w'
+                        },
+                        {
+                            'type': 'month',
+                            'count': 1,
+                            'text': 'm'
+                        },
+                        {
+                            'type': 'year',
+                            'count': 1,
+                            'text': 'y'
+                        },
+                        {
+                            'type': 'all',
+                            'text': 'All'
+                        }
+                    ],
+                    'selected': 4 // All
+                },
+                'xAxis': {
+                    'events': {
+                        'afterSetExtremes': loadGraphData
+                    },
+                    'minRange': 24 * 60 * 60 * 1000 // One day
+                },
+                'yAxis': {
+                    'title': {
+                        'text': "Number of posts"
+                    },
+                    'min': 0
+                },
+                'plotOptions': {
+                    'series': {
+                        'marker': {
+                            'enabled': true,
+                            'radius': 3
+                        },
+                        'dataGrouping': {
+                            'enabled': false
+                        }
+                    }
+                },
+                'series': [
+                    {
+                        'name': "All",
+                        'data': stats.all
+                    },
+                    {
+                        'name': "Twitter",
+                        'data': stats.twitter
+                    },
+                    {
+                        'name': "Facebook",
+                        'data': stats.facebook
+                    }
+                ]
+            });
+        });
+    });
+}
+
 $(document).ready(function () {
+    var remoteDeferred = $.Deferred();
+    remotePromise = remoteDeferred.promise();
+
     postsRelayout = $.debounce(200, function () {
         $('#posts').isotope('reLayout');
     });
@@ -251,7 +397,7 @@ $(document).ready(function () {
                 displayNewEvent(event);
             }
         });
-        d.on('remote', function (remote) {
+        d.on('remote', function (r) {
             if (last_retry != 100) {
                 console.warn("Connection to the server restored.");
 
@@ -259,12 +405,17 @@ $(document).ready(function () {
                 last_retry = 100;
             }
 
+            remote = r;
+            if (!remoteDeferred.isResolved) {
+                remoteDeferred.resolve();
+            }
+
             if (callback) {
-                callback(remote);
+                callback();
             }
 
             $('#load-posts').click(function (event) {
-                loadMorePosts(remote);
+                loadMorePosts();
             }).show();
 
             $(window).scroll(function (event) {
@@ -272,7 +423,7 @@ $(document).ready(function () {
                 if (document.body.scrollHeight - $(this).scrollTop() <= 3 * $(this).height()) {
                     // Make sure initial posts have been already loaded
                     if (!$.isEmptyObject(displayedPosts)) {
-                        loadMorePosts(remote);
+                        loadMorePosts();
                     }
                 }
             });
@@ -286,7 +437,7 @@ $(document).ready(function () {
         }).pipe(stream).pipe(d);
     }
 
-    connect(function (remote) {
-        loadMorePosts(remote);
+    connect(function () {
+        loadMorePosts();
     });
 });

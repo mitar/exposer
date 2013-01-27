@@ -1,4 +1,5 @@
 var async = require('async');
+var events = require('events');
 var moment = require('moment');
 var mongoose = require('mongoose');
 var util = require('util');
@@ -14,6 +15,7 @@ var db = mongoose.createConnection(settings.MONGODB_URL).on('error', function (e
     throw new Error("MongoDB connection error");
 }).once('open', function () {
     console.log("MongoDB connection successful");
+    module.exports.emit('ready');
 });
 
 var postSchema = mongoose.Schema({
@@ -662,5 +664,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
     });
 }
 
-exports.Post = Post;
-exports.FacebookEvent = FacebookEvent;
+// We are setting module.exports directly because we want to use our own object for exports
+module.exports = new events.EventEmitter();
+module.exports.Post = Post;
+module.exports.FacebookEvent = FacebookEvent;

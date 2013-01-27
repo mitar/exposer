@@ -16,6 +16,7 @@
         <ul id="menu">
             <li class="stream active"><a href="#stream">Stream</a></li>
             <li class="links"><a href="#links">Links</a></li>
+            <li class="stats"><a href="#stats">Stats</a></li>
         </ul>
         <div id="header">
             <div class="section stream active">
@@ -23,6 +24,9 @@
             </div>
             <div class="section links">
                 <p>Links to related websites. Feel free to <a href="https://github.com/mitar/exposer/blob/master/templates/links.html">edit them</a>.</p>
+            </div>
+            <div class="section stats">
+                <p>Statistics of collected posts. <br/> Warning: Many wanted posts are not successfully collected and many posts collected are not really wanted.</p>
             </div>
         </div>
         <div class="section stream active">
@@ -32,6 +36,9 @@
         <div class="section links">
             {% include "links.html" %}
         </div>
+        <div class="section stats">
+            {% include "stats.html" %}
+        </div>
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
         <script type="text/javascript" src="/bundle.js"></script>
         <script type="text/javascript" src="/jquery.dotdotdot.js"></script>
@@ -40,5 +47,7 @@
         <script type="text/javascript" src="/jquery.hashchange.js"></script>
         <script type="text/javascript" src="/isotope.js"></script>
         <script type="text/javascript" src="/facebook.js"></script>
+        <script type="text/javascript" src="/highstock.js"></script>
+        <script type="text/javascript" src="/highstock.exporting.js"></script>
     </body>
 </html>

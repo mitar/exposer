@@ -1,4 +1,6 @@
-exports.REMOTE = process.env.REMOTE || 'https://exposer.herokuapp.com';
+_ = require('underscore');
+
+exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'https://exposer.herokuapp.com';
 exports.PORT = process.env.PORT || '5000';
 exports.SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:5000';
 exports.MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';

@@ -1,4 +1,5 @@
 var async = require('async');
+var consolidate = require('consolidate');
 var dnode = require('dnode');
 var express = require('express');
 var http = require('http');
@@ -42,32 +43,36 @@ else {
 
 swig.init({
     'root': __dirname + '/templates',
-    'filters': './filters'
+    'filters': './filters',
+    'allowErrors': true // Allows errors to be thrown and caught by express instead of suppressed by Swig
 });
 
-var indexTemplate = swig.compileFile('index.html');
-var facebookTemplate = swig.compileFile('facebook.html');
-
 var FACEBOOK_POST_ID_REGEXP = /(\d+)$/;
+
+app.engine('html', consolidate.swig);
+
+app.enable('case sensitive routing');
+app.enable('strict routing');
+app.disable('x-powered-by');
+app.set('view engine', 'html');
+app.set('views', __dirname + '/templates');
 
 app.use(express.bodyParser());
 app.use(express.static(__dirname + '/static'));
 
 app.get('/', function (req, res) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(indexTemplate.render({
+    res.render('index', {
         'REMOTE': settings.REMOTE,
         'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
         'SITE_URL': settings.SITE_URL
-    }));
+    });
 });
 
-app.get('/facebook.html', function (req, res) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(facebookTemplate.render({
+app.get('/fb', function (req, res) {
+    res.render('facebook', {
         'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
         'SITE_URL': settings.SITE_URL
-    }));
+    });
 });
 
 app.post(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {

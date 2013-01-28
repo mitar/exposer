@@ -1,7 +1,6 @@
 var dnode = require('dnode');
 var moment = require('moment');
 var shoe = require('shoe');
-var swig = require('swig/lib/swig');
 
 var templates = {
     'twitter': require('./templates/posts/twitter.html'),

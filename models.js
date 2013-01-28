@@ -451,7 +451,6 @@ postSchema.statics.detectLanguage = function (type, data) {
     }
 
     var languages = detector.detect(text);
-    console.log(languages, text);
     if (languages.length > 0) {
         var positions = {};
         _.each(languages, function (lang, i, list) {

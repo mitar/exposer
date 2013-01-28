@@ -7,7 +7,6 @@ var request = require('request');
 var shoe = require('shoe');
 var swig = require('swig');
 var twitter = require('ntwitter');
-var url = require('url');
 var util = require('util');
 
 var _ = require('underscore');

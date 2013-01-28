@@ -1,6 +1,6 @@
 var async = require('async');
 var dnode = require('dnode');
-var ecstatic = require('ecstatic')(__dirname + '/static');
+var express = require('express');
 var http = require('http');
 var moment = require('moment');
 var request = require('request');
@@ -15,6 +15,8 @@ var $ = require('jquery');
 
 var facebook = require('./facebook');
 var settings = require('./settings');
+
+var app = express();
 
 var firstPostTimestamp = null;
 
@@ -49,69 +51,57 @@ var facebookTemplate = swig.compileFile('facebook.html');
 
 var FACEBOOK_POST_ID_REGEXP = /(\d+)$/;
 
-var server = http.createServer(function (req, res) {
-    var req_url = url.parse(req.url, true);
-    switch (req_url.pathname) {
-        case '/':
-            res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-            res.write(indexTemplate.render({
-                'REMOTE': settings.REMOTE,
-                'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
-                'SITE_URL': settings.SITE_URL
-            }));
-            res.end();
-            break;
-        case '/facebook.html':
-            res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-            res.write(facebookTemplate.render({
-                'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
-                'SITE_URL': settings.SITE_URL
-            }));
-            res.end();
-            break;
-        case settings.FACEBOOK_REALTIME_PATHNAME:
-            if (req.method.toLowerCase() === 'post') {
-                var data = '';
-                req.setEncoding('utf8');
-                req.addListener('data', function (chunk) {
-                    data += chunk;
-                }).addListener('end', function () {
-                    res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
-                    res.end();
+app.use(express.bodyParser());
+app.use(express.static(__dirname + '/static'));
 
-                    console.log("Facebook realtime payload");
-                    // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
-                    // TODO: We should fetch into the past until we get to posts we already have
-                    fetchFacebookPageLatest(100);
-                });
-            }
-            else {
-                // TODO: Check X-Hub-Signature
-
-                console.log("Facebook realtime subscription");
-
-                if ((req_url.query['hub.mode'] !== 'subscribe') || (req_url.query['hub.verify_token'] !== settings.FACEBOOK_REALTIME_VERIFY_TOKEN)) {
-                    res.writeHead(400);
-                    res.end();
-                    return;
-                }
-
-                res.writeHead(200, {'Content-Type': 'text/plain; charset=utf-8'});
-                res.write(req_url.query['hub.challenge']);
-                res.end();
-            }
-            break;
-        default:
-            ecstatic(req, res);
-            break;
-    }
+app.get('/', function (req, res) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(indexTemplate.render({
+        'REMOTE': settings.REMOTE,
+        'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+        'SITE_URL': settings.SITE_URL
+    }));
 });
 
+app.get('/facebook.html', function (req, res) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(facebookTemplate.render({
+        'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+        'SITE_URL': settings.SITE_URL
+    }));
+});
+
+app.post(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.send('');
+
+    console.log("Facebook realtime payload", req.body);
+    // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
+    // TODO: We should fetch into the past until we get to posts we already have
+    fetchFacebookPageLatest(100);
+    fetchFacebookPageLatestAlternative();
+});
+
+app.get(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
+    // TODO: Check X-Hub-Signature
+
+    console.log("Facebook realtime subscription");
+
+    if ((req.query['hub.mode'] !== 'subscribe') || (req.query['hub.verify_token'] !== settings.FACEBOOK_REALTIME_VERIFY_TOKEN)) {
+        res.writeHead(400);
+        res.end();
+        return;
+    }
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.send(req.query['hub.challenge']);
+});
+
+var server = http.createServer(app);
 server.on('error', function (e) {
     console.error("Cannot start the server: %s", e);
     process.exit(1);
 });
-
 server.listen(settings.PORT);
 
 // TODO: This should be distributed if we will have multiple instances

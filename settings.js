@@ -13,18 +13,19 @@ exports.FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 exports.FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 exports.FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 exports.KEEP_ALIVE_INTERVAL = 25 * 60 * 1000; // ms
-
-exports.TARGET_LANGUAGE = 'slovene';
-exports.TARGET_LANGUAGE_MAX_RANK = 3;
-exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#kkprotest', '#ceprotest', '#fertikje', '#demonstracije', '#zbor', '#nisegotovo', '#malomorgen', '#politikasi', '#volitve', '#vstaja', '#zborzarepubliko', '#korupcija', '#jansa', '#jansevanje', '#pahor', '#stavkajs', '#stavka', '#javnisektor', '#onlyinslovenia', '#sviz', '#zombiji'];
-exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'kkprotest', 'ceprotest', 'fertikje', 'demonstracije', 'nisegotovo', 'malomorgen', 'politikasi', 'zborzarepubliko', 'jansevanje', 'stavkajs', 'javnisektor', 'onlyinslovenia'];
-exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
+exports.LANGUAGE_DETECTION_MIN_LENGTH = 100; // How many characters should there be to try to detect the language
+exports.TARGET_LANGUAGE_MAX_RANK = 3; // After which rank of the target language we start to trust the detected language
 exports.MAX_POSTS_PER_REQUEST = 50;
+exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.FACEBOOK_POLL_INTERVAL = process.env.FACEBOOK_POLL_INTERVAL || 3 * 60 * 1000; // ms
 exports.FACEBOOK_THROTTLE = {
     'requests': 600,
     'interval': 600 * 1000 // ms
 };
+
+exports.TARGET_LANGUAGE = 'slovene';
+exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#kkprotest', '#ceprotest', '#fertikje', '#demonstracije', '#zbor', '#nisegotovo', '#malomorgen', '#politikasi', '#volitve', '#vstaja', '#zborzarepubliko', '#korupcija', '#jansa', '#jansevanje', '#pahor', '#stavkajs', '#stavka', '#javnisektor', '#onlyinslovenia', '#sviz', '#zombiji'];
+exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'kkprotest', 'ceprotest', 'fertikje', 'demonstracije', 'nisegotovo', 'malomorgen', 'politikasi', 'zborzarepubliko', 'jansevanje', 'stavkajs', 'javnisektor', 'onlyinslovenia'];
 exports.POSTS_FILTER = {
     'data.from.id': {'$nin': [
         // Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting

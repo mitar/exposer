@@ -446,7 +446,7 @@ postSchema.statics.detectLanguage = function (type, data) {
 
     var text = (data.message || '') + ' ' + (data.name || '') + ' ' + (data.caption || '') + ' ' + (data.description || '');
 
-    if (text.length < 100) {
+    if (text.length < settings.LANGUAGE_DETECTION_MIN_LENGTH) {
         return null;
     }
 

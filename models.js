@@ -452,12 +452,12 @@ postSchema.statics.detectLanguage = function (type, data) {
 
     var languages = detector.detect(text);
     if (languages.length > 0) {
-        var positions = {};
+        var ranks = {};
         _.each(languages, function (lang, i, list) {
-            positions[lang[0]] = i;
+            ranks[lang[0]] = i;
         });
-        // If Slovene language is far away from primary guesses
-        if ((positions['slovene'] || languages.length + 3) > 3) {
+        // If target language is not very likely, we return the best match
+        if (!_.has(ranks, settings.TARGET_LANGUAGE) || ranks[settings.TARGET_LANGUAGE] > settings.TARGET_LANGUAGE_MAX_RANK) {
             return languages[0][0];
         }
     }

@@ -1,4 +1,5 @@
 var async = require('async');
+var detector = new (require('languagedetect'))();
 var events = require('events');
 var moment = require('moment');
 var mongoose = require('mongoose');
@@ -61,7 +62,11 @@ var postSchema = mongoose.Schema({
     },
     'merged_from': [{
         'type': String
-    }]
+    }],
+    'language': {
+        'type': String,
+        'index': true
+    }
 });
 
 postSchema.statics.NOT_FILTERED =
@@ -433,6 +438,34 @@ postSchema.statics.cleanPost = function (post) {
     return post;
 };
 
+postSchema.statics.detectLanguage = function (type, data) {
+    // Currently only for Facebook posts
+    if (type !== 'facebook') {
+        return null;
+    }
+
+    var text = (data.message || '') + ' ' + (data.name || '') + ' ' + (data.caption || '') + ' ' + (data.description || '');
+
+    if (text.length < 100) {
+        return null;
+    }
+
+    var languages = detector.detect(text);
+    console.log(languages, text);
+    if (languages.length > 0) {
+        var positions = {};
+        _.each(languages, function (lang, i, list) {
+            positions[lang[0]] = i;
+        });
+        // If Slovene language is far away from primary guesses
+        if ((positions['slovene'] || languages.length + 3) > 3) {
+            return languages[0][0];
+        }
+    }
+
+    return null;
+};
+
 postSchema.methods.fetchFacebookEvent = function (cb) {
     var post = this;
 
@@ -626,7 +659,9 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
         source = [source];
     }
 
-    Post.findOneAndUpdate(query, {'type_foreign_id': Post.createTypeForeignId(type, foreign_id), 'foreign_timestamp': foreign_timestamp, '$addToSet': {'sources': {'$each': source}}, 'data': data, 'original_data': original_data}, {'upsert': true, 'new': false}, function (err, obj) {
+    var language = Post.detectLanguage(type, data);
+
+    Post.findOneAndUpdate(query, {'type_foreign_id': Post.createTypeForeignId(type, foreign_id), 'foreign_timestamp': foreign_timestamp, '$addToSet': {'sources': {'$each': source}}, 'data': data, 'original_data': original_data, 'language': language}, {'upsert': true, 'new': false}, function (err, obj) {
         if (err) {
             cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") store error: " + err);
             return;

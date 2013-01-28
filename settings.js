@@ -29,5 +29,13 @@ exports.POSTS_FILTER = {
         '100000591290520',
         // Valentino Robboni (https://www.facebook.com/valentino.robboni.1) non-related nudity
         '100004681320686'
+    ]},
+    // TODO: This probably should not be filtered but just downvoted in advance (when we will have support for that)
+    'language': {'$nin': [
+        'italian',
+        'turkish',
+        'latin',
+        'spanish',
+        'portuguese'
     ]}
 };

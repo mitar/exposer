@@ -3,11 +3,13 @@ var consolidate = require('consolidate');
 var dnode = require('dnode');
 var express = require('express');
 var http = require('http');
+var i18next = require("i18next");
 var moment = require('moment');
 var request = require('request');
 var shoe = require('shoe');
 var swig = require('swig');
 var twitter = require('ntwitter');
+var url = require('url');
 var util = require('util');
 
 var _ = require('underscore');
@@ -15,6 +17,39 @@ var $ = require('jquery');
 
 var facebook = require('./facebook');
 var settings = require('./settings');
+
+var mongo = mongoConnection();
+
+i18next.mongoDb = require('i18next.mongoDb');
+
+i18next.mongoDb.connect({
+    'host': mongo.hostname,
+    'port': mongo.port,
+    'dbName': mongo.dbName,
+    'options': {
+        'auth': {
+            'username': mongo.username,
+            'password': mongo.password
+        }
+    }
+}, function (err) {
+    if (err) {
+        console.error("MongoDB i18next connection error: %s", err);
+        // TODO: Handle better, depending on the error?
+        throw new Error("MongoDB i18next connection error");
+    }
+
+    console.log("MongoDB i18next connection successful");
+    i18next.backend(i18next.mongoDb);
+    i18next.init({
+        'fallbackLng': 'en',
+        'preload': settings.I18N_LANGUAGES,
+        'saveMissing': true,
+        // We use session for storing the language preference
+        'useCookie': false,
+        'detectLngFromPath': false
+    });
+});
 
 var app = express();
 
@@ -62,6 +97,8 @@ if (settings.BEHIND_PROXY) {
 app.set('view engine', 'html');
 app.set('views', __dirname + '/templates');
 
+i18next.registerAppHelper(app);
+
 app.use(express.cookieParser());
 app.use(express.cookieSession({
     'key': 'session',
@@ -75,6 +112,7 @@ app.use(express.cookieSession({
 }));
 app.use(express.bodyParser());
 app.use(express.static(__dirname + '/static'));
+app.use(i18next.handle);
 
 app.get('/', function (req, res) {
     res.render('index', {
@@ -688,3 +726,28 @@ function keepAlive() {
 }
 
 setInterval(keepAlive, settings.KEEP_ALIVE_INTERVAL);
+
+function mongoConnection() {
+    if (!settings.MONGODB_URL) {
+        return {};
+    }
+
+    var mongo = url.parse(settings.MONGODB_URL);
+
+    if (mongo.auth) {
+        var auth = mongo.auth.split(':');
+        mongo.username = auth[0];
+        mongo.password = auth[1];
+    }
+    else if (/@/.test(mongo.hostname) && /:/.test(mongo.hostname.split('@')[0])) {
+        mongo.hostname = mongo.hostname.split('@');
+        var auth = mongo.hostname.shift().split(':');
+        mongo.hostname = mongo.hostname.pop();
+        mongo.username = auth[0];
+        mongo.password = auth[1];
+    }
+
+    mongo.dbName = mongo.pathname && mongo.pathname.replace(/\//g, '') || null;
+
+    return mongo;
+}

@@ -54,9 +54,25 @@ app.engine('html', consolidate.swig);
 app.enable('case sensitive routing');
 app.enable('strict routing');
 app.disable('x-powered-by');
+
+if (settings.BEHIND_PROXY) {
+    app.enable('trust proxy');
+}
+
 app.set('view engine', 'html');
 app.set('views', __dirname + '/templates');
 
+app.use(express.cookieParser());
+app.use(express.cookieSession({
+    'key': 'session',
+    'secret': settings.SECRET,
+    'proxy': settings.BEHIND_PROXY,
+    'cookie': {
+        'secure': settings.SECURE_SESSION_COOKIE,
+        'httpOnly': true,
+        'maxAge': 2 * 365 * 24 * 60 * 60 * 1000 // 2 years
+    }
+}));
 app.use(express.bodyParser());
 app.use(express.static(__dirname + '/static'));
 
@@ -76,7 +92,7 @@ app.get('/fb', function (req, res) {
 });
 
 app.post(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.set('Content-Type', 'text/plain; charset=utf-8');
     res.send('');
 
     console.log("Facebook realtime payload", req.body);
@@ -91,13 +107,14 @@ app.get(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
 
     console.log("Facebook realtime subscription");
 
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+
     if ((req.query['hub.mode'] !== 'subscribe') || (req.query['hub.verify_token'] !== settings.FACEBOOK_REALTIME_VERIFY_TOKEN)) {
-        res.writeHead(400);
-        res.end();
+        res.status(400);
+        res.send('');
         return;
     }
 
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.send(req.query['hub.challenge']);
 });
 

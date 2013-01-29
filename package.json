@@ -17,7 +17,7 @@
         "jquery": "1.8.x",
         "limiter": "1.0.x",
         "languagedetect": "0.0.x",
-        "express": "3.0.x",
+        "express": "3.1.x",
         "consolidate": "0.8.x"
     },
     "engines": {

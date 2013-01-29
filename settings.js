@@ -2,6 +2,8 @@ _ = require('underscore');
 
 exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'https://exposer.herokuapp.com';
 exports.PORT = process.env.PORT || '5000';
+exports.BEHIND_PROXY = !!(process.env.BEHIND_PROXY || false);
+exports.SECURE_SESSION_COOKIE = !!(process.env.SECURE_SESSION_COOKIE || false);
 exports.SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:5000';
 exports.MONGODB_URL = process.env.MONGODB_URL || process.env.MONGOHQ_URL || 'mongodb://localhost/exposer';
 exports.TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
@@ -23,6 +25,7 @@ exports.FACEBOOK_THROTTLE = {
     'interval': 600 * 1000 // ms
 };
 
+exports.SECRET = process.env.SECRET || 'secret';
 exports.TARGET_LANGUAGE = 'slovene';
 exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#kkprotest', '#ceprotest', '#fertikje', '#demonstracije', '#zbor', '#nisegotovo', '#malomorgen', '#politikasi', '#volitve', '#vstaja', '#zborzarepubliko', '#korupcija', '#jansa', '#jansevanje', '#pahor', '#stavkajs', '#stavka', '#javnisektor', '#onlyinslovenia', '#sviz', '#zombiji'];
 exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'kkprotest', 'ceprotest', 'fertikje', 'demonstracije', 'nisegotovo', 'malomorgen', 'politikasi', 'zborzarepubliko', 'jansevanje', 'stavkajs', 'javnisektor', 'onlyinslovenia'];

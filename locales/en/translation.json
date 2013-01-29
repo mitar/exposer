@@ -1,0 +1,34 @@
+{
+    "menu": {
+        "stream": "Stream",
+        "links": "Links",
+        "stats": "Stats"
+    },
+    "buttons": {
+        "load-more": "Load more posts"
+    },
+    "section": {
+        "stream": {
+            "description": [
+                "If you want your public posts to appear here, tag them with __section.stream.twitter-hashtag__ hashtag on Twitter or tag __section.stream.facebook-page-link__ page on Facebook. (Some additional Twitter and Facebook posts are collected, too.)"
+            ],
+            "facebook-page": "__section.stream.facebook-page-name__ Facebook page"
+        },
+        "links": {
+            "description": [
+                "Links to related websites. Feel free to __section.links.edit-link__."
+            ],
+            "edit": "edit them"
+        },
+        "stats": {
+            "description": "Statistics of collected posts.",
+            "warning": [
+                "Warning: Many wanted posts are not successfully collected and many posts collected are not really wanted."
+            ]
+        }
+    },
+    "languages": {
+        "en": "English",
+        "sl": "Slovenian"
+    }
+}

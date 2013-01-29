@@ -15,25 +15,34 @@
         <div id="fb-root"></div>
         <a href="https://github.com/mitar/exposer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
         <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/Gotofje/448989388495867" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
+        <ul id="languages">
+            {%- for language in languages -%}
+                {%- if language.current -%}
+                    <li class="active" title="{{ language.native }}">{{ language.name }}</li>
+                {%- else -%}
+                    <li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
+                {%- endif -%}
+            {%- endfor -%}
+        </ul>
         <ul id="menu">
-            <li class="stream active"><a href="#stream">Stream</a></li>
-            <li class="links"><a href="#links">Links</a></li>
-            <li class="stats"><a href="#stats">Stats</a></li>
+            <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
+            <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+            <li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
         </ul>
         <div id="header">
             <div class="section stream active">
-                <p>If you want your public posts to appear here, tag them with <tt>#gotofje</tt> hashtag on Twitter or tag <a href="https://www.facebook.com/pages/Gotofje/448989388495867" title="Gotofje Facebook page"><tt>@gotofje</tt></a> page on Facebook. (Some additional Twitter and Facebook posts are collected, too.)</p>
+                <p>{{ t("section.stream.description", translations) }}</p>
             </div>
             <div class="section links">
-                <p>Links to related websites. Feel free to <a href="https://github.com/mitar/exposer/blob/master/templates/links.html">edit them</a>.</p>
+                <p>{{ t("section.links.description", translations) }}</p>
             </div>
             <div class="section stats">
-                <p>Statistics of collected posts. <br/> Warning: Many wanted posts are not successfully collected and many posts collected are not really wanted.</p>
+                <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
             </div>
         </div>
         <div class="section stream active">
             <div id="posts"></div>
-            <div id="load-posts"><button>Load more posts</button></div>
+            <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
         </div>
         <div class="section links">
             {% include "links.html" %}

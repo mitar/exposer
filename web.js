@@ -4,6 +4,7 @@ var dnode = require('dnode');
 var express = require('express');
 var http = require('http');
 var i18next = require("i18next");
+var i18nextWrapper = require('i18next/lib/i18nextWrapper');
 var moment = require('moment');
 var request = require('request');
 var shoe = require('shoe');
@@ -17,39 +18,6 @@ var $ = require('jquery');
 
 var facebook = require('./facebook');
 var settings = require('./settings');
-
-var mongo = mongoConnection();
-
-i18next.mongoDb = require('i18next.mongoDb');
-
-i18next.mongoDb.connect({
-    'host': mongo.hostname,
-    'port': mongo.port,
-    'dbName': mongo.dbName,
-    'options': {
-        'auth': {
-            'username': mongo.username,
-            'password': mongo.password
-        }
-    }
-}, function (err) {
-    if (err) {
-        console.error("MongoDB i18next connection error: %s", err);
-        // TODO: Handle better, depending on the error?
-        throw new Error("MongoDB i18next connection error");
-    }
-
-    console.log("MongoDB i18next connection successful");
-    i18next.backend(i18next.mongoDb);
-    i18next.init({
-        'fallbackLng': 'en',
-        'preload': settings.I18N_LANGUAGES,
-        'saveMissing': true,
-        // We use session for storing the language preference
-        'useCookie': false,
-        'detectLngFromPath': false
-    });
-});
 
 var app = express();
 
@@ -74,6 +42,32 @@ if (!settings.REMOTE) {
 }
 else {
     console.warn("Not connecting to the database, using remote data: %s", settings.REMOTE);
+}
+
+i18next.init({
+    'fallbackLng': settings.I18N_LANGUAGES[0],
+    'preload': settings.I18N_LANGUAGES,
+    'supportedLngs': settings.I18N_LANGUAGES,
+    'saveMissing': app.get('env') !== 'production',
+    // We use session for storing the language preference
+    'useCookie': false,
+    'detectLngFromPath': false
+});
+
+var origDetectLanguage = null;
+if (origDetectLanguage === null) {
+    origDetectLanguage = i18nextWrapper.detectLanguage;
+    i18nextWrapper.detectLanguage = function(req, res) {
+        var language = null;
+        if (req.session.language && _.indexOf(settings.I18N_LANGUAGES, req.session.language) !== -1) {
+            language = req.session.language;
+        }
+        else {
+            language = origDetectLanguage(req, res);
+            req.session.language = language;
+        }
+        return language;
+    }
 }
 
 swig.init({
@@ -114,11 +108,52 @@ app.use(express.bodyParser());
 app.use(express.static(__dirname + '/static'));
 app.use(i18next.handle);
 
+if (app.get('env') !== 'production') {
+    // TODO: Set sendMissing to true on the client side, if not in the production
+    i18next.serveDynamicResources(app).serveMissingKeyRoute(app).serveChangeKeyRoute(app).serveRemoveKeyRoute(app);
+
+    i18next.serveWebTranslate(app, {
+        'path': '/i18next',
+        'i18nextWTOptions': {
+            'languages': settings.I18N_LANGUAGES,
+            'fallbackLng': settings.I18N_LANGUAGES[0],
+            'namespaces': ['translation'],
+            // Have to specify all paths because currently there is a bug in i18next to not merge properly options with defaults
+            'resGetPath': 'locales/resources.json?lng=__lng__&ns=__ns__',
+            'resChangePath': 'locales/change/__lng__/__ns__',
+            'resRemovePath': 'locales/remove/__lng__/__ns__',
+            'dynamicLoad': true
+        }
+    });
+}
+
 app.get('/', function (req, res) {
+    var translations = {
+        'section': {
+            'stream': {
+                'twitter-hashtag': '<tt>' + settings.TWITTER_QUERY[0] + '</tt>',
+                'facebook-page-name': settings.FACEBOOK_PAGE_NAME
+            },
+            'links': {
+                'edit-link': '<a href="https://github.com/mitar/exposer/blob/master/templates/links.html">' + req.i18n.t("section.links.edit") + '</a>'
+            }
+        }
+    };
+    translations.section.stream['facebook-page-link'] = '<a href="https://www.facebook.com/pages/' + settings.FACEBOOK_PAGE_NAME + '/' + settings.FACEBOOK_PAGE_ID + '" title="' + req.i18n.t("section.stream.facebook-page", translations) + '"><tt>@' + settings.FACEBOOK_PAGE_NAME.toLowerCase() + '</tt></a>';
+    var languages = _.map(settings.I18N_LANGUAGES, function (language, i, eval) {
+        return {
+            'name': language,
+            'native': req.i18n.t("languages." + language, {'lng': language}),
+            'translated': req.i18n.t("languages." + language),
+            'current': req.language == language
+        }
+    });
     res.render('index', {
         'REMOTE': settings.REMOTE,
         'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
-        'SITE_URL': settings.SITE_URL
+        'SITE_URL': settings.SITE_URL,
+        'languages': languages,
+        'translations': translations
     });
 });
 
@@ -154,6 +189,13 @@ app.get(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
     }
 
     res.send(req.query['hub.challenge']);
+});
+
+app.post('/locales/set', function (req, res) {
+    if (req.body.language && _.indexOf(settings.I18N_LANGUAGES, req.body.language) !== -1) {
+        req.session.language = req.body.language;
+    }
+    res.redirect('back');
 });
 
 var server = http.createServer(app);
@@ -726,28 +768,3 @@ function keepAlive() {
 }
 
 setInterval(keepAlive, settings.KEEP_ALIVE_INTERVAL);
-
-function mongoConnection() {
-    if (!settings.MONGODB_URL) {
-        return {};
-    }
-
-    var mongo = url.parse(settings.MONGODB_URL);
-
-    if (mongo.auth) {
-        var auth = mongo.auth.split(':');
-        mongo.username = auth[0];
-        mongo.password = auth[1];
-    }
-    else if (/@/.test(mongo.hostname) && /:/.test(mongo.hostname.split('@')[0])) {
-        mongo.hostname = mongo.hostname.split('@');
-        var auth = mongo.hostname.shift().split(':');
-        mongo.hostname = mongo.hostname.pop();
-        mongo.username = auth[0];
-        mongo.password = auth[1];
-    }
-
-    mongo.dbName = mongo.pathname && mongo.pathname.replace(/\//g, '') || null;
-
-    return mongo;
-}

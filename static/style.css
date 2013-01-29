@@ -59,9 +59,7 @@ body {
     text-decoration: none;
 }
 
-#menu {
-    background-color: #252525;
-    box-shadow: 0 0 3px 1px black;
+#menu, #languages {
     display: block;
     font-family: monospace;
     font-size: 14px;
@@ -70,6 +68,11 @@ body {
     margin: 0;
     padding: 5px;
     text-align: center;
+}
+
+#menu {
+    background-color: #252525;
+    box-shadow: 0 0 3px 1px black;
 }
 
 #menu a {
@@ -557,4 +560,50 @@ body {
     width: 95%;
     margin-left: auto;
     margin-right: auto;
+}
+
+#languages {
+    position: absolute;
+    top: 0;
+    right: 170px;
+}
+
+#languages li, #languages form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+#languages li {
+    padding: 0 5px;
+}
+
+#languages button, #languages input {
+    overflow: visible;
+    background: transparent;
+    line-height: 15px;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+    display: inline;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    -moz-appearance: normal;
+}
+
+#languages button:hover, #languages .active {
+    color: yellow;
+}
+
+input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
 }

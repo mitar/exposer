@@ -12,6 +12,7 @@ exports.TWITTER_ACCESS_TOKEN_KEY = process.env.TWITTER_ACCESS_TOKEN_KEY;
 exports.TWITTER_ACCESS_TOKEN_SECRET = process.env.TWITTER_ACCESS_TOKEN_SECRET;
 exports.FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 exports.FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
+exports.FACEBOOK_PAGE_NAME = process.env.FACEBOOK_PAGE_NAME;
 exports.FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 exports.FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
 exports.KEEP_ALIVE_INTERVAL = 25 * 60 * 1000; // ms
@@ -26,8 +27,8 @@ exports.FACEBOOK_THROTTLE = {
 };
 
 exports.SECRET = process.env.SECRET || 'secret';
-exports.TARGET_LANGUAGE = 'slovene';
-exports.I18N_LANGUAGES = ['si', 'en'];
+exports.TARGET_LANGUAGE = 'slovene'; // Posts in which language we target
+exports.I18N_LANGUAGES = ['en', 'sl']; // Which interface languages users can choose among
 exports.TWITTER_QUERY = ['#gotofje', '#gotofsi', '#protesti', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#kkprotest', '#ceprotest', '#fertikje', '#demonstracije', '#zbor', '#nisegotovo', '#malomorgen', '#politikasi', '#volitve', '#vstaja', '#zborzarepubliko', '#korupcija', '#jansa', '#jansevanje', '#pahor', '#stavkajs', '#stavka', '#javnisektor', '#onlyinslovenia', '#sviz', '#zombiji'];
 exports.FACEBOOK_QUERY = ['gotofje', 'gotofsi', 'protesti', 'gotoviso', 'mbprotest', 'ljprotest', 'kkprotest', 'ceprotest', 'fertikje', 'demonstracije', 'nisegotovo', 'malomorgen', 'politikasi', 'zborzarepubliko', 'jansevanje', 'stavkajs', 'javnisektor', 'onlyinslovenia'];
 exports.POSTS_FILTER = {

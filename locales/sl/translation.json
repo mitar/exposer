@@ -1,0 +1,32 @@
+{
+    "section": {
+        "stream": {
+            "facebook-page": "__section.stream.facebook-page-name__ Facebook stran",
+            "description": [
+                "Če želiš, da se tvoje javne objave prikažejo tu, jih označi s tagom __section.stream.twitter-hashtag__ na Twitterju oziroma označi stran __section.stream.facebook-page-link__ na Facebooku. (Nekatere dodatne objave na Twitterju in Facebooku se prav tako zbirajo.)"
+            ]
+        },
+        "links": {
+            "edit": "njihovemu urejanju",
+            "description": "Povezave do sorodnih spletnih strani. Vabljen/a k __section.links.edit-link__."
+        },
+        "stats": {
+            "description": "Statistika zbranih objav.",
+            "warning": [
+                "Opozorilo: Mnogo željenih objav ni bilo uspešno zbranih in mnogo zbranih objav ni zares željenih."
+            ]
+        }
+    },
+    "menu": {
+        "stream": "Tok",
+        "links": "Povezave",
+        "stats": "Statistika"
+    },
+    "buttons": {
+        "load-more": "Naloži več objav"
+    },
+    "languages": {
+        "sl": "slovenščina",
+        "en": "angleščina"
+    }
+}

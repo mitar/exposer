@@ -1,4 +1,5 @@
 var async = require('async');
+var moment = require('moment');
 var twitter = require('ntwitter');
 
 var models = require('./models');
@@ -18,10 +19,25 @@ var twit = new twitter({
 
 var max_id = process.argv.length > 2 ? process.argv[2] : null;
 var count = 0;
+var date = null;
+
+function next() {
+    if (!date) {
+        date = moment();
+    }
+    date.subtract('days', 1);
+    max_id = null;
+    if (moment() - date > 14 * 24 * 60 * 60 * 1000) { // 14 days
+        process.exit(0);
+    }
+    else {
+        setTimeout(loadtweets, LOAD_INTERVAL);
+    }
+}
 
 function loadtweets() {
-    var params = {'include_entities': true, 'count': 100, 'max_id': max_id, 'q': settings.TWITTER_QUERY.join(' OR ')};
-    console.log("Making request, max_id = %s", max_id);
+    var params = {'include_entities': true, 'count': 100, 'max_id': max_id, 'q': settings.TWITTER_QUERY.join(' OR ') + (date ? ' until:' + date.format('YYYY-MM-DD') : '')};
+    console.log("Making request, max_id = %s, date = %s", max_id, date);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
             console.error("Twitter fetch error", err);
@@ -31,7 +47,7 @@ function loadtweets() {
 
         if (data.statuses.length === 0) {
             console.log("%s new tweets fetched overall", count);
-            process.exit(0);
+            next();
             return;
         }
 
@@ -54,7 +70,7 @@ function loadtweets() {
 
             var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
             if (!max_id_match) {
-                process.exit(0);
+                next();
                 return;
             }
 

@@ -12,7 +12,16 @@
             "description": [
                 "If you want your public posts to appear here, tag them with __section.stream.twitter-hashtag__ hashtag on Twitter or tag __section.stream.facebook-page-link__ page on Facebook. (Some additional Twitter and Facebook posts are collected, too.)"
             ],
-            "facebook-page": "__section.stream.facebook-page-name__ Facebook page"
+            "facebook-page": "__section.stream.facebook-page-name__ Facebook page",
+            "description-twitter": [
+                "If you want your tweets to appear here, tag them with __section.stream.twitter-hashtag__ hashtag. (Some additional tweets are collected, too.)"
+            ],
+            "description-facebook": [
+                "If you want your public posts to appear here, tag them with __section.stream.facebook-page-link__ page on Facebook. (Some additional Facebook posts are collected, too.)"
+            ],
+            "description-none": [
+                "Collected public Twitter and Facebook posts."
+            ]
         },
         "links": {
             "description": [

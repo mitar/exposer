@@ -14,7 +14,9 @@
     <body>
         <div id="fb-root"></div>
         <a href="https://github.com/mitar/exposer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
-        <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/Gotofje/448989388495867" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
+        {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
+            <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
+        {% endif %}
         <ul id="languages">
             {%- for language in languages -%}
                 {%- if language.current -%}
@@ -26,16 +28,28 @@
         </ul>
         <ul id="menu">
             <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
-            <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+            {% if SHOW_LINKS %}
+                <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+            {% endif %}
             <li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
         </ul>
         <div id="header">
             <div class="section stream active">
-                <p>{{ t("section.stream.description", translations) }}</p>
+                {% if TWITTER_ENABLED && FACEBOOK_ENABLED %}
+                    <p>{{ t("section.stream.description", translations) }}</p>
+                {% else if TWITTER_ENABLED %}
+                    <p>{{ t("section.stream.description-twitter", translations) }}</p>
+                {% else if FACEBOOK_ENABLED %}
+                    <p>{{ t("section.stream.description-facebook", translations) }}</p>
+                {% else %}
+                    <p>{{ t("section.stream.description-none", translations) }}</p>
+                {% endif %}
             </div>
-            <div class="section links">
-                <p>{{ t("section.links.description", translations) }}</p>
-            </div>
+            {% if SHOW_LINKS %}
+                <div class="section links">
+                    <p>{{ t("section.links.description", translations) }}</p>
+                </div>
+            {% endif %}
             <div class="section stats">
                 <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
             </div>
@@ -44,9 +58,11 @@
             <div id="posts"></div>
             <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
         </div>
-        <div class="section links">
-            {% include "links.html" %}
-        </div>
+        {% if SHOW_LINKS %}
+            <div class="section links">
+                {% include "links.html" %}
+            </div>
+        {% endif %}
         <div class="section stats">
             {% include "stats.html" %}
         </div>

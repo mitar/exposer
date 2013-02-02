@@ -154,6 +154,11 @@ app.get('/', function (req, res) {
     res.render('index', {
         'REMOTE': settings.REMOTE,
         'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+        'FACEBOOK_PAGE_ID': settings.FACEBOOK_PAGE_ID,
+        'FACEBOOK_PAGE_NAME': settings.FACEBOOK_PAGE_NAME,
+        'TWITTER_ENABLED': !!settings.TWITTER_QUERY[0],
+        'FACEBOOK_ENABLED': !!settings.FACEBOOK_PAGE_NAME,
+        'SHOW_LINKS': !!settings.SHOW_LINKS,
         'SITE_URL': settings.SITE_URL,
         'languages': languages,
         'translations': translations

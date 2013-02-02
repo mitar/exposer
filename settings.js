@@ -26,6 +26,8 @@ exports.FACEBOOK_THROTTLE = {
     'interval': 600 * 1000 // ms
 };
 
+// TODO: Extend to all sections, to be able to enable/disable them, maybe with simply a list of section names to be shown
+exports.SHOW_LINKS = !_.isUndefined(process.env.SHOW_LINKS) ? process.env.SHOW_LINKS : true;
 exports.SECRET = process.env.SECRET || 'secret';
 exports.TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'slovene'; // Posts in which language we target
 exports.I18N_LANGUAGES = process.env.I18N_LANGUAGES ? process.env.I18N_LANGUAGES.split(',') : ['en', 'sl']; // Which interface languages users can choose among

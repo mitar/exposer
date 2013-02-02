@@ -4,6 +4,15 @@
             "facebook-page": "__section.stream.facebook-page-name__ Facebook stran",
             "description": [
                 "Če želiš, da se tvoje javne objave prikažejo tu, jih označi s tagom __section.stream.twitter-hashtag__ na Twitterju oziroma označi stran __section.stream.facebook-page-link__ na Facebooku. (Nekatere dodatne objave na Twitterju in Facebooku se prav tako zbirajo.)"
+            ],
+            "description-facebook": [
+                "Če želiš, da se tvoje javne objave prikažejo tu, jih označi s stranjo __section.stream.facebook-page-link__ na Facebooku. (Nekatere dodatne objave na Facebooku se prav tako zbirajo.)"
+            ],
+            "description-none": [
+                "Zbrane Twitter in Facebook objave."
+            ],
+            "description-twitter": [
+                "Če želiš, da se tvoji twiti prikažejo tu, jih označi s hashtagom __section.stream.twitter-hashtag__. (Nekateri dodatni twiti se prav tako zbirajo.)"
             ]
         },
         "links": {

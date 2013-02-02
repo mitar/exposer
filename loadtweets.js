@@ -40,8 +40,14 @@ function loadtweets() {
     console.log("Making request, max_id = %s, date = %s", max_id, date);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            console.error("Twitter fetch error", err);
-            process.exit(1);
+            if (err.statusCode === 500) {
+                console.error("Twitter fetch error, retrying", err);
+                setTimeout(loadtweets, LOAD_INTERVAL);
+            }
+            else {
+                console.error("Twitter fetch error", err);
+                process.exit(1);
+            }
             return;
         }
 

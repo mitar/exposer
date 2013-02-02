@@ -17,7 +17,7 @@
         {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
             <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
         {% endif %}
-        {% if I18N_ENABLED %}
+        {% if languages.length > 1 %}
             <ul id="languages">
                 {%- for language in languages -%}
                     {%- if language.current -%}

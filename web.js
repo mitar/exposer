@@ -158,7 +158,6 @@ app.get('/', function (req, res) {
         'FACEBOOK_PAGE_NAME': settings.FACEBOOK_PAGE_NAME,
         'TWITTER_ENABLED': !!settings.TWITTER_QUERY[0],
         'FACEBOOK_ENABLED': !!settings.FACEBOOK_PAGE_NAME,
-        'I18N_ENABLED': settings.I18N_LANGUAGES.length > 0,
         'SHOW_LINKS': !!settings.SHOW_LINKS,
         'SITE_URL': settings.SITE_URL,
         'languages': languages,

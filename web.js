@@ -131,7 +131,7 @@ app.get('/', function (req, res) {
     var translations = {
         'section': {
             'stream': {
-                'twitter-hashtag': '<tt>' + settings.TWITTER_QUERY[0] + '</tt>',
+                'twitter-hashtag': settings.TWITTER_QUERY[0] ? '<tt>' + settings.TWITTER_QUERY[0] + '</tt>' : null,
                 'facebook-page-name': settings.FACEBOOK_PAGE_NAME
             },
             'links': {
@@ -139,7 +139,10 @@ app.get('/', function (req, res) {
             }
         }
     };
-    translations.section.stream['facebook-page-link'] = '<a href="https://www.facebook.com/pages/' + settings.FACEBOOK_PAGE_NAME + '/' + settings.FACEBOOK_PAGE_ID + '" title="' + req.i18n.t("section.stream.facebook-page", translations) + '"><tt>@' + settings.FACEBOOK_PAGE_NAME.toLowerCase() + '</tt></a>';
+    translations.section.stream['facebook-page-link'] = null;
+    if (settings.FACEBOOK_PAGE_NAME && settings.FACEBOOK_PAGE_ID) {
+        translations.section.stream['facebook-page-link'] = '<a href="https://www.facebook.com/pages/' + settings.FACEBOOK_PAGE_NAME + '/' + settings.FACEBOOK_PAGE_ID + '" title="' + req.i18n.t("section.stream.facebook-page", translations) + '"><tt>@' + settings.FACEBOOK_PAGE_NAME.toLowerCase() + '</tt></a>';
+    }
     var languages = _.map(settings.I18N_LANGUAGES, function (language, i, eval) {
         return {
             'name': language,
@@ -541,6 +544,10 @@ function fetchFacebookLatest(limit) {
 }
 
 function fetchFacebookPageLatest(limit) {
+    if (!settings.FACEBOOK_PAGE_ID) {
+        return;
+    }
+
     console.log("Doing Facebook page fetch");
 
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged', limit, function (err, body) {
@@ -562,6 +569,10 @@ function fetchFacebookPageLatest(limit) {
 }
 
 function fetchFacebookPageLatestAlternative() {
+    if (!settings.FACEBOOK_PAGE_ID) {
+        return;
+    }
+
     console.log("Doing Facebook page alternative fetch");
 
     request({
@@ -721,6 +732,10 @@ function subscribeToFacebook(err) {
 }
 
 function enableFacebookStream() {
+    if (!settings.FACEBOOK_PAGE_ID) {
+        return;
+    }
+
     addAppToFacebookPage(subscribeToFacebook);
 }
 

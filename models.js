@@ -637,7 +637,7 @@ facebookEventSchema.methods.postFetch = function (cb) {
             // Whether we got it from "tagged" or "taggedalt" source or we have a tag in the message
             return _.indexOf(post.sources, 'tagged') !== -1 || _.indexOf(post.sources, 'taggedalt') !== -1 || _.some(post.data.message_tags || {}, function (tags) {
                 return _.some(tags, function (tag) {
-                    return tag.id === settings.FACEBOOK_PAGE_ID;
+                    return settings.FACEBOOK_PAGE_ID && tag.id === settings.FACEBOOK_PAGE_ID;
                 });
             });
         });

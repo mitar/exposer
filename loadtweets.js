@@ -20,6 +20,7 @@ var twit = new twitter({
 var max_id = process.argv.length > 2 ? process.argv[2] : null;
 var count = 0;
 var date = null;
+var error_count = 0;
 
 function next() {
     if (!date) {
@@ -40,8 +41,9 @@ function loadtweets() {
     console.log("Making request, max_id = %s, date = %s", max_id, date);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            if (err.statusCode === 500) {
+            if (err.statusCode === 500 && error_count < 3) {
                 console.error("Twitter fetch error, retrying", err);
+                error_count++;
                 setTimeout(loadtweets, LOAD_INTERVAL);
             }
             else {
@@ -50,6 +52,8 @@ function loadtweets() {
             }
             return;
         }
+
+        error_count = 0;
 
         if (data.statuses.length === 0) {
             console.log("%s new tweets fetched overall", count);

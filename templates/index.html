@@ -17,15 +17,17 @@
         {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
             <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
         {% endif %}
-        <ul id="languages">
-            {%- for language in languages -%}
-                {%- if language.current -%}
-                    <li class="active" title="{{ language.native }}">{{ language.name }}</li>
-                {%- else -%}
-                    <li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
-                {%- endif -%}
-            {%- endfor -%}
-        </ul>
+        {% if I18N_ENABLED %}
+            <ul id="languages">
+                {%- for language in languages -%}
+                    {%- if language.current -%}
+                        <li class="active" title="{{ language.native }}">{{ language.name }}</li>
+                    {%- else -%}
+                        <li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
+                    {%- endif -%}
+                {%- endfor -%}
+            </ul>
+        {% endif %}
         <ul id="menu">
             <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
             {% if SHOW_LINKS %}

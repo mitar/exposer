@@ -38,11 +38,11 @@
         <div id="header">
             <div class="section stream active">
                 {% if TWITTER_ENABLED && FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stream.description", translations) }}</p>
+                    <p>{{ t("section.stream.description", translations) }}{% if TWITTER_MORE || FACEBOOK_MORE %} {{ t("section.stream.description-additional", translations) }}{% endif %}</p>
                 {% else if TWITTER_ENABLED %}
-                    <p>{{ t("section.stream.description-twitter", translations) }}</p>
+                    <p>{{ t("section.stream.description-twitter", translations) }}{% if TWITTER_MORE %} {{ t("section.stream.description-twitter-additional", translations) }}{% endif %}</p>
                 {% else if FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stream.description-facebook", translations) }}</p>
+                    <p>{{ t("section.stream.description-facebook", translations) }}{% if FACEBOOK_MORE %} {{ t("section.stream.description-facebook-additional", translations) }}{% endif %}</p>
                 {% else %}
                     <p>{{ t("section.stream.description-none", translations) }}</p>
                 {% endif %}

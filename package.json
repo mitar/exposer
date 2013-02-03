@@ -19,7 +19,8 @@
         "languagedetect": "0.0.x",
         "express": "3.1.x",
         "consolidate": "0.8.x",
-        "i18next": "git://github.com/mitar/i18next-node.git#mitar"
+        "i18next": "git://github.com/mitar/i18next-node.git#mitar",
+        "mongodb": "1.2.x"
     },
     "engines": {
         "node": "0.8.x",

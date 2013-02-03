@@ -3,9 +3,10 @@ Exposer
 
 Exposer aims at being a webservice which aggregates all posts from various social networks in one place.
 
-Currently, testing instance is deployed here_.
+Currently, it supports collecting public Twitter and Facebook posts. You can see two instances deployed:
 
-.. _here: https://exposer.herokuapp.com/
+ * https://exposer.herokuapp.com/
+ * https://aufschrei.herokuapp.com/
 
 Remote development installation
 -------------------------------
@@ -72,7 +73,7 @@ Development installation which uses local database. Useful when developing serve
    If you want client JavaScript file to be compiled automatically on any change to source files (so that it is easy
    to develop), run with ``-w`` parameter::
 
-   browserify client.js -w -v -p ./swig -o static/bundljs
+    browserify client.js -w -v -p ./swig -o static/bundljs
 
 4. You will need also various app keys for social networks (see ``settings.js`` file for the list). You have to
    put them into the process environment. If you are using Heroku_, you can put them into ``.env``

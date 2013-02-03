@@ -41,7 +41,7 @@ function loadtweets() {
     console.log("Making request, max_id = %s, date = %s", maxId, date);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
-            if (err.statusCode === 500 && errorCount < 3) {
+            if ((err.statusCode === 500 || err.statusCode === 503) && errorCount < 3) {
                 console.error("Twitter fetch error, retrying", err);
                 errorCount++;
                 setTimeout(loadtweets, LOAD_INTERVAL);

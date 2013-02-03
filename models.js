@@ -132,6 +132,11 @@ postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
 };
 
 postSchema.statics.storeTweet = function (tweet, source, cb) {
+    if (!tweet.from_user && !tweet.user.screen_name) {
+        cb("Invalid tweet: " + util.inspect(tweet));
+        return;
+    }
+
     var data = {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,

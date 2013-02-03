@@ -85,11 +85,15 @@ var queueWarning = _.throttle(function () {
     console.warn("Queue has grown to %s elements", facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
+var purgeWarning = _.throttle(function (requests) {
+    console.warn("Rate limit hit, purging %s requests, %s in the queue", requests, facebookQueue.length);
+}, 10 * 1000); // Warn only once per 10 s
+
 var limiterWarning = _.throttle(function (remainingRequests) {
     console.warn("Limiter has only %s requests left, %s in the queue", remainingRequests, facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
-function processQueue(purge_tokens) {
+function processQueue(purge_requests) {
     var f = facebookQueue.pop();
     if (!f) {
         return;
@@ -100,7 +104,13 @@ function processQueue(purge_tokens) {
         queueWarning();
     }
 
-    facebookLimiter.removeTokens(purge_tokens ? (parseInt(facebookLimiter.tokenBucket.content) || 1) : 1, function(err, remainingRequests) {
+    var requests = purge_requests ? (parseInt(facebookLimiter.tokenBucket.content) || 1) : 1;
+    if (purge_requests) {
+        // We have to purge requests, we hit rate limit
+        purgeWarning(requests);
+    }
+
+    facebookLimiter.removeTokens(requests, function(err, remainingRequests) {
         f();
 
         if (remainingRequests < 10) {

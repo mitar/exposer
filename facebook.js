@@ -77,7 +77,7 @@ var queueWarning = _.throttle(function () {
 }, 10 * 1000); // Warn only once per 10 s
 
 var limiterWarning = _.throttle(function (remainingRequests) {
-    console.warn("Limiter has only %s requests left, %s in the queue", remainingRequests, acebookQueue.length);
+    console.warn("Limiter has only %s requests left, %s in the queue", remainingRequests, facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
 function processQueue() {

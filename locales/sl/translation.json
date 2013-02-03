@@ -20,9 +20,17 @@
             "description": "Povezave do sorodnih spletnih strani. Vabljen/a k __section.links.edit-link__."
         },
         "stats": {
-            "description": "Statistika zbranih objav.",
+            "description": "Statistika zbranih javnih Twitter in Facebook objav.",
             "warning": [
-                "Opozorilo: Mnogo željenih objav ni bilo uspešno zbranih in mnogo zbranih objav ni zares željenih."
+                "Opozorilo: Mnogo željenih objav ni bilo uspešno zbranih in mnogo zbranih objav ni nujno relevantnih."
+            ],
+            "description-facebook": "Statistika zbranih javnih Facebook objav.",
+            "description-twitter": "Statistika zbranih twitov.",
+            "warning-facebook": [
+                "Opozorilo: Mnogo željenih objav ni bilo uspešno zbranih in mnogo zbranih objav ni nujno relevantnih."
+            ],
+            "warning-twitter": [
+                "Opozorilo: Mnogo željenih twitov ni bilo uspešno zbranih in mnogo zbranih twitov ni nujno relevantnih."
             ]
         }
     },

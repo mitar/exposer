@@ -53,7 +53,13 @@
                 </div>
             {% endif %}
             <div class="section stats">
-                <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
+                {% if TWITTER_ENABLED && !FACEBOOK_ENABLED %}
+                    <p>{{ t("section.stats.description-twitter") }}<br/>{{ t("section.stats.warning-twitter") }}</p>
+                {% else if !TWITTER_ENABLED && FACEBOOK_ENABLED %}
+                    <p>{{ t("section.stats.description-facebook") }}<br/>{{ t("section.stats.warning-facebook") }}</p>
+                {% else %}
+                    <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
+                {% endif %}
             </div>
         </div>
         <div class="section stream active">

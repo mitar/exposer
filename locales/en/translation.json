@@ -30,9 +30,17 @@
             "edit": "edit them"
         },
         "stats": {
-            "description": "Statistics of collected posts.",
+            "description": "Statistics of collected public Twitter and Facebook posts.",
             "warning": [
-                "Warning: Many wanted posts are not successfully collected and many posts collected are not really wanted."
+                "Warning: Many wanted posts are not successfully collected and many posts collected are not necessary relevant."
+            ],
+            "description-twitter": "Statistics of collected tweets.",
+            "warning-twitter": [
+                "Warning: Many wanted tweets are not successfully collected and many tweets collected are not necessary relevant."
+            ],
+            "description-facebook": "Statistics of collected public Facebook posts.",
+            "warning-facebook": [
+                "Warning: Many wanted posts are not successfully collected and many posts collected are not necessary relevant."
             ]
         }
     },

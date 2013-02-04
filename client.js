@@ -37,7 +37,7 @@ var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
 var graph = null;
 var calendar = null;
-
+var knownEvents = {};
 var postsRelayout = null;
 
 function createPost(post) {
@@ -208,8 +208,10 @@ function loadMorePosts() {
 }
 
 function displayNewEvent(event) {
-    // TOOD: Implement
-    console.log(event);
+    event = prepareEvent(event);
+    if (event) {
+        $('#calendar').trigger('eventCalendar.add', event);
+    }
 }
 
 function setActiveSection(section) {
@@ -382,6 +384,30 @@ function loadGraph() {
     });
 }
 
+function prepareEvent(event) {
+    if (knownEvents[event.event_id]) {
+        return null;
+    }
+
+    var event_in_past = false;
+    if (event.start_time) {
+        if (moment(event.start_time) < moment()) {
+            event_in_past = true;
+        }
+    }
+
+    knownEvents[event.event_id] = true;
+
+    return {
+        'date': '' + moment(event.data.start_time).valueOf(),
+        'url': event.data.link,
+        'dom': $(templates.event({
+            'event': event,
+            'event_in_past': event_in_past
+        }))
+    }
+}
+
 function loadEvents() {
     if (calendar) {
         return;
@@ -395,21 +421,7 @@ function loadEvents() {
             }
 
             events = $.map(events, function (event, i) {
-                var event_in_past = false;
-                if (event.start_time) {
-                    if (moment(event.start_time) < moment()) {
-                        event_in_past = true;
-                    }
-                }
-
-                return {
-                    'date': '' + moment(event.data.start_time).valueOf(),
-                    'url': event.data.link,
-                    'dom': $(templates.event({
-                        'event': event,
-                        'event_in_past': event_in_past
-                    }))
-                }
+                return prepareEvent(event);
             });
 
             calendar = $('#calendar').eventCalendar({

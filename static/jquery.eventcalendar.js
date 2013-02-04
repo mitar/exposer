@@ -18,8 +18,13 @@
 		wrap: "",
 		directionLeftMove: "300",
 		eventsJson: {}
-	}
-	
+	};
+
+    this.on('eventCalendar.add', function (event, data) {
+        eventsOpts.jsonData.push(data);
+        getEvents(eventsOpts.eventsLimit, flags.wrap.attr('data-current-year'), flags.wrap.attr('data-current-month'), flags.wrap.attr('data-current-day'), flags.wrap.attr('data-current-day') ? 'day' : 'month');
+    });
+
 	// each eventCalendar will execute this function
 	this.each(function(){
 		
@@ -356,6 +361,7 @@
 			flags.wrap.find('.eventsCalendar-loading').hide();
 
             flags.wrap.find('.eventsCalendar-list').empty().append(events);
+            flags.wrap.attr('data-current-day', day);
 
 			flags.wrap.find('.eventsCalendar-list').animate({
 				opacity: 1,

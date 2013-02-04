@@ -98,7 +98,7 @@
 		var $eventsCalendarSlider = $("<div class='eventsCalendar-slider'></div>"),
 			$eventsCalendarMonthWrap = $("<div class='eventsCalendar-monthWrap'></div>"),
 			$eventsCalendarTitle = $("<div class='eventsCalendar-currentTitle'><a href='#' class='monthTitle'></a></div>"),
-			$eventsCalendarArrows = $("<a href='#' class='arrow prev'><span>" + eventsOpts.txt_prev + "</span></a><a href='#' class='arrow next'><span>" + eventsOpts.txt_next + "</span></a>");
+			$eventsCalendarArrows = $("<a href='#' class='arrow prev' title='" + eventsOpts.txt_prev + "'><span>" + eventsOpts.txt_prev + "</span></a><a href='#' class='arrow next' title='" + eventsOpts.txt_next + "'><span>" + eventsOpts.txt_next + "</span></a>"),
 			$eventsCalendarDaysList = $("<ul class='eventsCalendar-daysList'></ul>"),
 			date = new Date();
 		
@@ -142,14 +142,9 @@
 			month = date.getMonth(), // 0-11
 			monthToShow = month + 1;
 
-		if (show != "current") {
-			// month change
-			getEvents(eventsOpts.eventsLimit, year, month,false, show);
-		}
-				
-		flags.wrap.attr('data-current-month',month)
-			.attr('data-current-year',year);
-			
+        flags.wrap.attr('data-current-month',month)
+            .attr('data-current-year',year);
+
 		// add current date info
 		$eventsCalendarTitle.find('.monthTitle').html(eventsOpts.monthNames[month] + " " + year);
 		
@@ -197,11 +192,20 @@
 			if (day > 0 && dayCount === day && year === currentYear) {
 				dayClass = "current";
 			}
-			daysList.push('<li id="dayList_' + dayCount + '" rel="'+dayCount+'" class="eventsCalendar-day '+dayClass+'"><a href="#">' + dayCount + '</a></li>');
+
+            dt = new Date(year, month, dayCount);
+            var weekDay = dt.getDay();
+
+			daysList.push('<li id="dayList_' + dayCount + '" rel="'+dayCount+'" class="eventsCalendar-day '+dayClass+'"><span class="eventsCalendar-day-header">' + eventsOpts.dayNamesShort[weekDay] + '</span><a href="#">' + dayCount + '</a></li>');
 		}
 		$eventsCalendarDaysList.append(daysList.join(''));
-		
-		$eventsCalendarSlider.css('height',$eventsCalendarMonthWrap.height()+'px');
+
+        if (show != "current") {
+            // month change
+            getEvents(eventsOpts.eventsLimit, year, month,false, show);
+        }
+
+        $eventsCalendarSlider.css('height',$eventsCalendarMonthWrap.height()+'px');
 	}
 
 	function num_abbrev_str(num) {
@@ -332,13 +336,12 @@
 								
 								} else {
 									eventStringDate = eventDay + "/" + eventMonthToShow + "/" + eventYear;
-									
-									events.push('<li id="' + key + '" class="'+event.type+'"><time datetime="'+eventDate+'"><em>' + eventStringDate + '</em><small>'+eventHour+":"+eventMinute+'</small></time><a href="'+event.url+'" target="' + eventLinkTarget + '" class="eventTitle">' + event.title + '</a><p class="eventDesc ' + eventDescClass + '">' + event.description + '</p></li>');
-									i++;
+
+                                    events.push($(event.dom).attr('id', key));
+                                    i++;
 								}
 						}
 					}
-					
 					// add mark in the dayList to the days with events
 					if (eventYear == flags.wrap.attr('data-current-year') && eventMonth == flags.wrap.attr('data-current-month')) {
 						flags.wrap.find('.currentMonth .eventsCalendar-daysList #dayList_' + eventDay).addClass('dayWithEvents');
@@ -351,10 +354,9 @@
 				events.push('<li class="eventsCalendar-noEvents"><p>' + eventsOpts.txt_noEvents + '</p></li>');
 			}
 			flags.wrap.find('.eventsCalendar-loading').hide();
-			
-			flags.wrap.find('.eventsCalendar-list')
-				.html(events.join(''));
-			
+
+            flags.wrap.find('.eventsCalendar-list').empty().append(events);
+
 			flags.wrap.find('.eventsCalendar-list').animate({
 				opacity: 1,
 				height: "toggle"
@@ -399,6 +401,8 @@
 		flags.wrap.find('.eventsCalendar-list-wrap').width(flags.wrap.width() + 'px');
 		
 	}
+
+    return this;
 };
 
 

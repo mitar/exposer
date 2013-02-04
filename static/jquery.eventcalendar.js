@@ -213,24 +213,6 @@
         $eventsCalendarSlider.css('height',$eventsCalendarMonthWrap.height()+'px');
 	}
 
-	function num_abbrev_str(num) {
-		var len = num.length, last_char = num.charAt(len - 1), abbrev
-		if (len === 2 && num.charAt(0) === '1') {
-			abbrev = 'th'
-		} else {
-			if (last_char === '1') {
-				abbrev = 'st'
-			} else if (last_char === '2') {
-				abbrev = 'nd'
-			} else if (last_char === '3') {
-				abbrev = 'rd'
-			} else {
-				abbrev = 'th'
-			}
-		}
-		return num + abbrev
-	}
-	
 	function getEvents(limit, year, month, day, direction) {
 		var limit = limit || 0;
 		var year = year || '';
@@ -280,9 +262,9 @@
 			directionLeftMove = "-=0";
 		} else {
 			if (day != '') {
-				subtitle.html(eventsOpts.txt_SpecificEvents_prev + eventsOpts.monthNames[month] + " " + num_abbrev_str(day) + " " + eventsOpts.txt_SpecificEvents_after);
+				subtitle.html(eventsOpts.txt_SpecificEvents_prev + eventsOpts.num_abbrev_str(eventsOpts.monthNames[month], day) + eventsOpts.txt_SpecificEvents_after);
 			} else {
-				subtitle.html(eventsOpts.txt_SpecificEvents_prev + eventsOpts.monthNames[month] + " " + eventsOpts.txt_SpecificEvents_after);
+				subtitle.html(eventsOpts.txt_SpecificEvents_prev + eventsOpts.monthNames[month] + eventsOpts.txt_SpecificEvents_after);
 			}
 			
 			if (direction === 'prev') {
@@ -423,7 +405,7 @@ $.fn.eventCalendar.defaults = {
 	dayNamesShort: [ 'Sun','Mon','Tue','Wed', 'Thu','Fri','Sat' ],		
 	txt_noEvents: "There are no events in this period",
 	txt_SpecificEvents_prev: "",
-	txt_SpecificEvents_after: "events:",
+	txt_SpecificEvents_after: " events:",
 	txt_next: "next",
 	txt_prev: "prev",
 	txt_NextEvents: "Next events:",
@@ -438,7 +420,24 @@ $.fn.eventCalendar.defaults = {
 	moveSpeed: 500,	// speed of month move when you clic on a new date
 	moveOpacity: 0.15, // month and events fadeOut to this opacity
 	jsonData: "", 	// to load and inline json (not ajax calls) 
-	cacheJson: true	// if true plugin get a json only first time and after plugin filter events
+	cacheJson: true, // if true plugin get a json only first time and after plugin filter events
 					// if false plugin get a new json on each date change
+    num_abbrev_str: function (month, num) {
+        var len = num.length, last_char = num.charAt(len - 1), abbrev
+        if (len === 2 && num.charAt(0) === '1') {
+            abbrev = 'th'
+        } else {
+            if (last_char === '1') {
+                abbrev = 'st'
+            } else if (last_char === '2') {
+                abbrev = 'nd'
+            } else if (last_char === '3') {
+                abbrev = 'rd'
+            } else {
+                abbrev = 'th'
+            }
+        }
+        return month + " " + num + abbrev
+    }
 };
 

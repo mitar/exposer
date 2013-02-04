@@ -549,8 +549,7 @@ function fetchFacebookLatest(limit) {
     async.forEach(settings.FACEBOOK_QUERY, function (keyword, cb) {
         console.log("Doing Facebook search: %s", keyword);
 
-        // Facebook search API does not allow multiple response pages so limit should not be larger than allowed limit for one response page (5000)
-        facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit || 5000, function (err, body) {
+        facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit, function (err, body) {
             if (err) {
                 console.error("Facebook search error (%s): %s", keyword, err);
                 // We handle error independently
@@ -789,7 +788,7 @@ function facebookPolling() {
 
 if (models && settings.FACEBOOK_ACCESS_TOKEN) {
     // Fetch all posts
-    fetchFacebookLatest(5000);
+    fetchFacebookLatest(0);
     fetchFacebookPageLatest(0);
     fetchFacebookPageLatestAlternative();
 

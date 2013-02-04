@@ -277,7 +277,8 @@ function loadGraph() {
                 'chart': {
                     'renderTo': 'graph',
                     'type': 'areaspline',
-                    'zoomType': 'x'
+                    'zoomType': 'x',
+                    'borderRadius': 10
                 },
                 'credits': {
                     'enabled': false

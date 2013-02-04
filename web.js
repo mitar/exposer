@@ -149,7 +149,7 @@ app.get('/', function (req, res) {
             'native': req.i18n.t("languages." + language, {'lng': language}),
             'translated': req.i18n.t("languages." + language),
             'current': req.language == language
-        }
+        };
     });
     res.render('index', {
         'REMOTE': settings.REMOTE,
@@ -253,7 +253,7 @@ var sock = shoe(function (stream) {
                     post = models.Post.cleanPost(post);
 
                     if (post.facebook_event_id) {
-                        models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, {'event_id': true, 'data': true, 'invited_summary': true}).lean(true).exec(function (err, event) {
+                        models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, event) {
                             if (err) {
                                 console.error("getPosts error: %s", err);
                                 // TODO: Do we really want to pass an error about accessing the database to the client?
@@ -269,8 +269,7 @@ var sock = shoe(function (stream) {
                                 return;
                             }
 
-                            event.fetch_timestamp = event._id.getTimestamp();
-                            delete event._id;
+                            event = models.FacebookEvent.cleanEvent(event);
 
                             post.facebook_event = event;
                             delete post.facebook_event_id;
@@ -414,6 +413,26 @@ var sock = shoe(function (stream) {
                 });
 
                 cb(null, stats);
+            });
+        },
+        'getEvents': function (cb) {
+            if (!cb) {
+                return;
+            }
+
+            models.FacebookEvent.find({}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, events) {
+                if (err) {
+                    console.error("getEvents error: %s", err);
+                    // TODO: Do we really want to pass an error about accessing the database to the client?
+                    cb(err);
+                    return;
+                }
+
+                events = _.map(events, function (event, i, list) {
+                    return models.FacebookEvent.cleanEvent(event);
+                });
+
+                cb(null, events);
             });
         }
     });

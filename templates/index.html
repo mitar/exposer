@@ -2,8 +2,8 @@
 <html>
     <head>
         <title>Exposer</title>
-        <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
         <link rel="stylesheet" type="text/css" href="/isotope.css" media="all" />
+        <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
         <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Permanent+Marker" media="all" />
         <script type="text/javascript">
             var REMOTE = '{{ REMOTE|escape('js') }}';
@@ -30,6 +30,7 @@
         {% endif %}
         <ul id="menu">
             <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
+            <li class="events"><a href="#events">{{ t("menu.events") }}</a></li>
             {% if SHOW_LINKS %}
                 <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
             {% endif %}
@@ -46,6 +47,9 @@
                 {% else %}
                     <p>{{ t("section.stream.description-none", translations) }}</p>
                 {% endif %}
+            </div>
+            <div class="section events">
+                <p>{{ t("section.events.description") }}</p>
             </div>
             {% if SHOW_LINKS %}
                 <div class="section links">
@@ -66,6 +70,9 @@
             <div id="posts"></div>
             <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
         </div>
+        <div class="section events">
+            {% include "events.html" %}
+        </div>
         {% if SHOW_LINKS %}
             <div class="section links">
                 {% include "links.html" %}
@@ -84,5 +91,7 @@
         <script type="text/javascript" src="/isotope.js"></script>
         <script type="text/javascript" src="/highstock.js"></script>
         <script type="text/javascript" src="/highstock.exporting.js"></script>
+        <script type="text/javascript" src="/jquery.timeago.js"></script>
+        <script type="text/javascript" src="/jquery.eventcalendar.js"></script>
     </body>
 </html>

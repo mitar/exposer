@@ -4,7 +4,8 @@ var shoe = require('shoe');
 
 var templates = {
     'twitter': require('./templates/posts/twitter.html'),
-    'facebook': require('./templates/posts/facebook.html')
+    'facebook': require('./templates/posts/facebook.html'),
+    'event': require('./templates/event.html')
 };
 
 var $ = require('jquery-browserify');
@@ -15,6 +16,7 @@ var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
 var SECTIONS = {
     'stream': true,
+    'events': true,
     'links': true,
     'stats': true
 };
@@ -26,6 +28,7 @@ var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
 var graph = null;
+var calendar = null;
 
 var postsRelayout = null;
 
@@ -213,6 +216,9 @@ function setActiveSection(section) {
     else if (section === 'stats') {
         loadGraph();
     }
+    else if (section === 'events') {
+        loadEvents();
+    }
 }
 
 function getSection(li) {
@@ -362,6 +368,61 @@ function loadGraph() {
                         'data': stats.facebook
                     }
                 ]
+            });
+        });
+    });
+}
+
+function loadEvents() {
+    if (calendar) {
+        return;
+    }
+
+    remotePromise.done(function () {
+        remote.getEvents(function (err, events) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            events = $.map(events, function (event, i) {
+                var event_in_past = false;
+                if (event.start_time) {
+                    if (moment(event.start_time) < moment()) {
+                        event_in_past = true;
+                    }
+                }
+
+                return {
+                    'date': '' + moment(event.data.start_time).valueOf(),
+                    'url': event.data.link,
+                    'dom': $(templates.event({
+                        'event': event,
+                        'event_in_past': event_in_past
+                    }))
+                }
+            });
+
+            calendar = $('#calendar').eventCalendar({
+                'jsonData': events,
+                'eventsLimit': 0,
+                'showDescription': true,
+                'moveSpeed': 0,
+                'moveOpacity': 1.0,
+                'showDayAsWeeks': false,
+                'monthNames': [
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ],
+                'dayNamesShort': [
+                    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+                ],
+                'txt_noEvents': "There are no events in this period",
+                'txt_SpecificEvents_prev': "",
+                'txt_SpecificEvents_after': "events",
+                'txt_next': "Next month",
+                'txt_prev': "Previous month",
+                'txt_NextEvents': "Upcoming events"
             });
         });
     });

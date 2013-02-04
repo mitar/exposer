@@ -573,8 +573,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                             }
 
                             facebook_event = facebook_event.toObject();
-                            facebook_event.fetch_timestamp = facebook_event._id.getTimestamp();
-                            delete facebook_event._id;
+                            facebook_event = FacebookEvent.cleanEvent(facebook_event);
 
                             post.facebook_event_id = facebook_event.event_id;
                             post.save(function (err, obj) {
@@ -583,8 +582,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
                                     return;
                                 }
 
-                                // TODO: Do we really want to return all data?
-                                cb(null, _.pick(facebook_event, 'event_id', 'data', 'invited_summary', 'fetch_timestamp'));
+                                cb(null, facebook_event);
                             });
                         });
                     });
@@ -625,9 +623,28 @@ var facebookEventSchema = mongoose.Schema({
     }
 });
 
+facebookEventSchema.statics.PUBLIC_FIELDS = {
+    'event_id': true,
+    'data': true,
+    'invited_summary': true
+};
+
 facebookEventSchema.statics.URL_REGEXP = /facebook\.com\/events\/(\d+)/i; // Case-insensitive because domain name can be case insensitive
 
 facebookEventSchema.statics.LINK_REGEXP = /^\/events\/(\d+)\/$/;
+
+// TODO: Do we really want to return all data?
+facebookEventSchema.statics.cleanEvent = function (event) {
+    event.fetch_timestamp = event._id.getTimestamp();
+    delete event._id;
+
+    var public_fields = _.keys(FacebookEvent.PUBLIC_FIELDS);
+    public_fields.push('fetch_timestamp');
+
+    event = _.pick(event, public_fields);
+
+    return event;
+};
 
 facebookEventSchema.methods.postFetch = function (cb) {
     var event = this;

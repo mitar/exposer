@@ -41,8 +41,10 @@ function facebookRequest(url_orig, limit, cb, payload) {
                 catch (e) {
                 }
 
-                var err = "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body);
-                err.body = body;
+                var err = {
+                    'error': "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body),
+                    'body': body
+                };
 
                 cb(err);
                 return;
@@ -52,7 +54,9 @@ function facebookRequest(url_orig, limit, cb, payload) {
                 body = JSON.parse(body);
             }
             catch (e) {
-                cb("Facebook request (" + url_orig + ") parse error: " + e);
+                cb({
+                    'error': "Facebook request (" + url_orig + ") parse error: " + e
+                });
                 return;
             }
 
@@ -123,7 +127,11 @@ exports.request = function (url_orig, limit, cb, payload) {
     facebookQueue.unshift(function () {
         facebookRequest(url_orig, limit, function (err) {
             processQueue(err && err.body && err.body.error && err.body.error.code === 613);
-            cb.apply(this, arguments);
+            var args = _.toArray(arguments);
+            if (err) {
+                args[0] = err.error
+            }
+            cb.apply(this, args);
         }, payload);
     });
     processQueue();

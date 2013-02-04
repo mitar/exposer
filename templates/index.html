@@ -28,25 +28,6 @@
                     <p>{{ t("section.stream.description-none", translations) }}</p>
                 {% endif %}
             </div>
-			{% if languages.length > 1 %}
-				<ul id="languages">
-					{%- for language in languages -%}
-						{%- if language.current -%}
-							<li class="active" title="{{ language.native }}">{{ language.name }}</li>
-						{%- else -%}
-							<li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
-						{%- endif -%}
-					{%- endfor -%}
-				</ul>
-			{% endif %}
-			<ul id="menu">
-				<li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
-				<li class="events"><a href="#events">{{ t("menu.events") }}</a></li>
-				{% if SHOW_LINKS %}
-					<li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
-				{% endif %}
-				<li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
-			</ul>
             <div class="section events">
                 <p>{{ t("section.events.description", translations) }}</p>
             </div>
@@ -64,9 +45,28 @@
                     <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
                 {% endif %}
             </div>
-			{% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
-				<div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
-			{% endif %}
+            {% if languages.length > 1 %}
+                <ul id="languages">
+                    {%- for language in languages -%}
+                        {%- if language.current -%}
+                            <li class="active" title="{{ language.native }}">{{ language.name }}</li>
+                        {%- else -%}
+                            <li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
+                        {%- endif -%}
+                    {%- endfor -%}
+                </ul>
+            {% endif %}
+            <ul id="menu">
+                <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
+                <li class="events"><a href="#events">{{ t("menu.events") }}</a></li>
+                {% if SHOW_LINKS %}
+                    <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+                {% endif %}
+                <li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
+            </ul>
+            {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
+                <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
+            {% endif %}
         </div>
         <div class="section stream active">
             <div id="posts"></div>

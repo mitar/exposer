@@ -41,8 +41,10 @@ function facebookRequest(url_orig, limit, cb, payload) {
                 catch (e) {
                 }
 
-                var err = "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body);
-                err.body = body;
+                var err = {
+                    'error': "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body),
+                    'body': body
+                };
 
                 cb(err);
                 return;
@@ -52,7 +54,9 @@ function facebookRequest(url_orig, limit, cb, payload) {
                 body = JSON.parse(body);
             }
             catch (e) {
-                cb("Facebook request (" + url_orig + ") parse error: " + e);
+                cb({
+                    'error': "Facebook request (" + url_orig + ") parse error: " + e
+                });
                 return;
             }
 
@@ -104,13 +108,7 @@ function processQueue(purge_requests) {
         queueWarning();
     }
 
-    var requests = purge_requests ? (parseInt(facebookLimiter.tokenBucket.content) || 1) : 1;
-    if (purge_requests) {
-        // We have to purge requests, we hit rate limit
-        purgeWarning(requests);
-    }
-
-    facebookLimiter.removeTokens(requests, function(err, remainingRequests) {
+    facebookLimiter.removeTokens(1, function(err, remainingRequests) {
         f();
 
         if (remainingRequests < 10) {
@@ -122,8 +120,20 @@ function processQueue(purge_requests) {
 exports.request = function (url_orig, limit, cb, payload) {
     facebookQueue.unshift(function () {
         facebookRequest(url_orig, limit, function (err) {
-            processQueue(err && err.body && err.body.error && err.body.error.code === 613);
-            cb.apply(this, arguments);
+            if (err && err.body && err.body.error && err.body.error.code === 613) {
+                // We have to purge requests, we hit rate limit
+                var requests = parseInt(facebookLimiter.tokenBucket.content) || 1;
+                purgeWarning(requests);
+                facebookLimiter.removeTokens(requests, function(err, remainingRequests) {});
+            }
+
+            processQueue();
+
+            var args = _.toArray(arguments);
+            if (err) {
+                args[0] = err.error
+            }
+            cb.apply(this, args);
         }, payload);
     });
     processQueue();

@@ -2,39 +2,20 @@
 <html>
     <head>
         <title>Exposer</title>
-        <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
         <link rel="stylesheet" type="text/css" href="/isotope.css" media="all" />
+        <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
         <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Permanent+Marker" media="all" />
         <script type="text/javascript">
             var REMOTE = '{{ REMOTE|escape('js') }}';
             var FACEBOOK_APP_ID = '{{ FACEBOOK_APP_ID|escape('js') }}';
             var SITE_URL = '{{ SITE_URL|escape('js') }}';
+            var CURRENT_LANGUAGE = '{{ languages.current|escape('js') }}';
+            var LANGUAGES = [{% for language in languages %}'{{ language.name|escape('js') }}'{% if !loop.last %}, {% endif %}{% endfor %}];
         </script>
     </head>
     <body>
         <div id="fb-root"></div>
         <a href="https://github.com/mitar/exposer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
-        {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
-            <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
-        {% endif %}
-        {% if languages.length > 1 %}
-            <ul id="languages">
-                {%- for language in languages -%}
-                    {%- if language.current -%}
-                        <li class="active" title="{{ language.native }}">{{ language.name }}</li>
-                    {%- else -%}
-                        <li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
-                    {%- endif -%}
-                {%- endfor -%}
-            </ul>
-        {% endif %}
-        <ul id="menu">
-            <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
-            {% if SHOW_LINKS %}
-                <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
-            {% endif %}
-            <li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
-        </ul>
         <div id="header">
             <div class="section stream active">
                 {% if TWITTER_ENABLED && FACEBOOK_ENABLED %}
@@ -46,6 +27,28 @@
                 {% else %}
                     <p>{{ t("section.stream.description-none", translations) }}</p>
                 {% endif %}
+            </div>
+			{% if languages.length > 1 %}
+				<ul id="languages">
+					{%- for language in languages -%}
+						{%- if language.current -%}
+							<li class="active" title="{{ language.native }}">{{ language.name }}</li>
+						{%- else -%}
+							<li><form action="/locales/set" method="post"><input type="hidden" name="language" value="{{ language.name }}" /><button type="submit" title="{{ language.native }}">{{ language.name }}</button></form></li>
+						{%- endif -%}
+					{%- endfor -%}
+				</ul>
+			{% endif %}
+			<ul id="menu">
+				<li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
+				<li class="events"><a href="#events">{{ t("menu.events") }}</a></li>
+				{% if SHOW_LINKS %}
+					<li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+				{% endif %}
+				<li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
+			</ul>
+            <div class="section events">
+                <p>{{ t("section.events.description", translations) }}</p>
             </div>
             {% if SHOW_LINKS %}
                 <div class="section links">
@@ -61,10 +64,16 @@
                     <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
                 {% endif %}
             </div>
+			{% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
+				<div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
+			{% endif %}
         </div>
         <div class="section stream active">
             <div id="posts"></div>
             <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
+        </div>
+        <div class="section events">
+            {% include "events.html" %}
         </div>
         {% if SHOW_LINKS %}
             <div class="section links">
@@ -77,6 +86,7 @@
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
         <script type="text/javascript" src="https://connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/bundle.js"></script>
+        <script type="text/javascript" src="/i18next/i18next.js"></script>
         <script type="text/javascript" src="/jquery.dotdotdot.js"></script>
         <script type="text/javascript" src="/jquery.isotope.js"></script>
         <script type="text/javascript" src="/jquery.throttle.js"></script>
@@ -84,5 +94,7 @@
         <script type="text/javascript" src="/isotope.js"></script>
         <script type="text/javascript" src="/highstock.js"></script>
         <script type="text/javascript" src="/highstock.exporting.js"></script>
+        <script type="text/javascript" src="/jquery.timeago.js"></script>
+        <script type="text/javascript" src="/jquery.eventcalendar.js"></script>
     </body>
 </html>

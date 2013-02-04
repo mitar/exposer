@@ -2,7 +2,8 @@
     "menu": {
         "stream": "Stream",
         "links": "Links",
-        "stats": "Stats"
+        "stats": "Stats",
+        "events": "menu.events"
     },
     "buttons": {
         "load-more": "Load more posts"
@@ -51,6 +52,9 @@
             "warning-facebook": [
                 "Warning: Many wanted posts are not successfully collected and many posts collected are not necessary relevant."
             ]
+        },
+        "events": {
+            "description": "section.events.description"
         }
     },
     "languages": {

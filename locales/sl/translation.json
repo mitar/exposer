@@ -41,12 +41,18 @@
             "warning-twitter": [
                 "Opozorilo: Mnogo željenih twitov ni bilo uspešno zbranih in mnogo zbranih twitov ni nujno relevantnih."
             ]
+        },
+        "events": {
+            "description": [
+                "Če želiš, da se tvoji Facebook dogodki prikažejo tu, jih javno podeli in označi s stranjo __section.stream.facebook-page-link__."
+            ]
         }
     },
     "menu": {
         "stream": "Tok",
         "links": "Povezave",
-        "stats": "Statistika"
+        "stats": "Statistika",
+        "events": "Dogodki"
     },
     "buttons": {
         "load-more": "Naloži več objav"

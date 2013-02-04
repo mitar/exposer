@@ -2,7 +2,8 @@
     "menu": {
         "stream": "Stream",
         "links": "Links",
-        "stats": "Stats"
+        "stats": "Stats",
+        "events": "Events"
     },
     "buttons": {
         "load-more": "Load more posts"
@@ -50,6 +51,11 @@
             "description-facebook": "Statistics of collected public Facebook posts.",
             "warning-facebook": [
                 "Warning: Many wanted posts are not successfully collected and many posts collected are not necessary relevant."
+            ]
+        },
+        "events": {
+            "description": [
+                "If you want your Facebook events to appear here, publicly share them and tag them with __section.stream.facebook-page-link__ page."
             ]
         }
     },

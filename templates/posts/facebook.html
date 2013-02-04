@@ -26,20 +26,8 @@
                     <div class="message short hideoverflow">
                         {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                     </div>
-                    {% if post.facebook_event %}
-                        <div class="event">
-                            {% if post.facebook_event.data.picture %}
-                                <a href="{{ post.facebook_event.data.link }}" class="picture-link"><img src="{{ post.facebook_event.data.picture.url|facebook_picture }}" class="picture" alt="{{ post.facebook_event.data.name }}" /></a>
-                            {% endif %}
-                            <div class="meta">
-                                <a href="{{ post.facebook_event.data.link }}" class="name">{{ post.facebook_event.data.name }}</a>
-                                <div class="date"><a href="https://www.facebook.com/events/calendar/{{ post.facebook_event.data.start_time|fix_date|date("Y/F/j") }}">{{ post.facebook_event.data.start_time|fix_date|date("F j") }}</a>{% if !post.facebook_event.data.is_date_only %} at {{ post.facebook_event.data.start_time|fix_date|date("g:ia") }} in UTC{{ post.facebook_event.data.start_time|fix_date|date("O") }}{% endif %}</div>
-                                {% if post.facebook_event.data.location %}
-                                    <div class="location">{% if post.facebook_event.data.venue.id %}<a href="https://www.facebook.com/{{ post.facebook_event.data.venue.id }}">{% endif %}{{ post.facebook_event.data.location }}{% if post.facebook_event.data.venue.id %}</a>{% endif %}</div>
-                                {% endif %}
-                                <div class="invite"><a href="{{ post.facebook_event.data.link }}" class="invite-link"><span class="invite-icon"> </span> Join</a>{% if post.facebook_event.invited_summary.attending_count %} · {{ post.facebook_event.invited_summary.attending_count }} {% if event_in_past %}went{% else %}are going{% endif %}{% endif %}</div>
-                            </div>
-                        </div>
+                    {% if event %}
+                        {% include "event_include.html" %}
                     {% else if post.data.type === "link" && post.data.link %}
                         <div class="link">
                             {% if post.data.picture %}

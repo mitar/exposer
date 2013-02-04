@@ -41,12 +41,18 @@
             "warning-twitter": [
                 "Opozorilo: Mnogo željenih twitov ni bilo uspešno zbranih in mnogo zbranih twitov ni nujno relevantnih."
             ]
+        },
+        "events": {
+            "description": [
+                "Če želiš, da se tvoji Facebook dogodki prikažejo tu, jih javno podeli in označi s stranjo __section.stream.facebook-page-link__."
+            ]
         }
     },
     "menu": {
         "stream": "Tok",
         "links": "Povezave",
-        "stats": "Statistika"
+        "stats": "Statistika",
+        "events": "Dogodki"
     },
     "buttons": {
         "load-more": "Naloži več objav"
@@ -54,5 +60,36 @@
     "languages": {
         "sl": "slovenščina",
         "en": "angleščina"
+    },
+    "events": {
+        "month": {
+            "april": "april",
+            "august": "avgust",
+            "december": "december",
+            "february": "februar",
+            "january": "januar",
+            "july": "julij",
+            "june": "junij",
+            "march": "marec",
+            "may": "maj",
+            "november": "november",
+            "october": "oktober",
+            "september": "september"
+        },
+        "upcoming-events": "Prihodnji dogodki",
+        "after-text": " ",
+        "before-text": "Dogodki za: ",
+        "next-month": "Naslednji mesec",
+        "no-events": "Za to časovno obdobje ni dogodkov.",
+        "previous-month": "Prejšnji mesec",
+        "week": {
+            "friday": "pet",
+            "monday": "pon",
+            "saturday": "sob",
+            "sunday": "ned",
+            "thursday": "čet",
+            "tuesday": "tor",
+            "wednesday": "sre"
+        }
     }
 }

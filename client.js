@@ -1,10 +1,19 @@
 var dnode = require('dnode');
 var moment = require('moment');
 var shoe = require('shoe');
+var swig = require('swig/lib/swig');
+
+swig.init({
+    'filters': require('./filters')
+});
+
+// So that including works
+require('./templates/event_include.html')(swig);
 
 var templates = {
-    'twitter': require('./templates/posts/twitter.html'),
-    'facebook': require('./templates/posts/facebook.html')
+    'twitter': require('./templates/posts/twitter.html')(swig),
+    'facebook': require('./templates/posts/facebook.html')(swig),
+    'event': require('./templates/event.html')(swig)
 };
 
 var $ = require('jquery-browserify');
@@ -15,18 +24,21 @@ var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
 var SECTIONS = {
     'stream': true,
+    'events': true,
     'links': true,
     'stats': true
 };
 
 var remotePromise = null;
 remote = null;
+var i18nPromise = null;
 
 var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
 var oldestDisplayedPostsIds = {};
 var graph = null;
-
+var calendar = null;
+var knownEvents = {};
 var postsRelayout = null;
 
 function createPost(post) {
@@ -86,6 +98,7 @@ function createPost(post) {
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id,
+                'event': post.facebook_event,
                 'event_in_past': event_in_past,
                 'like_link': like_link
             })).data('post', post);
@@ -196,8 +209,10 @@ function loadMorePosts() {
 }
 
 function displayNewEvent(event) {
-    // TOOD: Implement
-    console.log(event);
+    event = prepareEvent(event);
+    if (event) {
+        $('#calendar').trigger('eventCalendar.add', event);
+    }
 }
 
 function setActiveSection(section) {
@@ -212,6 +227,9 @@ function setActiveSection(section) {
     }
     else if (section === 'stats') {
         loadGraph();
+    }
+    else if (section === 'events') {
+        loadEvents();
     }
 }
 
@@ -277,7 +295,8 @@ function loadGraph() {
                 'chart': {
                     'renderTo': 'graph',
                     'type': 'areaspline',
-                    'zoomType': 'x'
+                    'zoomType': 'x',
+                    'borderRadius': 10
                 },
                 'credits': {
                     'enabled': false
@@ -366,6 +385,85 @@ function loadGraph() {
     });
 }
 
+function prepareEvent(event) {
+    if (knownEvents[event.event_id]) {
+        return null;
+    }
+
+    var event_in_past = false;
+    if (event.start_time) {
+        if (moment(event.start_time) < moment()) {
+            event_in_past = true;
+        }
+    }
+
+    knownEvents[event.event_id] = true;
+
+    return {
+        'date': '' + moment(event.data.start_time).valueOf(),
+        'url': event.data.link,
+        'dom': $(templates.event({
+            'event': event,
+            'event_in_past': event_in_past
+        }))
+    }
+}
+
+function loadEvents() {
+    if (calendar) {
+        return;
+    }
+
+    remotePromise.done(function () {
+        i18nPromise.done(function () {
+            remote.getEvents(function (err, events) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+
+                events = $.map(events, function (event, i) {
+                    return prepareEvent(event);
+                });
+
+                var options = {
+                    'jsonData': events,
+                    'eventsLimit': 0,
+                    'showDescription': true,
+                    'moveSpeed': 0,
+                    'moveOpacity': 1.0,
+                    'showDayAsWeeks': false,
+                    'monthNames': [
+                        i18n.t("events.month.january"), i18n.t("events.month.february"), i18n.t("events.month.march"),
+                        i18n.t("events.month.april"), i18n.t("events.month.may"), i18n.t("events.month.june"),
+                        i18n.t("events.month.july"), i18n.t("events.month.august"), i18n.t("events.month.september"),
+                        i18n.t("events.month.october"), i18n.t("events.month.november"), i18n.t("events.month.december")
+                    ],
+                    'dayNamesShort': [
+                        i18n.t("events.week.sunday"), i18n.t("events.week.monday"), i18n.t("events.week.tuesday"),
+                        i18n.t("events.week.wednesday"), i18n.t("events.week.thursday"), i18n.t("events.week.friday"),
+                        i18n.t("events.week.saturday")
+                    ],
+                    'txt_noEvents': i18n.t("events.no-events"),
+                    'txt_SpecificEvents_prev': i18n.t("events.before-text"),
+                    'txt_SpecificEvents_after': i18n.t("events.after-text"),
+                    'txt_next': i18n.t("events.next-month"),
+                    'txt_prev': i18n.t("events.previous-month"),
+                    'txt_NextEvents': i18n.t("events.upcoming-events")
+                };
+
+                if (CURRENT_LANGUAGE === 'sl') {
+                    options.num_abbrev_str = function (month, num) {
+                        return num + ". " + month;
+                    }
+                }
+
+                calendar = $('#calendar').eventCalendar(options);
+            });
+        });
+    });
+}
+
 $(document).ready(function () {
     var remoteDeferred = $.Deferred();
     remotePromise = remoteDeferred.promise();
@@ -403,6 +501,17 @@ $(document).ready(function () {
             $(window).updatehash(getActiveSection());
         }
     });
+
+    i18nPromise = i18n.init({
+        'lng': CURRENT_LANGUAGE,
+        // We use session for storing the language preference
+        'useCookie': false,
+        'languages': LANGUAGES,
+        'fallbackLng': LANGUAGES[0],
+        'namespaces': ['translation'],
+        'resGetPath': 'locales/resources.json?lng=__lng__&ns=__ns__',
+        'dynamicLoad': true
+    }).promise();
 
     var last_retry = 100; // ms
 

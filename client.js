@@ -223,6 +223,7 @@ function setActiveSection(section) {
 
     if (section === 'stream') {
         postsRelayout();
+        shortenPosts();
         renderTweets();
     }
     else if (section === 'stats') {

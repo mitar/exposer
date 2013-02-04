@@ -35,7 +35,16 @@ function facebookRequest(url_orig, limit, cb, payload) {
             'form': payload
         }, function (error, res, body) {
             if (error || !res || res.statusCode !== 200) {
-                cb("Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body));
+                try {
+                    body = JSON.parse(body);
+                }
+                catch (e) {
+                }
+
+                var err = "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body);
+                err.body = body;
+
+                cb(err);
                 return;
             }
 
@@ -76,11 +85,15 @@ var queueWarning = _.throttle(function () {
     console.warn("Queue has grown to %s elements", facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
-var limiterWarning = _.throttle(function (remainingRequests) {
-    console.warn("Limiter has only %s requests left, %s in the queue", remainingRequests, acebookQueue.length);
+var purgeWarning = _.throttle(function (requests) {
+    console.warn("Rate limit hit, purging %s requests, %s in the queue", requests, facebookQueue.length);
 }, 10 * 1000); // Warn only once per 10 s
 
-function processQueue() {
+var limiterWarning = _.throttle(function (remainingRequests) {
+    console.warn("Limiter has only %s requests left, %s in the queue", remainingRequests, facebookQueue.length);
+}, 10 * 1000); // Warn only once per 10 s
+
+function processQueue(purge_requests) {
     var f = facebookQueue.pop();
     if (!f) {
         return;
@@ -91,7 +104,13 @@ function processQueue() {
         queueWarning();
     }
 
-    facebookLimiter.removeTokens(1, function(err, remainingRequests) {
+    var requests = purge_requests ? (parseInt(facebookLimiter.tokenBucket.content) || 1) : 1;
+    if (purge_requests) {
+        // We have to purge requests, we hit rate limit
+        purgeWarning(requests);
+    }
+
+    facebookLimiter.removeTokens(requests, function(err, remainingRequests) {
         f();
 
         if (remainingRequests < 10) {
@@ -102,8 +121,8 @@ function processQueue() {
 
 exports.request = function (url_orig, limit, cb, payload) {
     facebookQueue.unshift(function () {
-        facebookRequest(url_orig, limit, function () {
-            processQueue();
+        facebookRequest(url_orig, limit, function (err) {
+            processQueue(err && err.body && err.body.error && err.body.error.code === 613);
             cb.apply(this, arguments);
         }, payload);
     });

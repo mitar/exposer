@@ -98,7 +98,7 @@ body {
     padding: 15px;
 }
 
-.facebook-post .twt-border, .links-content {
+.facebook-post .twt-border {
     -moz-border-bottom-colors: none;
     -moz-border-left-colors: none;
     -moz-border-right-colors: none;
@@ -486,15 +486,34 @@ body {
     display: block;
 }
 
-.links-content {
+.stats-content, .links-content  {
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-top-colors: none;
+    background-color: #FFFFFF;
+    border-color: #EEEEEE #DDDDDD #BBBBBB;
+    border-image: none;
+    border-radius: 10px 10px 10px 10px;
+    border-style: solid;
+    border-width: 1px;
     box-shadow: 0 0 15px 0 black;
     color: black;
-    font-family: Tahoma;
+    margin-bottom: 10px;
+}
+
+.stats-content {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.links-content {
     margin-left: auto;
     margin-right: auto;
     max-width: 600px;
+    font-family: Tahoma;
     padding: 1em 2em;
-    margin-bottom: 10px;
 }
 
 .links-content dt *:link, .links-content dt *:visited {
@@ -554,12 +573,6 @@ body {
     position: absolute;
     top: 80px;
     right: 60px;
-}
-
-.stats-content {
-    width: 95%;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 #languages {

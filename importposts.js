@@ -47,7 +47,7 @@ function importposts() {
                     }
 
                     if (post.type === 'twitter') {
-                        models.Post.storeTweet(post.original_data, post.sources, function (err, tweet) {
+                        models.Post.storeTweet(post.original_data, post.sources || [], function (err, tweet) {
                             if (err) {
                                 console.error(err);
                                 process.exit(1);
@@ -64,7 +64,7 @@ function importposts() {
                         });
                     }
                     else if (post.type === 'facebook') {
-                        models.Post.storeFacebookPost(post.data, post.sources, function (err, post) {
+                        models.Post.storeFacebookPost(post.data, post.sources || [], function (err, post) {
                             if (err) {
                                 console.error(err);
                                 process.exit(1);
@@ -72,7 +72,7 @@ function importposts() {
                             }
 
                             if (post) {
-                                console.log("Imported Facebook post: %s", tweet.foreign_id);
+                                console.log("Imported Facebook post: %s", post.foreign_id);
                                 count_facebook++;
                             }
                             count_facebook_all++;

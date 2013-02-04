@@ -31,6 +31,7 @@ var SECTIONS = {
 
 var remotePromise = null;
 remote = null;
+var i18nPromise = null;
 
 var displayedPosts = {};
 var oldestDisplayedPostsDate = null;
@@ -414,36 +415,50 @@ function loadEvents() {
     }
 
     remotePromise.done(function () {
-        remote.getEvents(function (err, events) {
-            if (err) {
-                console.error(err);
-                return;
-            }
+        i18nPromise.done(function () {
+            remote.getEvents(function (err, events) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
 
-            events = $.map(events, function (event, i) {
-                return prepareEvent(event);
-            });
+                events = $.map(events, function (event, i) {
+                    return prepareEvent(event);
+                });
 
-            calendar = $('#calendar').eventCalendar({
-                'jsonData': events,
-                'eventsLimit': 0,
-                'showDescription': true,
-                'moveSpeed': 0,
-                'moveOpacity': 1.0,
-                'showDayAsWeeks': false,
-                'monthNames': [
-                    "January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"
-                ],
-                'dayNamesShort': [
-                    "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
-                ],
-                'txt_noEvents': "There are no events in this period",
-                'txt_SpecificEvents_prev': "",
-                'txt_SpecificEvents_after': "events",
-                'txt_next': "Next month",
-                'txt_prev': "Previous month",
-                'txt_NextEvents': "Upcoming events"
+                var options = {
+                    'jsonData': events,
+                    'eventsLimit': 0,
+                    'showDescription': true,
+                    'moveSpeed': 0,
+                    'moveOpacity': 1.0,
+                    'showDayAsWeeks': false,
+                    'monthNames': [
+                        i18n.t("events.month.january"), i18n.t("events.month.february"), i18n.t("events.month.march"),
+                        i18n.t("events.month.april"), i18n.t("events.month.may"), i18n.t("events.month.june"),
+                        i18n.t("events.month.july"), i18n.t("events.month.august"), i18n.t("events.month.september"),
+                        i18n.t("events.month.october"), i18n.t("events.month.november"), i18n.t("events.month.december")
+                    ],
+                    'dayNamesShort': [
+                        i18n.t("events.week.sunday"), i18n.t("events.week.monday"), i18n.t("events.week.tuesday"),
+                        i18n.t("events.week.wednesday"), i18n.t("events.week.thursday"), i18n.t("events.week.friday"),
+                        i18n.t("events.week.saturday")
+                    ],
+                    'txt_noEvents': i18n.t("events.no-events"),
+                    'txt_SpecificEvents_prev': i18n.t("events.before-text"),
+                    'txt_SpecificEvents_after': i18n.t("events.after-text"),
+                    'txt_next': i18n.t("events.next-month"),
+                    'txt_prev': i18n.t("events.previous-month"),
+                    'txt_NextEvents': i18n.t("events.upcoming-events")
+                };
+
+                if (CURRENT_LANGUAGE === 'sl') {
+                    options.num_abbrev_str = function (month, num) {
+                        return num + ". " + month;
+                    }
+                }
+
+                calendar = $('#calendar').eventCalendar(options);
             });
         });
     });
@@ -486,6 +501,17 @@ $(document).ready(function () {
             $(window).updatehash(getActiveSection());
         }
     });
+
+    i18nPromise = i18n.init({
+        'lng': CURRENT_LANGUAGE,
+        // We use session for storing the language preference
+        'useCookie': false,
+        'languages': LANGUAGES,
+        'fallbackLng': LANGUAGES[0],
+        'namespaces': ['translation'],
+        'resGetPath': 'locales/resources.json?lng=__lng__&ns=__ns__',
+        'dynamicLoad': true
+    }).promise();
 
     var last_retry = 100; // ms
 

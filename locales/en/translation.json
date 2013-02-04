@@ -62,5 +62,36 @@
     "languages": {
         "en": "English",
         "sl": "Slovenian"
+    },
+    "events": {
+        "month": {
+            "january": "January",
+            "march": "March",
+            "april": "April",
+            "may": "May",
+            "june": "June",
+            "july": "July",
+            "august": "August",
+            "september": "September",
+            "november": "November",
+            "december": "December",
+            "february": "February",
+            "october": "October"
+        },
+        "no-events": "There are no events in this period.",
+        "next-month": "Next month",
+        "upcoming-events": "Upcoming events",
+        "week": {
+            "sunday": "Sun",
+            "monday": "Mon",
+            "tuesday": "Tue",
+            "wednesday": "Wed",
+            "thursday": "Thu",
+            "friday": "Fri",
+            "saturday": "Sat"
+        },
+        "previous-month": "Previous month",
+        "before-text": "",
+        "after-text": " events"
     }
 }

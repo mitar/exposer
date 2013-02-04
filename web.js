@@ -108,9 +108,11 @@ app.use(express.bodyParser());
 app.use(express.static(__dirname + '/static'));
 app.use(i18next.handle);
 
+i18next.serveClientScript(app).serveDynamicResources(app);
+
 if (app.get('env') !== 'production') {
     // TODO: Set sendMissing to true on the client side, if not in the production
-    i18next.serveDynamicResources(app).serveMissingKeyRoute(app).serveChangeKeyRoute(app).serveRemoveKeyRoute(app);
+    i18next.serveMissingKeyRoute(app).serveChangeKeyRoute(app).serveRemoveKeyRoute(app);
 
     i18next.serveWebTranslate(app, {
         'path': '/i18next',
@@ -151,6 +153,7 @@ app.get('/', function (req, res) {
             'current': req.language == language
         };
     });
+    languages.current = req.language;
     res.render('index', {
         'REMOTE': settings.REMOTE,
         'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,

@@ -1,11 +1,19 @@
 var dnode = require('dnode');
 var moment = require('moment');
 var shoe = require('shoe');
+var swig = require('swig/lib/swig');
+
+swig.init({
+    'filters': require('./filters')
+});
+
+// So that including works
+require('./templates/event_include.html')(swig);
 
 var templates = {
-    'twitter': require('./templates/posts/twitter.html'),
-    'facebook': require('./templates/posts/facebook.html'),
-    'event': require('./templates/event.html')
+    'twitter': require('./templates/posts/twitter.html')(swig),
+    'facebook': require('./templates/posts/facebook.html')(swig),
+    'event': require('./templates/event.html')(swig)
 };
 
 var $ = require('jquery-browserify');
@@ -89,6 +97,7 @@ function createPost(post) {
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id,
+                'event': post.facebook_event,
                 'event_in_past': event_in_past,
                 'like_link': like_link
             })).data('post', post);

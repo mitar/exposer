@@ -83,14 +83,14 @@ body {
 #menu .active a{
     color: #DF0000;
     text-shadow: 0 0 1px #DF0000;
-    background: url('arrows.png') no-repeat right 14px transparent;
+    background: url("arrows.png") no-repeat right 14px transparent;
     text-decoration: underline;
 }
 
 #menu a:hover {
     color: #DF0000;
     text-shadow: 0 0 2px #DF0000;
-    background: url('arrows.png') no-repeat right 14px transparent;
+    background: url("arrows.png") no-repeat right 14px transparent;
 }
 
 #menu li {
@@ -564,7 +564,7 @@ body {
     padding-right: 25px;
     padding-bottom: 15px;
     padding-top: 60px;
-    background: url('http://ardevi.si/clients/facebook-like.png') no-repeat 25px 15px transparent;
+    background: url("facebook-like.png") no-repeat 25px 15px transparent;
 }
 
 #languages {
@@ -599,7 +599,7 @@ body {
 }
 
 #languages button {
-    font-family: "Permanent marker", cusrive, sans-serif;
+    font-family: "Permanent marker",cursive,sans-serif;
     font-size: 16px;
     color: #333;
     text-shadow: 0 0 1px #333;

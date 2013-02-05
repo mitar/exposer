@@ -1,10 +1,10 @@
 body {
     background: url("bg_wall.jpg") repeat fixed 0 0 #333333;
     margin: 0;
-	font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
+    font-family: "lucida grande",tahoma,verdana,arial,sans-serif;
 }
 :link {
-	text-decoration: none;
+    text-decoration: none;
 }
 
 .post {
@@ -39,9 +39,9 @@ body {
     background: url("paper.jpg") repeat scroll center bottom #DDDDDD;
     box-shadow: 0 0 10px 5px black;
     color: #333;
-    font-family: "Permanent marker",cursive,sans-serif;
-    font-size: 17px;
-    letter-spacing: 2px;
+    font-family: "Patrick Hand",cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
     margin: 0 0 20px;
     min-width: 250px;
     padding: 1px 140px 10px 140px;
@@ -50,10 +50,10 @@ body {
     top: 0;
 }
 
-#header tt {
+#header tt, #header .section a {
     color: #DF0000;
     font-family: cursive;
-    font-size: 33px;
+    font-size: 28px;
     font-weight: normal;
     text-shadow: 0 0 2px red;
     line-height: 17px;
@@ -88,7 +88,6 @@ body {
     color: #DF0000;
     text-shadow: 0 0 1px #DF0000;
     background: url("arrows.png") no-repeat right 14px transparent;
-    text-decoration: underline;
 }
 
 #menu a:hover {
@@ -98,8 +97,8 @@ body {
 }
 
 #menu li {
-    display: inline;
-    margin: 20px;
+    display: inline-block;
+    min-width: 200px;
 }
 
 .facebook-post .twt-border blockquote {
@@ -516,7 +515,7 @@ body {
 }
 
 .links-content dt *:link, .links-content dt *:visited {
-    color: #3B5998;
+    color: #555;
     display: block;
     font-size: 16px;
     font-weight: bold;
@@ -534,6 +533,13 @@ body {
     color: #333;
     font-size: 13px;
     padding: 10px 0;
+}
+.link-icon {
+    border-bottom: 5px solid transparent;
+    border-left: 4px solid #555555;
+    border-top: 5px solid transparent;
+    display: inline-block;
+    margin-left: 6px;
 }
 
 .events-content {
@@ -607,7 +613,7 @@ body {
 }
 
 #languages button {
-    font-family: "Permanent marker",cursive,sans-serif;
+    font-family: "Patrick Hand",cursive;
     font-size: 16px;
     color: #333;
     text-shadow: 0 0 1px #333;
@@ -630,7 +636,7 @@ input::-moz-focus-inner {
 }
 
 .eventsCalendar-slider a {
-    color: #3B5998;
+    color: #555;
 }
 
 .eventsCalendar-slider a:hover {
@@ -667,23 +673,18 @@ input::-moz-focus-inner {
     line-height: 0;
     border-top: 9px solid transparent;
     border-bottom: 9px solid transparent;
-    border-left: 9px solid #3B5998;
+    border-left: 9px solid #555;
     float: left;
     text-indent: -5000px;
 }
 
 .eventCalendar-wrap .arrow.prev span {
     border-left-width: 0;
-    border-right: 9px solid #3B5998;
+    border-right: 9px solid #555;
 }
 
 .eventsCalendar-currentTitle .monthTitle {
-    color: #3B5998;
-    display: block;
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    text-align: center;
+    color: #DF0000;
 }
 
 .eventsCalendar-monthWrap {
@@ -703,24 +704,26 @@ input::-moz-focus-inner {
 
 .eventsCalendar-daysList li {
     border-radius: 8px 8px 8px 8px;
-    box-shadow: 0 0 1px #939393;
-    color: #3B5998;
+    box-shadow: 0 1px 2px #939393;
+    color: #555;
     display: inline-block;
     font-weight: bold;
     margin: 3px;
     min-width: 30px;
     padding: 2px 0;
-    width: 2.89%;
+    width: 2.55%;
+    border: 2px solid white;
 }
 
 .eventsCalendar-daysList li.dayWithEvents {
-    border: 2px solid #3B5998;
+    border: 2px solid #555;
 }
 
 .eventsCalendar-daysList li.current,
 .eventsCalendar-daysList li.current a {
-    background: #3B5998;
+    background: #DF0000;
     color: white;
+    border-color: #DF0000;
 }
 
 .eventsCalendar-daysList li a {
@@ -748,10 +751,14 @@ input::-moz-focus-inner {
     padding: 0;
 }
 
-.eventsCalendar-subtitle {
+.monthTitle, .eventsCalendar-subtitle {
+    color: #555555;
     display: block;
+    font-family: "patrick hand";
+    font-size: 19px;
+    font-weight: bold;
+    letter-spacing: 1px;
     padding: 0;
-    margin: 1em 0;
     text-align: center;
 }
 

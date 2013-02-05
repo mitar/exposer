@@ -130,7 +130,12 @@ function shortenPosts() {
     $('#posts .short').dotdotdot({
         'callback': function(isTruncated, orgContent) {
             var t = $(this);
-            t.removeClass('short');
+            if (t.is(':visible') || isTruncated) {
+                // We remove the class so that the post are not reprocessed again,
+                // but only if the post is visible (otherwise truncation might not
+                // work correctly) or we know that it is truncated
+                t.removeClass('short');
+            }
             if (isTruncated) {
                 var link = $('<span/>').addClass('see-more');
                 if (DOTS.test($.trim(t.text()))) {
@@ -223,6 +228,7 @@ function setActiveSection(section) {
 
     if (section === 'stream') {
         postsRelayout();
+        shortenPosts();
         renderTweets();
     }
     else if (section === 'stats') {

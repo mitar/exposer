@@ -20,6 +20,8 @@ exports.KEEP_ALIVE_INTERVAL = 25 * 60 * 1000; // ms
 exports.LANGUAGE_DETECTION_MIN_LENGTH = 100; // How many characters should there be to try to detect the language
 exports.TARGET_LANGUAGE_MAX_RANK = 3; // After which rank of the target language we start to trust the detected language
 exports.MAX_POSTS_PER_REQUEST = 1000;
+// TODO: Use limiter for proper limiting of all Tweeter requests
+exports.TWITTER_REQUEST_INTERVAL = 15 * 60 * 1000 / 180; // Rate limit is 180 requests per 15 minutes
 exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.FACEBOOK_POLL_INTERVAL = process.env.FACEBOOK_POLL_INTERVAL || 3 * 60 * 1000; // ms
 exports.FACEBOOK_THROTTLE = {

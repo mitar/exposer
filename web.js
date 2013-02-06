@@ -614,26 +614,42 @@ function connectToTwitterStream() {
 }
 
 function fetchTwitterLatest() {
-    console.log("Doing Twitter fetch");
-
     // TODO: Should we simply automatically start loading all tweets until we find one existing in the database?
-    var params = {'include_entities': true, 'count': 100, 'q': settings.TWITTER_QUERY.join(' OR ')};
-    twit.get('/search/tweets.json', params, function(err, data) {
-        if (err) {
-            console.error("Twitter fetch error", err);
+
+    var query = settings.TWITTER_QUERY.splice(0);
+
+    function fetch_one() {
+        var q = query[0];
+        query = query.splice(1);
+
+        if (!q) {
             return;
         }
 
-        async.forEach(data.statuses, function (tweet, cb) {
-            models.Post.storeTweet(tweet, 'search', function (err, tweet) {
-                notifyClients(err, tweet);
-                // We handle error independently
-                cb(null);
+        console.log("Doing Twitter fetch: %s", q);
+
+        var params = {'include_entities': true, 'count': 100, 'q': q};
+        twit.get('/search/tweets.json', params, function(err, data) {
+            if (err) {
+                console.error("Twitter fetch error (%s)", q, err);
+                return;
+            }
+
+            async.forEach(data.statuses, function (tweet, cb) {
+                models.Post.storeTweet(tweet, 'search', function (err, tweet) {
+                    notifyClients(err, tweet);
+                    // We handle error independently
+                    cb(null);
+                });
+            }, function (err) {
+                console.log("Twitter fetch done: %s", q);
+
+                setTimeout(fetch_one, settings.TWITTER_REQUEST_INTERVAL);
             });
-        }, function (err) {
-            console.log("Twitter fetch done");
         });
-    });
+    }
+
+    fetch_one();
 }
 
 if (twit) {

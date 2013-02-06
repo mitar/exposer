@@ -5,9 +5,6 @@ var twitter = require('ntwitter');
 var models = require('./models');
 var settings = require('./settings');
 
-// Rate limit is 180 requests per 15 minutes
-// TODO: Use limiter for proper limiting of all Tweeter requests
-var LOAD_INTERVAL = 15 * 60 * 1000 / 180;
 var MAX_ID_REGEXP = /max_id=(\d+)/;
 
 var twit = new twitter({
@@ -17,34 +14,50 @@ var twit = new twitter({
     'access_token_secret': settings.TWITTER_ACCESS_TOKEN_SECRET
 });
 
+var q = settings.TWITTER_QUERY[0];
+var query = settings.TWITTER_QUERY.splice(1);
 var maxId = process.argv.length > 2 ? process.argv[2] : null;
 var count = 0;
 var date = null;
 var errorCount = 0;
 
-function next() {
+function nextQuery() {
+    q = settings.TWITTER_QUERY[0];
+    query = query.splice(1);
+    maxId = null;
+    date = null;
+
+    if (!q) {
+        process.exit(0);
+    }
+    else {
+        setTimeout(loadtweets, settings.TWITTER_REQUEST_INTERVAL);
+    }
+}
+
+function nextDay() {
     if (!date) {
         date = moment();
     }
     date.subtract('days', 1);
     maxId = null;
     if (moment() - date > 14 * 24 * 60 * 60 * 1000) { // 14 days
-        process.exit(0);
+        nextQuery();
     }
     else {
-        setTimeout(loadtweets, LOAD_INTERVAL);
+        setTimeout(loadtweets, settings.TWITTER_REQUEST_INTERVAL);
     }
 }
 
 function loadtweets() {
-    var params = {'include_entities': true, 'count': 100, 'max_id': maxId, 'q': settings.TWITTER_QUERY.join(' OR ') + (date ? ' until:' + date.format('YYYY-MM-DD') : '')};
-    console.log("Making request, max_id = %s, date = %s", maxId, date);
+    var params = {'include_entities': true, 'count': 100, 'max_id': maxId, 'q': q + (date ? ' until:' + date.format('YYYY-MM-DD') : '')};
+    console.log("Making request, q = %s, max_id = %s, date = %s", q, maxId, date);
     twit.get('/search/tweets.json', params, function(err, data) {
         if (err) {
             if ((err.statusCode === 500 || err.statusCode === 503) && errorCount < 3) {
                 console.error("Twitter fetch error, retrying", err);
                 errorCount++;
-                setTimeout(loadtweets, LOAD_INTERVAL);
+                setTimeout(loadtweets, settings.TWITTER_REQUEST_INTERVAL);
             }
             else {
                 console.error("Twitter fetch error", err);
@@ -57,7 +70,7 @@ function loadtweets() {
 
         if (data.statuses.length === 0) {
             console.log("%s new tweets fetched overall", count);
-            next();
+            nextDay();
             return;
         }
 
@@ -80,13 +93,13 @@ function loadtweets() {
 
             var max_id_match = MAX_ID_REGEXP.exec(data.search_metadata.next_results);
             if (!max_id_match) {
-                next();
+                nextDay();
                 return;
             }
 
             maxId = max_id_match[1];
 
-            setTimeout(loadtweets, LOAD_INTERVAL);
+            setTimeout(loadtweets, settings.TWITTER_REQUEST_INTERVAL);
         });
     });
 }

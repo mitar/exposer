@@ -165,6 +165,7 @@ app.get('/', function (req, res) {
         'FACEBOOK_MORE': settings.FACEBOOK_QUERY.length > 0,
         'SHOW_LINKS': !!settings.SHOW_LINKS,
         'SITE_URL': settings.SITE_URL,
+        'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,
         'languages': languages,
         'translations': translations
     });

@@ -201,7 +201,7 @@
             dt = new Date(year, month, dayCount);
             var weekDay = dt.getDay();
 
-			daysList.push('<li id="dayList_' + dayCount + '" rel="'+dayCount+'" class="eventsCalendar-day '+dayClass+'"><span class="eventsCalendar-day-header">' + eventsOpts.dayNamesShort[weekDay] + '</span><a href="#">' + dayCount + '</a></li>');
+			daysList.push('<li id="dayList_' + dayCount + '" rel="'+dayCount+'" class="eventsCalendar-day '+dayClass+'"><a href="#"><span class="eventsCalendar-day-header">' + eventsOpts.dayNamesShort[weekDay] + '</span>' + dayCount + '</a></li>');
 		}
 		$eventsCalendarDaysList.append(daysList.join(''));
 

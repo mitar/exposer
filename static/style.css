@@ -17,13 +17,18 @@ body {
     vertical-align: top;
 }
 
+.eventsCalendar-list .post {
+    max-width: 345px;
+    min-width: 345px;
+}
+
 .facebook-post {
     margin: 5px;
 }
 
 .twitter-tweet {
-    display: none; /* This is the calculated size for smaller version of rendered tweets when you calculate in the border */
-    width: 347px; /* Hide not (yet) rendered tweets */
+    display: none; /* Hide not (yet) rendered tweets */
+    width: 347px; /* This is the calculated size for smaller version of rendered tweets when you calculate in the border */
 }
 
 .twitter-tweet-rendered {
@@ -99,7 +104,7 @@ body {
 
 #menu li {
     display: inline-block;
-    min-width: 200px;
+    min-width: 180px;
 }
 
 .facebook-post .twt-border blockquote {
@@ -568,7 +573,7 @@ body {
 #facebook-like {
     position: absolute;
     float: right;
-    right: 50px;
+    right: 30px;
     margin-top: -100px;
     padding: 60px 25px 15px 100px;
     background: url("facebook-like.png") no-repeat 25px 15px transparent;
@@ -693,6 +698,7 @@ input::-moz-focus-inner {
     padding: 0;
     margin: 0;
     font-size: 11px;
+    text-align: center;
 }
 
 .eventsCalendar-daysList li {
@@ -702,9 +708,9 @@ input::-moz-focus-inner {
     display: inline-block;
     font-weight: bold;
     margin: 3px;
-    min-width: 30px;
+    min-width: 23px;
     padding: 2px 0;
-    width: 2.55%;
+    width: 2%;
     border: 2px solid white;
 }
 

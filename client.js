@@ -16,9 +16,10 @@ var templates = {
     'event': require('./templates/event.html')(swig)
 };
 
-var $ = require('jquery-browserify');
+var $ = require('jquery');
 
-var FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
+var render = require('./render')(templates);
+
 var DOTS = /\.\.\.$/;
 var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
 
@@ -41,71 +42,15 @@ var calendar = null;
 var knownEvents = {};
 var postsRelayout = null;
 
-function createPost(post) {
-    switch (post.type) {
-        case 'twitter':
-            return $(templates.twitter({
-                'post': post
-            })).data('post', post);
-        case 'facebook':
-            var post_id = null;
-            var post_link = null;
-            var post_match = FACEBOOK_ID_REGEXP.exec(post.data.id);
-            if (post_match) {
-                post_id = post_match[2];
-                post_link = 'https://www.facebook.com/' + post_match[1] + '/posts/' + post_match[2];
-            }
-            else if (post.data.from && post.data.from.id) {
-                post_link = 'https://www.facebook.com/' + post.data.from.id + '/posts/' + post.data.id;
-            }
-            else {
-                console.warn("Facebook post does not have a link and ID: %s", post.foreign_id, post);
-            }
+function preparePost(post) {
+    post = render.post(post);
 
-            // Override with a better version
-            if (post.data.actions && post.data.actions.length > 0 && post.data.actions[0].link) {
-                post_link = post.data.actions[0].link.split('http://').join('https://');
-            }
-
-            if (post.data.actions) {
-                $.each(post.data.actions, function (i, action) {
-                    post.data.actions[action.name.toLowerCase()] = action;
-                });
-            }
-
-            var event_in_past = false;
-            if (post.facebook_event && post.facebook_event.start_time) {
-                if (moment(post.facebook_event.start_time) < moment()) {
-                    event_in_past = true;
-                }
-            }
-
-            var like_link = null;
-            if (post.facebook_event) {
-                like_link = post.facebook_event.data.link;
-            }
-            else if (post.data.link) {
-                like_link = post.data.link;
-            }
-            else if (post.data.actions.like) {
-                like_link = post.data.actions.like.link;
-            }
-            else {
-                like_link = post_link;
-            }
-
-            return $(templates.facebook({
-                'post': post,
-                'post_link': post_link,
-                'post_id': post_id,
-                'event': post.facebook_event,
-                'event_in_past': event_in_past,
-                'like_link': like_link
-            })).data('post', post);
-        default:
-            console.error("Unknown post type: %s", post.type, post);
-            return null;
+    if (!post) {
+        return null;
     }
+
+    post = $(post).data('post', post);
+    return post;
 }
 
 function renderTweets() {
@@ -178,7 +123,12 @@ function displayOldPosts(posts) {
             oldestDisplayedPostsIds[id] = true;
         }
 
-        postElements = postElements.add(createPost(post));
+        post = preparePost(post);
+        if (!post) {
+            return;
+        }
+
+        postElements = postElements.add(post);
     });
 
     if (postElements.length > 0) {
@@ -397,24 +347,13 @@ function prepareEvent(event) {
     if (knownEvents[event.event_id]) {
         return null;
     }
-
-    var event_in_past = false;
-    if (event.start_time) {
-        if (moment(event.start_time) < moment()) {
-            event_in_past = true;
-        }
-    }
-
     knownEvents[event.event_id] = true;
 
     return {
         'date': '' + moment(event.data.start_time).valueOf(),
         'url': event.data.link,
-        'dom': $(templates.event({
-            'event': event,
-            'event_in_past': event_in_past
-        }))
-    }
+        'dom': $(render.event(event))
+    };
 }
 
 function loadEvents() {
@@ -498,15 +437,16 @@ $(document).ready(function () {
         var current_hash = data.currentHash;
 
         if (current_hash) {
+            current_hash = current_hash.substring(1);
             if (current_hash in SECTIONS) {
                 setActiveSection(current_hash);
             }
             else {
-                $(window).updatehash(getActiveSection());
+                $(window).updatehash('!' + getActiveSection());
             }
         }
         else {
-            $(window).updatehash(getActiveSection());
+            $(window).updatehash('!' + getActiveSection());
         }
     });
 

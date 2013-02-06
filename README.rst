@@ -26,14 +26,14 @@ Development installation which uses remote data. Useful when developing just cli
 3. Move to location where you cloned the repository and run::
 
     npm install
-    browserify client.js -p ./swig -o static/bundle.js
+    browserify client.js -p ./configure -o static/bundle.js
 
    This will install all node.js dependencies and compile client JavaScript file.
 
    If you want client JavaScript file to be compiled automatically on any change to source files (so that it is easy
    to develop), run with ``-w`` parameter::
 
-    browserify client.js -w -v -p ./swig -o static/bundle.js
+    browserify client.js -w -v -p ./configure -o static/bundle.js
 
 4. Run::
 
@@ -66,14 +66,14 @@ Development installation which uses local database. Useful when developing serve
 3. Move to location where you cloned the repository and run::
 
     npm install
-    browserify client.js -p ./swig -o static/bundle.js
+    browserify client.js -p ./configure -o static/bundle.js
 
    This will install all node.js dependencies and compile client JavaScript file.
 
    If you want client JavaScript file to be compiled automatically on any change to source files (so that it is easy
    to develop), run with ``-w`` parameter::
 
-    browserify client.js -w -v -p ./swig -o static/bundljs
+    browserify client.js -w -v -p ./configure -o static/bundljs
 
 4. You will need also various app keys for social networks (see ``settings.js`` file for the list). You have to
    put them into the process environment. If you are using Heroku_, you can put them into ``.env``

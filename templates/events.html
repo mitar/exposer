@@ -1,3 +1,5 @@
 <div class="events-content">
-    <div id="calendar"></div>
+    <div id="calendar">
+        {% if escaped_fragment_content %}{{ escaped_fragment_content|raw }}{% endif %}
+    </div>
 </div>

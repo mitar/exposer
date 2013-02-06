@@ -8,6 +8,7 @@
         {% if GOOGLE_SITE_VERIFICATION %}
             <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}" />
         {% endif %}
+        <meta name="fragment" content="!" />
         <script type="text/javascript">
             var REMOTE = '{{ REMOTE|escape('js') }}';
             var FACEBOOK_APP_ID = '{{ FACEBOOK_APP_ID|escape('js') }}';
@@ -20,34 +21,42 @@
         <div id="fb-root"></div>
         <a href="https://github.com/mitar/exposer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
         <div id="header">
-            <div class="section stream active">
-                {% if TWITTER_ENABLED && FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stream.description", translations) }}{% if TWITTER_MORE || FACEBOOK_MORE %} {{ t("section.stream.description-additional", translations) }}{% endif %}</p>
-                {% else if TWITTER_ENABLED %}
-                    <p>{{ t("section.stream.description-twitter", translations) }}{% if TWITTER_MORE %} {{ t("section.stream.description-twitter-additional", translations) }}{% endif %}</p>
-                {% else if FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stream.description-facebook", translations) }}{% if FACEBOOK_MORE %} {{ t("section.stream.description-facebook-additional", translations) }}{% endif %}</p>
-                {% else %}
-                    <p>{{ t("section.stream.description-none", translations) }}</p>
-                {% endif %}
-            </div>
-            <div class="section events">
-                <p>{{ t("section.events.description", translations) }}</p>
-            </div>
-            {% if SHOW_LINKS %}
-                <div class="section links">
-                    <p>{{ t("section.links.description", translations) }}</p>
+            {% if !escaped_fragment || escaped_fragment === 'stream' %}
+                <div class="section stream active">
+                    {% if TWITTER_ENABLED && FACEBOOK_ENABLED %}
+                        <p>{{ t("section.stream.description", translations) }}{% if TWITTER_MORE || FACEBOOK_MORE %} {{ t("section.stream.description-additional", translations) }}{% endif %}</p>
+                    {% else if TWITTER_ENABLED %}
+                        <p>{{ t("section.stream.description-twitter", translations) }}{% if TWITTER_MORE %} {{ t("section.stream.description-twitter-additional", translations) }}{% endif %}</p>
+                    {% else if FACEBOOK_ENABLED %}
+                        <p>{{ t("section.stream.description-facebook", translations) }}{% if FACEBOOK_MORE %} {{ t("section.stream.description-facebook-additional", translations) }}{% endif %}</p>
+                    {% else %}
+                        <p>{{ t("section.stream.description-none", translations) }}</p>
+                    {% endif %}
                 </div>
             {% endif %}
-            <div class="section stats">
-                {% if TWITTER_ENABLED && !FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stats.description-twitter") }}<br/>{{ t("section.stats.warning-twitter") }}</p>
-                {% else if !TWITTER_ENABLED && FACEBOOK_ENABLED %}
-                    <p>{{ t("section.stats.description-facebook") }}<br/>{{ t("section.stats.warning-facebook") }}</p>
-                {% else %}
-                    <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
+            {% if !escaped_fragment || escaped_fragment === 'events' %}
+                <div class="section events">
+                    <p>{{ t("section.events.description", translations) }}</p>
+                </div>
+            {% endif %}
+            {% if !escaped_fragment || escaped_fragment === 'links' %}
+                {% if SHOW_LINKS %}
+                    <div class="section links">
+                        <p>{{ t("section.links.description", translations) }}</p>
+                    </div>
                 {% endif %}
-            </div>
+            {% endif %}
+            {% if !escaped_fragment || escaped_fragment === 'stats' %}
+                <div class="section stats">
+                    {% if TWITTER_ENABLED && !FACEBOOK_ENABLED %}
+                        <p>{{ t("section.stats.description-twitter") }}<br/>{{ t("section.stats.warning-twitter") }}</p>
+                    {% else if !TWITTER_ENABLED && FACEBOOK_ENABLED %}
+                        <p>{{ t("section.stats.description-facebook") }}<br/>{{ t("section.stats.warning-facebook") }}</p>
+                    {% else %}
+                        <p>{{ t("section.stats.description") }}<br/>{{ t("section.stats.warning") }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
             {% if languages.length > 1 %}
                 <ul id="languages">
                     {%- for language in languages -%}
@@ -60,32 +69,42 @@
                 </ul>
             {% endif %}
             <ul id="menu">
-                <li class="stream active"><a href="#stream">{{ t("menu.stream") }}</a></li>
-                <li class="events"><a href="#events">{{ t("menu.events") }}</a></li>
+                <li class="stream active"><a href="#!stream">{{ t("menu.stream") }}</a></li>
+                <li class="events"><a href="#!events">{{ t("menu.events") }}</a></li>
                 {% if SHOW_LINKS %}
-                    <li class="links"><a href="#links">{{ t("menu.links") }}</a></li>
+                    <li class="links"><a href="#!links">{{ t("menu.links") }}</a></li>
                 {% endif %}
-                <li class="stats"><a href="#stats">{{ t("menu.stats") }}</a></li>
+                <li class="stats"><a href="#!stats">{{ t("menu.stats") }}</a></li>
             </ul>
             {% if FACEBOOK_PAGE_ID && FACEBOOK_PAGE_NAME %}
                 <div id="facebook-like"><div class="fb-like" data-href="https://www.facebook.com/pages/{{ FACEBOOK_PAGE_NAME }}/{{FACEBOOK_PAGE_ID }}" data-send="false" data-layout="button_count" data-show-faces="false"></div></div>
             {% endif %}
         </div>
-        <div class="section stream active">
-            <div id="posts"></div>
-            <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
-        </div>
-        <div class="section events">
-            {% include "events.html" %}
-        </div>
-        {% if SHOW_LINKS %}
-            <div class="section links">
-                {% include "links.html" %}
+        {% if !escaped_fragment || escaped_fragment === 'stream' %}
+            <div class="section stream active">
+                <div id="posts">
+                    {% if escaped_fragment_content %}{{ escaped_fragment_content|raw }}{% endif %}
+                </div>
+                <div id="load-posts"><button>{{ t("buttons.load-more") }}</button></div>
             </div>
         {% endif %}
-        <div class="section stats">
-            {% include "stats.html" %}
-        </div>
+        {% if !escaped_fragment || escaped_fragment === 'events' %}
+            <div class="section events">
+                {% include "events.html" %}
+            </div>
+        {% endif %}
+        {% if !escaped_fragment || escaped_fragment === 'links' %}
+            {% if SHOW_LINKS %}
+                <div class="section links">
+                    {% include "links.html" %}
+                </div>
+            {% endif %}
+        {% endif %}
+        {% if !escaped_fragment || escaped_fragment === 'stats' %}
+            <div class="section stats">
+                {% include "stats.html" %}
+            </div>
+        {% endif %}
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
         <script type="text/javascript" src="https://connect.facebook.net/en_US/all.js"></script>
         <script type="text/javascript" src="/bundle.js"></script>

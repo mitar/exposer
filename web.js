@@ -72,8 +72,20 @@ if (origDetectLanguage === null) {
 
 swig.init({
     'root': __dirname + '/templates',
-    'filters': './filters',
+    'filters': require('./filters'),
     'allowErrors': true // Allows errors to be thrown and caught by express instead of suppressed by Swig
+});
+
+var render = require('./render')({
+    'twitter': function (context) {
+        return swig.compileFile('posts/twitter.html').render(context);
+    },
+    'facebook': function (context) {
+        return swig.compileFile('posts/facebook.html').render(context);
+    },
+    'event': function (context) {
+        return swig.compileFile('event.html').render(context);
+    }
 });
 
 var FACEBOOK_POST_ID_REGEXP = /(\d+)$/;
@@ -145,6 +157,7 @@ app.get('/', function (req, res) {
     if (settings.FACEBOOK_PAGE_NAME && settings.FACEBOOK_PAGE_ID) {
         translations.section.stream['facebook-page-link'] = '<a href="https://www.facebook.com/pages/' + settings.FACEBOOK_PAGE_NAME + '/' + settings.FACEBOOK_PAGE_ID + '" title="' + req.i18n.t("section.stream.facebook-page", translations) + '"><tt>@' + settings.FACEBOOK_PAGE_NAME.toLowerCase() + '</tt></a>';
     }
+
     var languages = _.map(settings.I18N_LANGUAGES, function (language, i, eval) {
         return {
             'name': language,
@@ -154,21 +167,43 @@ app.get('/', function (req, res) {
         };
     });
     languages.current = req.language;
-    res.render('index', {
-        'REMOTE': settings.REMOTE,
-        'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
-        'FACEBOOK_PAGE_ID': settings.FACEBOOK_PAGE_ID,
-        'FACEBOOK_PAGE_NAME': settings.FACEBOOK_PAGE_NAME,
-        'TWITTER_ENABLED': !!settings.TWITTER_QUERY[0],
-        'TWITTER_MORE': settings.TWITTER_QUERY.length > 1,
-        'FACEBOOK_ENABLED': !!settings.FACEBOOK_PAGE_NAME,
-        'FACEBOOK_MORE': settings.FACEBOOK_QUERY.length > 0,
-        'SHOW_LINKS': !!settings.SHOW_LINKS,
-        'SITE_URL': settings.SITE_URL,
-        'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,
-        'languages': languages,
-        'translations': translations
-    });
+
+    var escaped_fragment = null;
+    if (_.has(req.query, '_escaped_fragment_')) {
+        escaped_fragment = req.query._escaped_fragment_ || 'stream';
+    }
+
+    function response(err, escaped_fragment_content) {
+        // We ignore the error and just proceed
+
+        res.render('index', {
+            'REMOTE': settings.REMOTE,
+            'FACEBOOK_APP_ID': settings.FACEBOOK_APP_ID,
+            'FACEBOOK_PAGE_ID': settings.FACEBOOK_PAGE_ID,
+            'FACEBOOK_PAGE_NAME': settings.FACEBOOK_PAGE_NAME,
+            'TWITTER_ENABLED': !!settings.TWITTER_QUERY[0],
+            'TWITTER_MORE': settings.TWITTER_QUERY.length > 1,
+            'FACEBOOK_ENABLED': !!settings.FACEBOOK_PAGE_NAME,
+            'FACEBOOK_MORE': settings.FACEBOOK_QUERY.length > 0,
+            'SHOW_LINKS': !!settings.SHOW_LINKS,
+            'SITE_URL': settings.SITE_URL,
+            'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,
+            'escaped_fragment': escaped_fragment,
+            'escaped_fragment_content': escaped_fragment_content,
+            'languages': languages,
+            'translations': translations
+        });
+    }
+
+    if (escaped_fragment === 'stream') {
+        renderPosts(response);
+    }
+    else if (escaped_fragment === 'events') {
+        renderEvents(response);
+    }
+    else {
+        response(null, null);
+    }
 });
 
 app.get('/fb', function (req, res) {
@@ -222,223 +257,271 @@ server.listen(settings.PORT);
 // TODO: This should be distributed if we will have multiple instances
 var clients = [];
 
-var sock = shoe(function (stream) {
-    var d = dnode({
-        'getPosts': function (since, except, limit, cb) {
-            if (!cb) {
-                return;
-            }
+function getPosts(since, except, limit, cb) {
+    if (!cb) {
+        return;
+    }
 
-            limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
-            if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
-                limit = settings.MAX_POSTS_PER_REQUEST;
-            }
+    limit = parseInt(limit) || settings.MAX_POSTS_PER_REQUEST;
+    if ((limit <= 0) || (limit > settings.MAX_POSTS_PER_REQUEST)) {
+        limit = settings.MAX_POSTS_PER_REQUEST;
+    }
 
-            var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'original_data.retweeted_status': null};
-            if (since) {
-                since = moment(since);
-                if (since.isValid()) {
-                    query.foreign_timestamp = {'$lte': since.toDate()};
-                }
-            }
-            if (_.isArray(except)) {
-                query.type_foreign_id = {'$nin': except};
-            }
+    var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'original_data.retweeted_status': null};
+    if (since) {
+        since = moment(since);
+        if (since.isValid()) {
+            query.foreign_timestamp = {'$lte': since.toDate()};
+        }
+    }
+    if (_.isArray(except)) {
+        query.type_foreign_id = {'$nin': except};
+    }
 
-            models.Post.find(_.extend({}, query, settings.POSTS_FILTER), models.Post.PUBLIC_FIELDS).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
-                if (err) {
-                    console.error("getPosts error: %s", err);
-                    // TODO: Do we really want to pass an error about accessing the database to the client?
-                    cb(err);
-                    return;
-                }
+    models.Post.find(_.extend({}, query, settings.POSTS_FILTER), models.Post.PUBLIC_FIELDS).sort({'foreign_timestamp': 'desc'}).limit(limit).lean(true).exec(function (err, posts) {
+        if (err) {
+            console.error("getPosts error: %s", err);
+            // TODO: Do we really want to pass an error about accessing the database to the client?
+            cb(err);
+            return;
+        }
 
-                async.map(posts, function (post, cb) {
-                    post = models.Post.cleanPost(post);
+        async.map(posts, function (post, cb) {
+            post = models.Post.cleanPost(post);
 
-                    if (post.facebook_event_id) {
-                        models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, event) {
-                            if (err) {
-                                console.error("getPosts error: %s", err);
-                                // TODO: Do we really want to pass an error about accessing the database to the client?
-                                cb(err);
-                                return;
-                            }
-
-                            if (!event) {
-                                var err = "Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found";
-                                console.error("getPosts error: %s", err);
-                                // TODO: Do we really want to pass an error about accessing the database to the client?
-                                cb(err);
-                                return;
-                            }
-
-                            event = models.FacebookEvent.cleanEvent(event);
-
-                            post.facebook_event = event;
-                            delete post.facebook_event_id;
-
-                            cb(null, post);
-                        });
-                    }
-                    else {
-                        delete post.facebook_event_id;
-                        cb(null, post);
-                    }
-                }, function (err, posts) {
+            if (post.facebook_event_id) {
+                models.FacebookEvent.findOne({'event_id': post.facebook_event_id}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, event) {
                     if (err) {
                         console.error("getPosts error: %s", err);
+                        // TODO: Do we really want to pass an error about accessing the database to the client?
+                        cb(err);
+                        return;
                     }
-                    // TODO: Do we really want to pass an error about accessing the database to the client?
-                    cb(err, posts);
+
+                    if (!event) {
+                        var err = "Facebook event (" + post.facebook_event_id + ") for post (" + post.foreign_id + ") not found";
+                        console.error("getPosts error: %s", err);
+                        // TODO: Do we really want to pass an error about accessing the database to the client?
+                        cb(err);
+                        return;
+                    }
+
+                    event = models.FacebookEvent.cleanEvent(event);
+
+                    post.facebook_event = event;
+                    delete post.facebook_event_id;
+
+                    cb(null, post);
                 });
-            });
-        },
-        'getStats': function (from, to, cb) {
-            if (!cb) {
-                return;
-            }
-
-            var query = {'merged_to': null};
-
-            if (from) {
-                from = moment(from);
-                if (!from.isValid()) {
-                    cb("Invalid from timestamp");
-                    return;
-                }
-
-                if (!query.foreign_timestamp) {
-                    query.foreign_timestamp = {};
-                }
-                query.foreign_timestamp['$gte'] = from;
             }
             else {
-                // Approximate (for timespans to be correct), but we do not want to use it for query
-                from = firstPostTimestamp;
+                delete post.facebook_event_id;
+                cb(null, post);
             }
-            if (to) {
-                to = moment(to);
-                if (!to.isValid()) {
-                    cb("Invalid to timestamp");
-                    return;
-                }
-
-                if (!query.foreign_timestamp) {
-                    query.foreign_timestamp = {};
-                }
-                query.foreign_timestamp['$lte'] = to;
+        }, function (err, posts) {
+            if (err) {
+                console.error("getPosts error: %s", err);
             }
-            else {
-                // Approximate (for timespans to be correct), but we do not want to use it for query
-                to = moment();
-            }
+            // TODO: Do we really want to pass an error about accessing the database to the client?
+            cb(err, posts);
+        });
+    });
+}
 
-            var enlarge = {'weeks': 2};
-            var timespans = ['year', 'week'];
-            if (from && to) {
-                if (to - from < 240 * 24 * 60 * 60 * 1000) { // 240 days
-                    // Max 240 values
-                    timespans.push('dayOfYear');
-                    enlarge = {'days': 2};
-                }
-                if (to - from < 10 * 24 * 60 * 60 * 1000) { // 10 days
-                    // Max 10 * 24 = 240 values
-                    timespans.push('hour');
-                    enlarge = {'hours': 2};
-                }
-                if (to - from <= 4 * 60 * 60 * 1000) { // 4 hours
-                    // Max 4 * 60 = 240 values
-                    timespans.push('minute');
-                    enlarge = {'minutes': 2};
-                }
-            }
+function getStats(from, to, cb) {
+    if (!cb) {
+        return;
+    }
 
-            // Enlarge interval a bit and convert limits to Date objects
-            if (query.foreign_timestamp && query.foreign_timestamp['$gte']) {
-                query.foreign_timestamp['$gte'] = query.foreign_timestamp['$gte'].subtract(enlarge).toDate();
-            }
-            if (query.foreign_timestamp && query.foreign_timestamp['$lte']) {
-                query.foreign_timestamp['$lte'] = query.foreign_timestamp['$lte'].add(enlarge).toDate();
-            }
+    var query = {'merged_to': null};
 
-            var id = {};
-            var project = {'$project': {
-                'is_twitter': {'$cond': [{'$eq': ['$type', 'twitter']}, 1, 0]},
-                'is_facebook': {'$cond': [{'$eq': ['$type', 'facebook']}, 1, 0]}
-            }};
-            _.each(timespans, function (timespan, i, list) {
-                project['$project'][timespan] = {};
-                project['$project'][timespan]['$' + timespan] = '$foreign_timestamp';
-                id[timespan] = '$' + timespan;
-            });
-
-            models.Post.aggregate([
-                {'$match': query},
-                project,
-                {'$group': {
-                    '_id': id,
-                    'count_all': {'$sum': 1},
-                    'count_twitter': {'$sum': '$is_twitter'},
-                    'count_facebook': {'$sum': '$is_facebook'}
-                }},
-                {'$sort': {'_id': 1}}
-            ], function (err, results) {
-                if (err) {
-                    console.error("getStats error: %s", err);
-                    // TODO: Do we really want to pass an error about accessing the database to the client?
-                    cb(err);
-                    return;
-                }
-
-                var stats = [];
-                _.each(results, function (result, i, list) {
-                    if (timespans.length > 2) {
-                        var timestamp = moment.utc(result._id.year + '-' + (result._id.dayOfYear || '0') + '-' + (result._id.hour || '0') + '-' + (result._id.minute || '0'), 'YYYY-DDD-HH-mm')
-                    }
-                    else {
-                        if (result._id.week === 0) {
-                            if (stats.length > 0) {
-                                stats[stats.length - 1][1] += result.count_all;
-                                stats[stats.length - 1][2] += result.count_twitter;
-                                stats[stats.length - 1][3] += result.count_facebook;
-                            }
-                            return;
-                        }
-                        else {
-                            var timestamp = moment.utc().startOf('year').year(result._id.year);
-                            while (timestamp.day() !== 0) {
-                                timestamp.add('days', 1);
-                            }
-                            timestamp.add('weeks', result._id.week - 1);
-                        }
-                    }
-                    stats.push([timestamp.valueOf(), result.count_all, result.count_twitter, result.count_facebook]);
-                });
-
-                cb(null, stats);
-            });
-        },
-        'getEvents': function (cb) {
-            if (!cb) {
-                return;
-            }
-
-            models.FacebookEvent.find({}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, events) {
-                if (err) {
-                    console.error("getEvents error: %s", err);
-                    // TODO: Do we really want to pass an error about accessing the database to the client?
-                    cb(err);
-                    return;
-                }
-
-                events = _.map(events, function (event, i, list) {
-                    return models.FacebookEvent.cleanEvent(event);
-                });
-
-                cb(null, events);
-            });
+    if (from) {
+        from = moment(from);
+        if (!from.isValid()) {
+            cb("Invalid from timestamp");
+            return;
         }
+
+        if (!query.foreign_timestamp) {
+            query.foreign_timestamp = {};
+        }
+        query.foreign_timestamp['$gte'] = from;
+    }
+    else {
+        // Approximate (for timespans to be correct), but we do not want to use it for query
+        from = firstPostTimestamp;
+    }
+    if (to) {
+        to = moment(to);
+        if (!to.isValid()) {
+            cb("Invalid to timestamp");
+            return;
+        }
+
+        if (!query.foreign_timestamp) {
+            query.foreign_timestamp = {};
+        }
+        query.foreign_timestamp['$lte'] = to;
+    }
+    else {
+        // Approximate (for timespans to be correct), but we do not want to use it for query
+        to = moment();
+    }
+
+    var enlarge = {'weeks': 2};
+    var timespans = ['year', 'week'];
+    if (from && to) {
+        if (to - from < 240 * 24 * 60 * 60 * 1000) { // 240 days
+            // Max 240 values
+            timespans.push('dayOfYear');
+            enlarge = {'days': 2};
+        }
+        if (to - from < 10 * 24 * 60 * 60 * 1000) { // 10 days
+            // Max 10 * 24 = 240 values
+            timespans.push('hour');
+            enlarge = {'hours': 2};
+        }
+        if (to - from <= 4 * 60 * 60 * 1000) { // 4 hours
+            // Max 4 * 60 = 240 values
+            timespans.push('minute');
+            enlarge = {'minutes': 2};
+        }
+    }
+
+    // Enlarge interval a bit and convert limits to Date objects
+    if (query.foreign_timestamp && query.foreign_timestamp['$gte']) {
+        query.foreign_timestamp['$gte'] = query.foreign_timestamp['$gte'].subtract(enlarge).toDate();
+    }
+    if (query.foreign_timestamp && query.foreign_timestamp['$lte']) {
+        query.foreign_timestamp['$lte'] = query.foreign_timestamp['$lte'].add(enlarge).toDate();
+    }
+
+    var id = {};
+    var project = {'$project': {
+        'is_twitter': {'$cond': [{'$eq': ['$type', 'twitter']}, 1, 0]},
+        'is_facebook': {'$cond': [{'$eq': ['$type', 'facebook']}, 1, 0]}
+    }};
+    _.each(timespans, function (timespan, i, list) {
+        project['$project'][timespan] = {};
+        project['$project'][timespan]['$' + timespan] = '$foreign_timestamp';
+        id[timespan] = '$' + timespan;
+    });
+
+    models.Post.aggregate([
+        {'$match': query},
+        project,
+        {'$group': {
+            '_id': id,
+            'count_all': {'$sum': 1},
+            'count_twitter': {'$sum': '$is_twitter'},
+            'count_facebook': {'$sum': '$is_facebook'}
+        }},
+        {'$sort': {'_id': 1}}
+    ], function (err, results) {
+        if (err) {
+            console.error("getStats error: %s", err);
+            // TODO: Do we really want to pass an error about accessing the database to the client?
+            cb(err);
+            return;
+        }
+
+        var stats = [];
+        _.each(results, function (result, i, list) {
+            if (timespans.length > 2) {
+                var timestamp = moment.utc(result._id.year + '-' + (result._id.dayOfYear || '0') + '-' + (result._id.hour || '0') + '-' + (result._id.minute || '0'), 'YYYY-DDD-HH-mm')
+            }
+            else {
+                if (result._id.week === 0) {
+                    if (stats.length > 0) {
+                        stats[stats.length - 1][1] += result.count_all;
+                        stats[stats.length - 1][2] += result.count_twitter;
+                        stats[stats.length - 1][3] += result.count_facebook;
+                    }
+                    return;
+                }
+                else {
+                    var timestamp = moment.utc().startOf('year').year(result._id.year);
+                    while (timestamp.day() !== 0) {
+                        timestamp.add('days', 1);
+                    }
+                    timestamp.add('weeks', result._id.week - 1);
+                }
+            }
+            stats.push([timestamp.valueOf(), result.count_all, result.count_twitter, result.count_facebook]);
+        });
+
+        cb(null, stats);
+    });
+}
+
+function getEvents(cb) {
+    if (!cb) {
+        return;
+    }
+
+    models.FacebookEvent.find({}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, events) {
+        if (err) {
+            console.error("getEvents error: %s", err);
+            // TODO: Do we really want to pass an error about accessing the database to the client?
+            cb(err);
+            return;
+        }
+
+        events = _.map(events, function (event, i, list) {
+            return models.FacebookEvent.cleanEvent(event);
+        });
+
+        cb(null, events);
+    });
+}
+
+function renderPosts(cb) {
+    getPosts(null, null, 1000, function (err, posts) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        posts = _.map(posts, function (post, i, list) {
+            try {
+                return render.post(post);
+            }
+            catch (e) {
+                console.log("Error rendering post %s: %s", post.foreign_id, e, e.stack);
+                return '';
+            }
+        });
+
+        cb(null, posts.join(''));
+    });
+}
+
+function renderEvents(cb) {
+    getEvents(function (err, events) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        events = _.map(events, function (event, i, list) {
+            try {
+                return render.event(event, true);
+            }
+            catch (e) {
+                console.log("Error rendering event %s: %s", event.event_id, e, e.stack);
+                return '';
+            }
+        });
+
+        cb(null, events.join(''));
+    });
+}
+
+var sock = shoe(function (stream) {
+    var d = dnode({
+        'getPosts': getPosts,
+        'getStats': getStats,
+        'getEvents': getEvents
     });
     d.on('remote', function (remote, d) {
         clients.push(remote);

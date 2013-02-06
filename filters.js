@@ -1,7 +1,7 @@
 var filters = require('swig/lib/filters');
 var moment = require('moment');
 
-var $ = require('jquery-browserify');
+var $ = require('jquery');
 
 var NEWLINE = /\n/g;
 var HTTP_LINK = /(https?:\/\/([0-9a-z-]+\.)+[a-z]{2,4}\.?(\/\S*)?)|(www\.([0-9a-z-]+\.)+[a-z]{2,4}(\/\S*)?)|(([0-9a-z-]+\.)+(com|edu|gov|int|mil|net|org)\/\S*)/gi;

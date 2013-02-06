@@ -3,5 +3,11 @@
         <div class="body">
             {% include "event_include.html" %}
         </div>
+        {% if show_description %}
+            {# When rendering escaped fragment we also output whole description so that search engines have more content #}
+            <div class="description">
+                {{ event.data.description }}
+            </div>
+        {% endif %}
     </div>
 </li>

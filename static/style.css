@@ -525,7 +525,7 @@ body {
 }
 
 .links-content dt *:hover {
-    color: black;
+    color: #DF0000;
 }
 
 .links-content dd {
@@ -535,12 +535,12 @@ body {
 }
 
 .links-content dt :after {
+    background: url("link.png") repeat scroll 0 0 transparent;
     content: "";
-    border-bottom: 5px solid transparent;
-    border-left: 4px solid #555555;
-    border-top: 5px solid transparent;
     display: inline-block;
     margin-left: 6px;
+    width: 17px;
+    height: 17px;
 }
 
 .events-content {
@@ -714,6 +714,18 @@ input::-moz-focus-inner {
     border: 2px solid white;
 }
 
+.eventsCalendar-daysList li a:hover {
+    text-decoration: none;
+}
+
+.eventsCalendar-daysList li.dayWithEvents a:hover {
+    color: white;
+    text-decoration:none;
+}
+.eventsCalendar-daysList li.dayWithEvents:hover {
+    background-color: #555;
+}
+
 .eventsCalendar-daysList li.dayWithEvents {
     border: 2px solid #555;
 }
@@ -746,14 +758,14 @@ input::-moz-focus-inner {
 
 .eventsCalendar-list {
     display: block;
-    margin: 0;
+    margin: 0 auto;
     padding: 0;
 }
 
 .monthTitle, .eventsCalendar-subtitle {
     color: #555555;
     display: block;
-    font-family: "patrick hand";
+    font-family: "Patrick Hand",cursive;
     font-size: 19px;
     font-weight: bold;
     letter-spacing: 1px;

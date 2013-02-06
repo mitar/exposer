@@ -237,6 +237,8 @@ function setActiveSection(section) {
     else if (section === 'events') {
         loadEvents();
     }
+
+    $(window).resize();
 }
 
 function getSection(li) {

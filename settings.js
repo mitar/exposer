@@ -45,6 +45,7 @@ exports.POSTS_FILTER = {
     'language': {'$nin': [
         'italian',
         'turkish',
+        'albanian',
         'latin',
         'spanish',
         'portuguese'

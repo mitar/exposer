@@ -781,3 +781,12 @@ input::-moz-focus-inner {
 .eventsCalendar-noEvents p {
     margin: 0;
 }
+
+#under-graph {
+    position: relative;
+    text-align: center;
+    margin-top: -0.7em;
+    margin-bottom: 1.2em;
+    font-size: 10px;
+    color: #666666;
+}

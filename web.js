@@ -426,17 +426,27 @@ function getStats(from, to, cb) {
             return;
         }
 
+        var count_all = 0;
+        var count_twitter = 0;
+        var count_facebook = 0;
         var stats = [];
         _.each(results, function (result, i, list) {
             if (timespans.length > 2) {
+                // With year + day of the year, date is easily determined
                 var timestamp = moment.utc(result._id.year + '-' + (result._id.dayOfYear || '0') + '-' + (result._id.hour || '0') + '-' + (result._id.minute || '0'), 'YYYY-DDD-HH-mm')
             }
             else {
+                // Without day of the year, we have to find the start of the week date
                 if (result._id.week === 0) {
                     if (stats.length > 0) {
+                        // If previous year exist, count towards previous year
                         stats[stats.length - 1][1] += result.count_all;
                         stats[stats.length - 1][2] += result.count_twitter;
                         stats[stats.length - 1][3] += result.count_facebook;
+
+                        count_all += result.count_all;
+                        count_twitter += result.count_twitter;
+                        count_facebook += result.count_facebook;
                     }
                     return;
                 }
@@ -449,9 +459,13 @@ function getStats(from, to, cb) {
                 }
             }
             stats.push([timestamp.valueOf(), result.count_all, result.count_twitter, result.count_facebook]);
+
+            count_all += result.count_all;
+            count_twitter += result.count_twitter;
+            count_facebook += result.count_facebook;
         });
 
-        cb(null, stats);
+        cb(null, stats, count_all, count_twitter, count_facebook);
     });
 }
 

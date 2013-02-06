@@ -227,11 +227,13 @@ function convertStats(stats) {
 }
 
 function loadGraphData(event) {
-    remote.getStats(event.min, event.max, function (err, stats) {
+    remote.getStats(event.min, event.max, function (err, stats, count_all, count_twitter, count_facebook) {
         stats = convertStats(stats);
         graph.series[0].setData(stats.all);
         graph.series[1].setData(stats.twitter);
         graph.series[2].setData(stats.facebook);
+
+        $('#under-graph').text("Shown interval cumulative: All " + count_facebook + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
     });
 }
 
@@ -241,7 +243,7 @@ function loadGraph() {
     }
 
     remotePromise.done(function () {
-        remote.getStats(null, null, function (err, stats) {
+        remote.getStats(null, null, function (err, stats, count_all, count_twitter, count_facebook) {
             if (err) {
                 console.error(err);
                 return;
@@ -339,6 +341,11 @@ function loadGraph() {
                     }
                 ]
             });
+
+            $('#under-graph').text("Shown interval cumulative: All " + count_facebook + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+
+            // To fix slight size mismatch on initial load
+            $(window).resize();
         });
     });
 }

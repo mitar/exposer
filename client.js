@@ -233,7 +233,7 @@ function loadGraphData(event) {
         graph.series[1].setData(stats.twitter);
         graph.series[2].setData(stats.facebook);
 
-        $('#under-graph').text("Shown interval cumulative: All " + count_facebook + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+        $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
     });
 }
 
@@ -342,7 +342,7 @@ function loadGraph() {
                 ]
             });
 
-            $('#under-graph').text("Shown interval cumulative: All " + count_facebook + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+            $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
 
             // To fix slight size mismatch on initial load
             $(window).resize();

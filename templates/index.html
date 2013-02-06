@@ -4,7 +4,10 @@
         <title>Exposer</title>
         <link rel="stylesheet" type="text/css" href="/isotope.css" media="all" />
         <link rel="stylesheet" type="text/css" href="/style.css" media="all" />
-        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Patrick+Hand&subset=latin,latin-ext" media="all" />
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Patrick+Hand&amp;subset=latin,latin-ext" media="all" />
+        {% if GOOGLE_SITE_VERIFICATION %}
+            <meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}" />
+        {% endif %}
         <script type="text/javascript">
             var REMOTE = '{{ REMOTE|escape('js') }}';
             var FACEBOOK_APP_ID = '{{ FACEBOOK_APP_ID|escape('js') }}';

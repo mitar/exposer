@@ -22,6 +22,7 @@ exports.TARGET_LANGUAGE_MAX_RANK = 3; // After which rank of the target language
 exports.MAX_POSTS_PER_REQUEST = 1000;
 // TODO: Use limiter for proper limiting of all Tweeter requests
 exports.TWITTER_REQUEST_INTERVAL = 15 * 60 * 1000 / 180; // Rate limit is 180 requests per 15 minutes
+exports.TWITTER_MAX_QUERY_SIZE = 30;
 exports.FACEBOOK_REALTIME_PATHNAME = '/fb/realtime';
 exports.FACEBOOK_POLL_INTERVAL = process.env.FACEBOOK_POLL_INTERVAL || 3 * 60 * 1000; // ms
 exports.FACEBOOK_THROTTLE = {

@@ -621,16 +621,16 @@ function fetchTwitterLatest() {
     var query = settings.TWITTER_QUERY.slice(0);
 
     function fetch_one() {
-        var q = query[0];
-        query = query.slice(1);
+        var q = query.slice(0, settings.TWITTER_MAX_QUERY_SIZE);
+        query = query.slice(settings.TWITTER_MAX_QUERY_SIZE);
 
-        if (!q) {
+        if (q.length === 0) {
             return;
         }
 
         console.log("Doing Twitter fetch: %s", q);
 
-        var params = {'include_entities': true, 'count': 100, 'q': q};
+        var params = {'include_entities': true, 'count': 100, 'q': q.join(' OR ')};
         twit.get('/search/tweets.json', params, function(err, data) {
             if (err) {
                 console.error("Twitter fetch error (%s)", q, err);

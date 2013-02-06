@@ -28,6 +28,7 @@ exports.FACEBOOK_THROTTLE = {
 };
 
 // TODO: Extend to all sections, to be able to enable/disable them, maybe with simply a list of section names to be shown
+exports.SHOW_EVENTS = !_.isUndefined(process.env.SHOW_EVENTS) ? process.env.SHOW_EVENTS : true;
 exports.SHOW_LINKS = !_.isUndefined(process.env.SHOW_LINKS) ? process.env.SHOW_LINKS : true;
 exports.SECRET = process.env.SECRET || 'secret';
 exports.TARGET_LANGUAGE = process.env.TARGET_LANGUAGE || 'slovene'; // Posts in which language we target

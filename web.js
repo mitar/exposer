@@ -185,6 +185,7 @@ app.get('/', function (req, res) {
             'TWITTER_MORE': settings.TWITTER_QUERY.length > 1,
             'FACEBOOK_ENABLED': !!settings.FACEBOOK_PAGE_NAME,
             'FACEBOOK_MORE': settings.FACEBOOK_QUERY.length > 0,
+            'SHOW_EVENTS': !!settings.SHOW_EVENTS,
             'SHOW_LINKS': !!settings.SHOW_LINKS,
             'SITE_URL': settings.SITE_URL,
             'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,

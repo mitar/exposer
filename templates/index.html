@@ -35,9 +35,11 @@
                 </div>
             {% endif %}
             {% if !escaped_fragment || escaped_fragment === 'events' %}
-                <div class="section events">
-                    <p>{{ t("section.events.description", translations) }}</p>
-                </div>
+                {% if SHOW_EVENTS %}
+                    <div class="section events">
+                        <p>{{ t("section.events.description", translations) }}</p>
+                    </div>
+                {% endif %}
             {% endif %}
             {% if !escaped_fragment || escaped_fragment === 'links' %}
                 {% if SHOW_LINKS %}
@@ -70,7 +72,9 @@
             {% endif %}
             <ul id="menu">
                 <li class="stream active"><a href="#!stream">{{ t("menu.stream") }}</a></li>
-                <li class="events"><a href="#!events">{{ t("menu.events") }}</a></li>
+                {% if SHOW_EVENTS %}
+                    <li class="events"><a href="#!events">{{ t("menu.events") }}</a></li>
+                {% endif %}
                 {% if SHOW_LINKS %}
                     <li class="links"><a href="#!links">{{ t("menu.links") }}</a></li>
                 {% endif %}
@@ -89,9 +93,11 @@
             </div>
         {% endif %}
         {% if !escaped_fragment || escaped_fragment === 'events' %}
-            <div class="section events">
-                {% include "events.html" %}
-            </div>
+            {% if SHOW_EVENTS %}
+                <div class="section events">
+                    {% include "events.html" %}
+                </div>
+            {% endif %}
         {% endif %}
         {% if !escaped_fragment || escaped_fragment === 'links' %}
             {% if SHOW_LINKS %}

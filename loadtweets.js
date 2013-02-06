@@ -27,7 +27,7 @@ function nextQuery() {
     maxId = null;
     date = null;
 
-    if (!q) {
+    if (q.length === 0) {
         process.exit(0);
     }
     else {

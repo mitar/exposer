@@ -388,9 +388,7 @@ body {
 }
 
 .facebook-post .invite-icon {
-    background-image: url("facebook-buttons2.png");
-    background-position: 0 -164px;
-    background-repeat: no-repeat;
+    background: url("facebook-buttons2.png") no-repeat 0 -164px;
     background-size: auto auto;
     display: inline-block;
     height: 10px;
@@ -439,9 +437,7 @@ body {
 }
 
 .facebook-post .like-icon {
-    background-image: url("facebook-buttons1.png");
-    background-position: 0 -52px;
-    background-repeat: no-repeat;
+    background: url("facebook-buttons1.png") no-repeat 0 -52px;
     background-size: auto auto;
     display: block;
     height: 13px;
@@ -459,9 +455,7 @@ body {
 }
 
 .facebook-post .share-icon {
-    background-image: url("facebook-buttons3.png");
-    background-position: -36px -76px;
-    background-repeat: no-repeat;
+    background: url("facebook-buttons3.png") no-repeat -36px -76px;
     background-size: auto auto;
     display: block;
     height: 16px;
@@ -511,7 +505,6 @@ body {
     margin-left: auto;
     margin-right: auto;
     max-width: 600px;
-    font-family: Tahoma;
     padding: 1em 2em;
 }
 
@@ -535,7 +528,9 @@ body {
     font-size: 13px;
     padding: 10px 0;
 }
-.link-icon {
+
+.links-content dt :after {
+    content: "";
     border-bottom: 5px solid transparent;
     border-left: 4px solid #555555;
     border-top: 5px solid transparent;
@@ -575,10 +570,7 @@ body {
     float: right;
     right: 50px;
     margin-top: -100px;
-    padding-left: 100px;
-    padding-right: 25px;
-    padding-bottom: 15px;
-    padding-top: 60px;
+    padding: 60px 25px 15px 100px;
     background: url("facebook-like.png") no-repeat 25px 15px transparent;
 }
 

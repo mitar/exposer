@@ -609,6 +609,8 @@ function connectToTwitterStream() {
             console.warn("Twitter stream disconnected", res);
             // TODO: Back-off
             connectToTwitterStream();
+        }).on('error', function (error, statusCode) {
+            console.error("Twitter stream error: %s", error, statusCode);
         });
     });
 }

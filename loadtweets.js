@@ -15,7 +15,7 @@ var twit = new twitter({
 });
 
 var q = settings.TWITTER_QUERY[0];
-var query = settings.TWITTER_QUERY.splice(1);
+var query = settings.TWITTER_QUERY.slice(1);
 var maxId = process.argv.length > 2 ? process.argv[2] : null;
 var count = 0;
 var date = null;
@@ -23,7 +23,7 @@ var errorCount = 0;
 
 function nextQuery() {
     q = settings.TWITTER_QUERY[0];
-    query = query.splice(1);
+    query = query.slice(1);
     maxId = null;
     date = null;
 

@@ -618,11 +618,11 @@ function connectToTwitterStream() {
 function fetchTwitterLatest() {
     // TODO: Should we simply automatically start loading all tweets until we find one existing in the database?
 
-    var query = settings.TWITTER_QUERY.splice(0);
+    var query = settings.TWITTER_QUERY.slice(0);
 
     function fetch_one() {
         var q = query[0];
-        query = query.splice(1);
+        query = query.slice(1);
 
         if (!q) {
             return;

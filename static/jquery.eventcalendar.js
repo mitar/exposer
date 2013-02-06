@@ -388,6 +388,9 @@
 		
 		flags.wrap.find('.eventsCalendar-list-wrap').width(flags.wrap.width() + 'px');
 
+        var postWidth = flags.wrap.find('.eventsCalendar-list .post').width();
+        flags.wrap.find('.eventsCalendar-list').width(Math.floor(flags.wrap.find('.eventsCalendar-list-content').width() / postWidth) * postWidth + 'px');
+
         flags.wrap.find('.eventsCalendar-slider').css('height', $('.eventsCalendar-monthWrap').height() + 'px');
     }
 

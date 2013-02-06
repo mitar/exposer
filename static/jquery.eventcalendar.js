@@ -35,9 +35,9 @@
 			flags.wrap.find('.eventsCalendar-list-content').addClass('scrollable');
 		}
 		
-		setCalendarWidth();
+		setCalendarSize();
 		$(window).resize(function(){
-			setCalendarWidth();
+			setCalendarSize();
 		});
 		//flags.directionLeftMove = flags.wrap.width();
 		
@@ -352,7 +352,7 @@
 				
 
 		});
-		setCalendarWidth();
+		setCalendarSize();
 	}
 		
 	function changeMonth() {
@@ -381,14 +381,15 @@
 		flags.wrap.find('.eventsCalendar-list-wrap').html("<span class='eventsCalendar-loading error'>"+msg+" " +eventsOpts.eventsjson+"</span>");
 	}
 	
-	function setCalendarWidth(){
+	function setCalendarSize(){
 		// resize calendar width on window resize
 		flags.directionLeftMove = flags.wrap.width();
 		flags.wrap.find('.eventsCalendar-monthWrap').width(flags.wrap.width() + 'px');
 		
 		flags.wrap.find('.eventsCalendar-list-wrap').width(flags.wrap.width() + 'px');
-		
-	}
+
+        flags.wrap.find('.eventsCalendar-slider').css('height', $('.eventsCalendar-monthWrap').height() + 'px');
+    }
 
     return this;
 };

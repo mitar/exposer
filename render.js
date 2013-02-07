@@ -61,7 +61,7 @@ function renderPost(templates, post) {
                 'post': post,
                 'post_link': post_link,
                 'post_id': post_id,
-                'event': post.facebook_event,
+                'facebook_event': post.facebook_event,
                 'event_in_past': event_in_past,
                 'like_link': like_link
             });
@@ -78,7 +78,7 @@ function renderEvent(templates, event, show_description) {
     }
 
     return templates.event({
-        'event': event,
+        'facebook_event': event,
         'event_in_past': event_in_past,
         'show_description': show_description
     });

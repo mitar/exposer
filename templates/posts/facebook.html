@@ -26,7 +26,7 @@
                     <div class="message short hideoverflow">
                         {{ post.data.message|facebook_text(post.data.message_tags)|raw }}
                     </div>
-                    {% if event %}
+                    {% if facebook_event %}
                         {% include "event_include.html" %}
                     {% else if post.data.type === "link" && post.data.link %}
                         <div class="link">

@@ -1,13 +1,13 @@
 <div class="event">
-    {% if event.data.picture %}
-        <a href="{{ event.data.link }}" class="picture-link"><img src="{{ event.data.picture.url|facebook_picture }}" class="picture" alt="{{ event.data.name }}" /></a>
+    {% if facebook_event.data.picture %}
+        <a href="{{ facebook_event.data.link }}" class="picture-link"><img src="{{ facebook_event.data.picture.url|facebook_picture }}" class="picture" alt="{{ facebook_event.data.name }}" /></a>
     {% endif %}
     <div class="meta">
-        <a href="{{ event.data.link }}" class="name">{{ event.data.name }}</a>
-        <div class="date"><a href="https://www.facebook.com/events/calendar/{{ event.data.start_time|fix_date|date("Y/F/j") }}">{{ event.data.start_time|fix_date|date("F j") }}</a>{% if !event.data.is_date_only %} at {{ event.data.start_time|fix_date|date("g:ia") }} in UTC{{ event.data.start_time|fix_date|date("O") }}{% endif %}</div>
-        {% if event.data.location %}
-            <div class="location">{% if event.data.venue.id %}<a href="https://www.facebook.com/{{ event.data.venue.id }}">{% endif %}{{ event.data.location }}{% if event.data.venue.id %}</a>{% endif %}</div>
+        <a href="{{ facebook_event.data.link }}" class="name">{{ facebook_event.data.name }}</a>
+        <div class="date"><a href="https://www.facebook.com/events/calendar/{{ facebook_event.data.start_time|fix_date|date("Y/F/j") }}">{{ facebook_event.data.start_time|fix_date|date("F j") }}</a>{% if !facebook_event.data.is_date_only %} at {{ facebook_event.data.start_time|fix_date|date("g:ia") }} in UTC{{ facebook_event.data.start_time|fix_date|date("O") }}{% endif %}</div>
+        {% if facebook_event.data.location %}
+            <div class="location">{% if facebook_event.data.venue.id %}<a href="https://www.facebook.com/{{ facebook_event.data.venue.id }}">{% endif %}{{ facebook_event.data.location }}{% if facebook_event.data.venue.id %}</a>{% endif %}</div>
         {% endif %}
-        <div class="invite"><a href="{{ event.data.link }}" class="invite-link"><span class="invite-icon"> </span> Join</a>{% if event.invited_summary.attending_count %} · {{ event.invited_summary.attending_count }} {% if event_in_past %}went{% else %}are going{% endif %}{% endif %}</div>
+        <div class="invite"><a href="{{ facebook_event.data.link }}" class="invite-link"><span class="invite-icon"> </span> Join</a>{% if facebook_event.invited_summary.attending_count %} · {{ facebook_event.invited_summary.attending_count }} {% if event_in_past %}went{% else %}are going{% endif %}{% endif %}</div>
     </div>
 </div>

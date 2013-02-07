@@ -44,14 +44,13 @@ var knownEventsGraphFlags = [];
 var postsRelayout = null;
 
 function preparePost(post) {
-    post = render.post(post);
+    var rendered = render.post(post);
 
-    if (!post) {
+    if (!rendered) {
         return null;
     }
 
-    post = $(post).data('post', post);
-    return post;
+    return $(rendered).data('post', post);
 }
 
 function addEvent(event) {

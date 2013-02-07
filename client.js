@@ -455,6 +455,11 @@ function loadEvents(cb) {
                     return;
                 }
 
+                if (events.length === 0) {
+                    cb(null);
+                    return;
+                }
+
                 events = $.map(events, function (event, i) {
                     return prepareEvent(event);
                 });
@@ -605,13 +610,15 @@ $(document).ready(function () {
         loadMorePosts();
     });
 
-    FB.init({
-        'appId': FACEBOOK_APP_ID,
-        'status': true,
-        'cookie': true,
-        'xfbml': true,
-        'channelUrl': '/channel.html'
-    });
+    if (FACEBOOK_APP_ID) {
+        FB.init({
+            'appId': FACEBOOK_APP_ID,
+            'status': true,
+            'cookie': true,
+            'xfbml': true,
+            'channelUrl': '/channel.html'
+        });
+    }
 
     // For current and future .share-action elements
     $(document).on('click', '.share-action', function (event) {

@@ -64,4 +64,6 @@ function mergeposts() {
     });
 }
 
-mergeposts();
+models.once('ready', function () {
+    mergeposts();
+});

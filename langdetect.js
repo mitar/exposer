@@ -37,4 +37,6 @@ function langdetect() {
     });
 }
 
-langdetect();
+models.once('ready', function () {
+    langdetect();
+});

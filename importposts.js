@@ -92,4 +92,6 @@ function importposts() {
     });
 }
 
-importposts();
+models.once('ready', function () {
+    importposts();
+});

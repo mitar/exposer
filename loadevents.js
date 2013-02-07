@@ -29,4 +29,6 @@ function loadevents() {
     });
 }
 
-loadevents();
+models.once('ready', function () {
+    loadevents();
+});

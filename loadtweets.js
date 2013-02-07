@@ -104,4 +104,6 @@ function loadtweets() {
     });
 }
 
-loadtweets();
+models.once('ready', function () {
+    loadtweets();
+});

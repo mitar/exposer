@@ -622,6 +622,7 @@ var facebookEventSchema = mongoose.Schema({
         'required': true
     }
 });
+facebookEventSchema.index({'data.start_time': 1});
 
 facebookEventSchema.statics.PUBLIC_FIELDS = {
     'event_id': true,

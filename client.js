@@ -40,6 +40,7 @@ var oldestDisplayedPostsIds = {};
 var graph = null;
 var calendar = null;
 var knownEvents = {};
+var knownEventsGraphFlags = [];
 var postsRelayout = null;
 
 function preparePost(post) {
@@ -51,6 +52,28 @@ function preparePost(post) {
 
     post = $(post).data('post', post);
     return post;
+}
+
+function addEvent(event) {
+    knownEvents[event.event_id] = true;
+
+    knownEventsGraphFlags.push({
+        'x': moment.utc(event.data.start_time).valueOf(),
+        'title': '' + knownEventsGraphFlags.length,
+        'event': event
+    });
+    // TODO: We could optimize this by simply inserting at the right place to begin with
+    knownEventsGraphFlags.sort(function (a, b) {
+        return a.x - b.x;
+    });
+
+    if (graph) {
+        // TODO: Could be probably optimized so that event is not even inserted if out of bounds?
+        knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (p, i) {
+            return graph.series[0].points[0].x <= p.x && p.x <= graph.series[0].points[graph.series[0].points.length - 1].x;
+        });
+        graph.series[3].setData(knownEventsGraphFlags);
+    }
 }
 
 function renderTweets() {
@@ -100,6 +123,7 @@ function shortenPosts() {
 }
 
 function displayNewPost(post) {
+    // TODO: Do we want to update stats section, too?
     displayOldPosts([post]);
 }
 
@@ -185,7 +209,11 @@ function setActiveSection(section) {
         loadGraph();
     }
     else if (section === 'events') {
-        loadEvents();
+        loadEvents(function (err) {
+            if (err) {
+                console.error(err);
+            }
+        });
     }
 
     $(window).resize();
@@ -243,109 +271,160 @@ function loadGraph() {
     }
 
     remotePromise.done(function () {
-        remote.getStats(null, null, function (err, stats, count_all, count_twitter, count_facebook) {
+        loadEvents(function (err) {
             if (err) {
                 console.error(err);
                 return;
             }
 
-            stats = convertStats(stats);
+            remote.getStats(null, null, function (err, stats, count_all, count_twitter, count_facebook) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
 
-            graph = new Highcharts.StockChart({
-                'chart': {
-                    'renderTo': 'graph',
-                    'type': 'areaspline',
-                    'zoomType': 'x',
-                    'borderRadius': 10
-                },
-                'credits': {
-                    'enabled': false
-                },
-                'navigator': {
-                    'adaptToUpdatedData': false,
-                    'baseSeries': 0
-                },
-                'legend': {
-                    'enabled': true,
-                    'verticalAlign': 'top',
-                    'floating': true,
-                    'padding': 5
-                },
-                'rangeSelector': {
-                    'buttonTheme': {
-                        'width': 50
+                stats = convertStats(stats);
+
+                knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (p, i) {
+                    return stats.all[0][0] <= p.x && p.x <= stats.all[stats.all.length - 1][0];
+                });
+
+                graph = new Highcharts.StockChart({
+                    'chart': {
+                        'renderTo': 'graph',
+                        'type': 'areaspline',
+                        'zoomType': 'x',
+                        'borderRadius': 10
                     },
-                    'buttons': [
-                        {
-                            'type': 'day',
-                            'count': 1,
-                            'text': "day"
+                    'credits': {
+                        'enabled': false
+                    },
+                    'navigator': {
+                        'adaptToUpdatedData': false,
+                        'baseSeries': 0
+                    },
+                    'legend': {
+                        'enabled': true,
+                        'verticalAlign': 'top',
+                        'floating': true,
+                        'padding': 5
+                    },
+                    'rangeSelector': {
+                        'buttonTheme': {
+                            'width': 50
                         },
-                        {
-                            'type': 'week',
-                            'count': 1,
-                            'text': "week"
+                        'buttons': [
+                            {
+                                'type': 'day',
+                                'count': 1,
+                                'text': "day"
+                            },
+                            {
+                                'type': 'week',
+                                'count': 1,
+                                'text': "week"
+                            },
+                            {
+                                'type': 'month',
+                                'count': 1,
+                                'text': "month"
+                            },
+                            {
+                                'type': 'year',
+                                'count': 1,
+                                'text': "year"
+                            },
+                            {
+                                'type': 'all',
+                                'text': "all"
+                            }
+                        ],
+                        'selected': 4 // All
+                    },
+                    'xAxis': {
+                        'events': {
+                            'afterSetExtremes': loadGraphData
                         },
-                        {
-                            'type': 'month',
-                            'count': 1,
-                            'text': "month"
+                        'minRange': 24 * 60 * 60 * 1000 // One day
+                    },
+                    'yAxis': {
+                        'title': {
+                            'text': "Number of posts"
                         },
-                        {
-                            'type': 'year',
-                            'count': 1,
-                            'text': "year"
-                        },
-                        {
-                            'type': 'all',
-                            'text': "all"
+                        'min': 0
+                    },
+                    'plotOptions': {
+                        'series': {
+                            'marker': {
+                                'enabled': true,
+                                'radius': 3
+                            },
+                            'dataGrouping': {
+                                'enabled': false
+                            }
                         }
-                    ],
-                    'selected': 4 // All
-                },
-                'xAxis': {
-                    'events': {
-                        'afterSetExtremes': loadGraphData
                     },
-                    'minRange': 24 * 60 * 60 * 1000 // One day
-                },
-                'yAxis': {
-                    'title': {
-                        'text': "Number of posts"
-                    },
-                    'min': 0
-                },
-                'plotOptions': {
-                    'series': {
-                        'marker': {
-                            'enabled': true,
-                            'radius': 3
+                    'tooltip': {
+                        'formatter': function () {
+                            if (this.series && this.series.index === 3) {
+                                var event = knownEventsGraphFlags[parseInt(this.point.title)].event;
+                                return render.event(event);
+                            }
+                            else {
+                                // Copy-paste and adapted from original defaultFormatter
+
+                                var pThis = this;
+                                var items = pThis.points || Highcharts.splat(pThis);
+                                var series = items[0].series;
+                                var s;
+
+                                // Build the header
+                                s = [series.tooltipHeaderFormatter(items[0].key)];
+
+                                // Build the values
+                                Highcharts.each(items, function (item) {
+                                    series = item.series;
+                                    s.push(
+                                        (series.tooltipFormatter && series.tooltipFormatter(item)) || item.point.tooltipFormatter(series.tooltipOptions.pointFormat)
+                                    );
+                                });
+
+                                // Footer
+                                s.push(series.tooltipOptions.footerFormat || '');
+
+                                return s.join('');
+                            }
                         },
-                        'dataGrouping': {
-                            'enabled': false
+                        'useHTML': true
+                    },
+                    'series': [
+                        {
+                            'name': "All",
+                            'data': stats.all,
+                            'id': 'all'
+                        },
+                        {
+                            'name': "Twitter",
+                            'data': stats.twitter
+                        },
+                        {
+                            'name': "Facebook",
+                            'data': stats.facebook
+                        },
+                        {
+                            'type': 'flags',
+                            'data': knownEventsGraphFlags,
+                            'shape': 'squarepin',
+                            'showInLegend': false
                         }
-                    }
-                },
-                'series': [
-                    {
-                        'name': "All",
-                        'data': stats.all
-                    },
-                    {
-                        'name': "Twitter",
-                        'data': stats.twitter
-                    },
-                    {
-                        'name': "Facebook",
-                        'data': stats.facebook
-                    }
-                ]
+                    ]
+                });
+
+                $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+
+                // To fix slight size mismatch on initial load
+                $(window).resize();
             });
-
-            $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
-
-            // To fix slight size mismatch on initial load
-            $(window).resize();
         });
     });
 }
@@ -354,17 +433,18 @@ function prepareEvent(event) {
     if (knownEvents[event.event_id]) {
         return null;
     }
-    knownEvents[event.event_id] = true;
+    addEvent(event);
 
     return {
-        'date': '' + moment(event.data.start_time).valueOf(),
+        'date': '' + moment.utc(event.data.start_time).valueOf(),
         'url': event.data.link,
         'dom': $(render.event(event))
     };
 }
 
-function loadEvents() {
+function loadEvents(cb) {
     if (calendar) {
+        cb(null);
         return;
     }
 
@@ -372,7 +452,7 @@ function loadEvents() {
         i18nPromise.done(function () {
             remote.getEvents(function (err, events) {
                 if (err) {
-                    console.error(err);
+                    cb(err);
                     return;
                 }
 
@@ -413,6 +493,7 @@ function loadEvents() {
                 }
 
                 calendar = $('#calendar').eventCalendar(options);
+                cb(null);
             });
         });
     });

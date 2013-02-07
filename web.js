@@ -474,7 +474,7 @@ function getEvents(cb) {
         return;
     }
 
-    models.FacebookEvent.find({}, models.FacebookEvent.PUBLIC_FIELDS).lean(true).exec(function (err, events) {
+    models.FacebookEvent.find({}, models.FacebookEvent.PUBLIC_FIELDS).sort({'data.start_time': 1}).lean(true).exec(function (err, events) {
         if (err) {
             console.error("getEvents error: %s", err);
             // TODO: Do we really want to pass an error about accessing the database to the client?

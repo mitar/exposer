@@ -37,7 +37,7 @@ function renderPost(templates, post) {
             }
 
             var event_in_past = false;
-            if (post.facebook_event && post.facebook_event.start_time) {
+            if (post.facebook_event) {
                 if (moment(post.facebook_event.start_time) < moment()) {
                     event_in_past = true;
                 }
@@ -73,10 +73,8 @@ function renderPost(templates, post) {
 
 function renderEvent(templates, event, show_description) {
     var event_in_past = false;
-    if (event.start_time) {
-        if (moment(event.start_time) < moment()) {
-            event_in_past = true;
-        }
+    if (moment(event.start_time) < moment()) {
+        event_in_past = true;
     }
 
     return templates.event({

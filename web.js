@@ -774,7 +774,7 @@ function fetchFacebookPageLatestAlternative() {
                     // We handle error independently
                     cb(null);
                 }
-                else {
+                else if (body.from) {
                     // Try to get post version with more information
                     facebook.request(body.from.id + '_' + post_id, null, function (err, better_body) {
                         if (err) {
@@ -788,6 +788,10 @@ function fetchFacebookPageLatestAlternative() {
                             cb(null);
                         });
                     });
+                }
+                else {
+                    console.log("Post without from: %s", post_id);
+                    cb(null);
                 }
             });
         }, function (err) {

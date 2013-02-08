@@ -76,7 +76,7 @@ function addEvent(event) {
 }
 
 function renderTweets() {
-    if (typeof twttr === 'undefined') {
+    if (!twttr || !twttr.widgets) {
         alert("Not all necessary scripts have loaded. Are you using ad-block or something similar?");
         return;
     }

@@ -77,7 +77,7 @@ function addEvent(event) {
 
 function renderTweets() {
     if (!twttr || !twttr.widgets) {
-        alert("Not all necessary scripts have loaded. Are you using ad-block or something similar?");
+        console.error("Twitter script has not loaded. Tweets are probably not displayed correctly. Are you using ad-block or something similar?");
         return;
     }
 

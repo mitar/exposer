@@ -1,5 +1,8 @@
-if (process.env.NEW_RELIC_APP_NAME && process.env.NEW_RELIC_LICENSE_KEY) {
-    require('newrelic');
+if (process.env.NODEFLY_APPLICATION_KEY) {
+    require('nodefly').profile(
+        process.env.NODEFLY_APPLICATION_KEY,
+        [process.env.APPLICATION_NAME || 'Exposer', 'Heroku']
+    );
 }
 
 var async = require('async');

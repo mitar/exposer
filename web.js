@@ -1,8 +1,8 @@
-if (process.env.NODETIME_ACCOUNT_KEY) {
-    require('nodetime').profile({
-        'accountKey': process.env.NODETIME_ACCOUNT_KEY,
-        'appName': 'Exposer'
-    });
+if (process.env.NODEFLY_APPLICATION_KEY) {
+    require('nodefly').profile(
+        process.env.NODEFLY_APPLICATION_KEY,
+        [process.env.APPLICATION_NAME || 'Exposer', 'Heroku']
+    );
 }
 
 var async = require('async');

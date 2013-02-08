@@ -21,7 +21,7 @@
         "consolidate": "0.8.x",
         "i18next": "git://github.com/mitar/i18next-node.git#mitar",
         "mongodb": "1.2.x",
-        "nodefly": "stable"
+        "nodetime": "0.8.x"
     },
     "engines": {
         "node": "0.8.x",

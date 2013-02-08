@@ -95,7 +95,8 @@ var render = require('./render')({
     }
 });
 
-var FACEBOOK_POST_ID_REGEXP = /(\d+)$/;
+var FACEBOOK_POST_ID_REGEXP = /\/(\d+)$/;
+var FACEBOOK_POST_PERMALINK_REGEXP = /permalink\.php\?story_fbid/;
 
 app.engine('html', consolidate.swig);
 
@@ -747,13 +748,18 @@ function fetchFacebookPageLatestAlternative() {
         }).each(function (i, comment) {
             // Facebook stores displayed content in comments, so we parse comments again and find links to posts
             $('[role="article"]', comment.nodeValue).find('a.uiLinkSubtle:first').each(function (j, link) {
-                var post_match = FACEBOOK_POST_ID_REGEXP.exec($(link).attr('href'));
+                var href = $(link).attr('href');
+                var post_match = FACEBOOK_POST_ID_REGEXP.exec(href);
                 if (post_match) {
                     post_ids.push(post_match[1]);
+                    return;
                 }
-                else {
-                    console.warn("Facebook page alternative fetch found link, but doesn't match: %s", $(link).attr('href'));
+                if (FACEBOOK_POST_PERMALINK_REGEXP.test(href)) {
+                    // Link is a permalink, we cannot do anything with story_fbid
+                    return;
                 }
+
+                console.warn("Facebook page alternative fetch found link, but doesn't match: %s", href);
             });
             $('[name="feedback_params"]', comment.nodeValue).each(function (j, input) {
                 try {
@@ -790,7 +796,7 @@ function fetchFacebookPageLatestAlternative() {
                     });
                 }
                 else {
-                    console.log("Post without from: %s", post_id);
+                    console.warn("Facebook page alternative fetch found post, but without from: %s", post_id);
                     cb(null);
                 }
             });

@@ -144,7 +144,7 @@ postSchema.statics.storeTweet = function (tweet, source, cb) {
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
         'in_reply_to_status_id_str': tweet.in_reply_to_status_id_str,
         'text': tweet.text,
-        'is_retweet': _.isEmpty(tweet.retweeted_status)
+        'is_retweet': !_.isEmpty(tweet.retweeted_status)
     };
 
     storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);

@@ -42,6 +42,7 @@ var calendar = null;
 var knownEvents = {};
 var knownEventsGraphFlags = [];
 var postsRelayout = null;
+var getPostsRequested = {};
 
 function preparePost(post) {
     var rendered = render.post(post);
@@ -127,7 +128,7 @@ function displayNewPost(post) {
 }
 
 function displayOldPosts(posts) {
-    var postElements = $();
+    var post_elements = $();
     $.each(posts, function (i, post) {
         var id = post.type + '/' + post.foreign_id;
 
@@ -136,13 +137,13 @@ function displayOldPosts(posts) {
         }
         displayedPosts[id] = true;
 
-        var newPostDate = moment(post.foreign_timestamp);
-        if (!oldestDisplayedPostsDate || newPostDate < oldestDisplayedPostsDate) {
-            oldestDisplayedPostsDate = newPostDate;
+        var new_post_date = moment(post.foreign_timestamp);
+        if (!oldestDisplayedPostsDate || new_post_date < oldestDisplayedPostsDate) {
+            oldestDisplayedPostsDate = new_post_date;
             oldestDisplayedPostsIds = {};
             oldestDisplayedPostsIds[id] = true;
         }
-        else if (newPostDate === oldestDisplayedPostsDate) {
+        else if (new_post_date === oldestDisplayedPostsDate) {
             oldestDisplayedPostsIds[id] = true;
         }
 
@@ -151,15 +152,15 @@ function displayOldPosts(posts) {
             return;
         }
 
-        postElements = postElements.add(post);
+        post_elements = post_elements.add(post);
     });
 
-    if (postElements.length > 0) {
-        $('#posts').isotope('insert', postElements, function () {
+    if (post_elements.length > 0) {
+        $('#posts').isotope('insert', post_elements, function () {
             shortenPosts();
             renderTweets();
         });
-        $.each(postElements, function (i, el) {
+        $.each(post_elements, function (i, el) {
             FB.XFBML.parse(el);
         });
     }
@@ -173,16 +174,22 @@ function objectKeys(obj) {
     return keys;
 }
 
-function loadMorePosts() {
+function loadMorePosts(override) {
     remotePromise.done(function () {
-        remote.getPosts(oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null, objectKeys(oldestDisplayedPostsIds), 10, function (err, posts) {
-            if (err) {
-                console.error(err);
-                return;
-            }
+        var since = oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null;
+        var except = objectKeys(oldestDisplayedPostsIds);
+        var request = '' + (since ? since.valueOf() : since) + '|' + except;
+        if (!getPostsRequested[request] || override) {
+            getPostsRequested[request] = true;
 
-            displayOldPosts(posts);
-        });
+            remote.getPosts(since, except, 20, function (err, posts) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                displayOldPosts(posts);
+            });
+        }
     });
 }
 
@@ -504,8 +511,8 @@ function loadEvents(cb) {
 }
 
 $(document).ready(function () {
-    var remoteDeferred = $.Deferred();
-    remotePromise = remoteDeferred.promise();
+    var remote_deferred = $.Deferred();
+    remotePromise = remote_deferred.promise();
 
     postsRelayout = $.debounce(200, function () {
         $('#posts').isotope('reLayout');
@@ -575,8 +582,8 @@ $(document).ready(function () {
             }
 
             remote = r;
-            if (!remoteDeferred.isResolved) {
-                remoteDeferred.resolve();
+            if (!remote_deferred.isResolved) {
+                remote_deferred.resolve();
             }
 
             if (callback) {
@@ -584,7 +591,7 @@ $(document).ready(function () {
             }
 
             $('#load-posts').click(function (event) {
-                loadMorePosts();
+                loadMorePosts(true);
             }).show();
 
             $(window).scroll(function (event) {
@@ -607,7 +614,7 @@ $(document).ready(function () {
     }
 
     connect(function () {
-        loadMorePosts();
+        loadMorePosts(true);
     });
 
     if (FACEBOOK_APP_ID) {

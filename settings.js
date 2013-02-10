@@ -56,6 +56,7 @@ exports.POSTS_FILTER = {
         'finnish',
         'norwegian',
         'lithuanian',
-        'estonian'
+        'estonian',
+		'latvian'
     ]}
 };

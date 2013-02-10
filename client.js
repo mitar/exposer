@@ -591,7 +591,7 @@ $(document).ready(function () {
                 last_retry = INITIAL_RECONNECT_INTERVAL;
             }
 
-            if (!remote_deferred.isResolved) {
+            if (remote_deferred.state() === 'pending') {
                 remote_deferred.resolveWith(remote);
             }
 
@@ -600,7 +600,7 @@ $(document).ready(function () {
             }
 
             $('#load-posts').click(function (event) {
-                if (!remote_deferred.isResolved && reconnect_wait !== null) {
+                if (remote_deferred.state() === 'pending' && reconnect_wait !== null) {
                     console.warn("Forcing reconnect to the server.");
                     clearTimeout(reconnect_wait);
                     reconnect_wait = null;
@@ -621,7 +621,7 @@ $(document).ready(function () {
                 }
             });
         }).on('end', function () {
-            if (!remote_deferred.isResolved) {
+            if (remote_deferred.state() === 'pending') {
                 remote_deferred.reject();
             }
             remote_deferred = $.Deferred();

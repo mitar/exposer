@@ -58,7 +58,8 @@ var postSchema = mongoose.Schema({
         'required': false
     },
     'merged_to': {
-        'type': String
+        'type': String,
+        'index': true
     },
     'merged_from': [{
         'type': String
@@ -68,6 +69,7 @@ var postSchema = mongoose.Schema({
         'index': true
     }
 });
+postSchema.index({'original_data.retweeted_status': 1});
 
 postSchema.statics.NOT_FILTERED =
     " \

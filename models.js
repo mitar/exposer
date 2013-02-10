@@ -392,7 +392,8 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
         }
 
         if (callback_post.data.from && callback_post.data.from.id) {
-            Author.findOneAndUpdate({'type': 'facebook', 'foreign_id': callback_post.data.from.id}, {'foreign_name': callback_post.data.from.name || null}, {'upsert': true}, function (err, author) {
+            // We set "new" to false and ignore the author because of this bug: https://github.com/mongodb/node-mongodb-native/issues/699
+            Author.findOneAndUpdate({'type': 'facebook', 'foreign_id': callback_post.data.from.id}, {'foreign_name': callback_post.data.from.name || null}, {'upsert': true, 'new': false}, function (err, author) {
                 if (err) {
                     console.error("Post (%s) author (%s) store error: %s", callback_post.foreign_id, callback_post.data.from.id, err);
                 }

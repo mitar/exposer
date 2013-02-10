@@ -295,7 +295,7 @@ function getPosts(since, except, limit, cb) {
         limit = settings.MAX_POSTS_PER_REQUEST;
     }
 
-    var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'original_data.retweeted_status': null};
+    var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}};
     if (since) {
         since = moment(since);
         if (since.isValid()) {

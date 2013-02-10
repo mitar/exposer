@@ -69,7 +69,7 @@ var postSchema = mongoose.Schema({
         'index': true
     }
 });
-postSchema.index({'original_data.retweeted_status': 1});
+postSchema.index({'data.is_retweet': 1});
 
 postSchema.statics.NOT_FILTERED =
     " \
@@ -143,7 +143,8 @@ postSchema.statics.storeTweet = function (tweet, source, cb) {
         'from_user': tweet.from_user || tweet.user.screen_name,
         'in_reply_to_status_id': tweet.in_reply_to_status_id,
         'in_reply_to_status_id_str': tweet.in_reply_to_status_id_str,
-        'text': tweet.text
+        'text': tweet.text,
+        'is_retweet': _.isEmpty(tweet.retweeted_status)
     };
 
     storePost(tweet.id_str, 'twitter', moment(tweet.created_at).toDate(), source, data, tweet, cb);
@@ -699,7 +700,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
             // We also want just some fields and a lean object
-            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED, 'merged_to': null, 'original_data.retweeted_status': null}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
+            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
                 if (err) {
                     cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") load error: " + err);
                     return;

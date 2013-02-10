@@ -1,9 +1,11 @@
 var async = require('async');
 
+var _ = require('underscore');
+
 var models = require('./models');
 var settings = require('./settings');
 
-var authors = 0;
+var newAuthors = 0;
 
 function findauthors() {
     var query = {
@@ -22,7 +24,7 @@ function findauthors() {
 
         async.forEach(posts, function (post, cb) {
             if (post.data.from && post.data.from.id) {
-                models.Author.findOneAndUpdate({'type': 'facebook', 'foreign_id': post.data.from.id}, {'foreign_name': post.data.from.name || null}, {'upsert': true}, function (err, author) {
+                models.Author.findOneAndUpdate({'type': 'facebook', 'foreign_id': post.data.from.id}, {'foreign_name': post.data.from.name || null}, {'upsert': true, 'new': false}, function (err, author) {
                     if (err) {
                         console.error("Post (%s) author (%s) store error: %s",  post.foreign_id, post.data.from.id, err);
                         // We handle error independently
@@ -30,7 +32,9 @@ function findauthors() {
                         return;
                     }
 
-                    authors++;
+                    if (_.isEmpty(author.toObject() || {})) {
+                        newAuthors++;
+                    }
                     cb(null);
                 });
             }
@@ -38,7 +42,7 @@ function findauthors() {
                 cb(null);
             }
         }, function (err) {
-            console.log("Found %s authors", authors);
+            console.log("Found %s new authors", newAuthors);
             process.exit(0);
         });
     });

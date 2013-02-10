@@ -97,6 +97,7 @@ var render = require('./render')({
 
 var FACEBOOK_POST_ID_REGEXP = /\/(\d+)$/;
 var FACEBOOK_POST_PERMALINK_REGEXP = /permalink\.php\?story_fbid/;
+var FACEBOOK_QUERY_REGEXP = new RegExp(settings.FACEBOOK_QUERY.join('|'), 'i');
 
 app.engine('html', consolidate.swig);
 
@@ -248,8 +249,14 @@ app.post(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
     console.log("Facebook realtime payload", req.body);
     // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
     // TODO: We should fetch into the past until we get to posts we already have
-    fetchFacebookPageLatest(100);
-    fetchFacebookPageLatestAlternative();
+
+    if (settings.FACEBOOK_PAGE_ID) {
+        fetchFacebookPageLatest(100);
+        fetchFacebookPageLatestAlternative();
+    }
+    else {
+        console.warn("Igoring Facebook realtime request");
+    }
 });
 
 app.get(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
@@ -642,7 +649,7 @@ function connectToTwitterStream() {
     });
 }
 
-function fetchTwitterLatest() {
+function fetchTwitterLatest(cb_main) {
     // TODO: Should we simply automatically start loading all tweets until we find one existing in the database?
 
     var query = settings.TWITTER_QUERY.slice(0);
@@ -652,6 +659,7 @@ function fetchTwitterLatest() {
         query = query.slice(settings.TWITTER_MAX_QUERY_SIZE);
 
         if (q.length === 0) {
+            if (cb_main) cb_main();
             return;
         }
 
@@ -661,18 +669,18 @@ function fetchTwitterLatest() {
         twit.get('/search/tweets.json', params, function(err, data) {
             if (err) {
                 console.error("Twitter fetch error (%s)", q, err);
+                setTimeout(fetch_one, settings.TWITTER_REQUEST_INTERVAL);
                 return;
             }
 
-            async.forEach(data.statuses, function (tweet, cb) {
+            async.forEach(data.statuses, function (tweet, cb_tweet) {
                 models.Post.storeTweet(tweet, 'search', function (err, tweet) {
                     notifyClients(err, tweet);
                     // We handle error independently
-                    cb(null);
+                    cb_tweet(null);
                 });
             }, function (err) {
                 console.log("Twitter fetch done: %s", q);
-
                 setTimeout(fetch_one, settings.TWITTER_REQUEST_INTERVAL);
             });
         });
@@ -681,70 +689,59 @@ function fetchTwitterLatest() {
     fetch_one();
 }
 
-if (twit) {
-    fetchTwitterLatest();
-    connectToTwitterStream();
-}
-else {
-    console.warn("Not fetching content from Twitter.");
-}
-
-function fetchFacebookLatest(limit) {
-    async.forEach(settings.FACEBOOK_QUERY, function (keyword, cb) {
+function fetchFacebookLatest(limit, cb_main) {
+    async.forEachSeries(settings.FACEBOOK_QUERY, function (keyword, cb_keyword) {
         console.log("Doing Facebook search: %s", keyword);
 
         facebook.request('search?type=post&q=' + encodeURIComponent(keyword), limit, function (err, body) {
             if (err) {
                 console.error("Facebook search error (%s): %s", keyword, err);
                 // We handle error independently
-                cb(null);
+                cb_keyword(null);
                 return;
             }
 
-            async.forEach(body.data, function (post, cb) {
+            async.forEach(body.data, function (post, cb_post) {
                 models.Post.storeFacebookPost(post, 'search', function (err, post, event) {
                     notifyClients(err, post, event);
                     // We handle error independently
-                    cb(null);
+                    cb_post(null);
                 });
             }, function (err) {
                 console.log("Facebook search done: %s", keyword);
-                cb(null);
+                cb_keyword(null);
             });
         });
+    }, function (err) {
+        if (cb_main) cb_main(null);
     });
 }
 
-function fetchFacebookPageLatest(limit) {
-    if (!settings.FACEBOOK_PAGE_ID) {
-        return;
-    }
-
+function fetchFacebookPageLatest(limit, cb_main) {
     console.log("Doing Facebook page fetch");
 
     facebook.request(settings.FACEBOOK_PAGE_ID + '/tagged', limit, function (err, body) {
         if (err) {
             console.error("Facebook page fetch error: %s", err);
+            if (cb_main) cb_main(null);
             return;
         }
 
-        async.forEach(body.data, function (post, cb) {
+        async.forEach(body.data, function (post, cb_post) {
             models.Post.storeFacebookPost(post, 'tagged', function (err, post, event) {
                 notifyClients(err, post, event);
                 // We handle error independently
-                cb(null);
+                cb_post(null);
             });
         }, function (err) {
             console.log("Facebook page fetch done");
+            if (cb_main) cb_main(null);
         });
     });
 }
 
-function fetchFacebookPageLatestAlternative() {
-    if (!settings.FACEBOOK_PAGE_ID) {
-        return;
-    }
-
+// We ignore the limit, but just to have the same function signature as others
+function fetchFacebookPageLatestAlternative(limit, cb_main) {
     console.log("Doing Facebook page alternative fetch");
 
     request({
@@ -755,6 +752,7 @@ function fetchFacebookPageLatestAlternative() {
     }, function (error, res, body) {
         if (error || !res || res.statusCode !== 200) {
             console.error("Facebook page alternative fetch error", error, res && res.statusCode, body);
+            if (cb_main) cb_main(null);
             return;
         }
 
@@ -791,13 +789,13 @@ function fetchFacebookPageLatestAlternative() {
             })
         });
 
-        async.forEachSeries(post_ids, function (post_id, cb) {
+        async.forEachSeries(post_ids, function (post_id, post_cb) {
             facebook.request(post_id, null, function (err, body) {
                 if (err) {
                     // Silenced, because we are guessing IDs here and some are not correct
                     //console.error("Facebook page alternative fetch error (%s): %s", post_id, err);
                     // We handle error independently
-                    cb(null);
+                    post_cb(null)
                 }
                 else if (body.from) {
                     // Try to get post version with more information
@@ -810,72 +808,114 @@ function fetchFacebookPageLatestAlternative() {
                         models.Post.storeFacebookPost(better_body, 'taggedalt', function (err, post, event) {
                             notifyClients(err, post, event);
                             // We handle error independently
-                            cb(null);
+                            post_cb(null);
                         });
                     });
                 }
                 else {
                     console.warn("Facebook page alternative fetch found post, but without from: %s", post_id);
-                    cb(null);
+                    post_cb(null);
                 }
             });
         }, function (err) {
-            async.forEachSeries(post_ids2, function (post_id, cb) {
+            async.forEachSeries(post_ids2, function (post_id, post_cb) {
                 facebook.request(post_id, null, function (err, body) {
                     if (err) {
                         // Silenced, because we are guessing IDs here and some are not correct
                         //console.error("Facebook page alternative fetch error (%s): %s", post_id, err);
                         // We handle error independently
-                        cb(null);
+                        post_cb(null);
                     }
                     else {
                         models.Post.storeFacebookPost(body, 'taggedalt', function (err, post, event) {
                             notifyClients(err, post, event);
                             // We handle error independently
-                            cb(null);
+                            post_cb(null);
                         });
                     }
                 });
             }, function (err) {
                 console.log("Facebook page alternative fetch done");
+                if (cb_main) cb_main(null);
             });
         });
     });
 }
 
-function fetchFacebookRecursiveEventsLatest(limit, cb) {
+function fetchFacebookRecursiveEventsLatest(limit, cb_main) {
     models.FacebookEvent.find({'recursive': true}, function (err, events) {
         if (err) {
             console.error("Facebook recursive events fetch error: %s", err);
+            if (cb_main) cb_main(null);
             return;
         }
 
-        async.forEach(events, function (event, cb) {
+        async.forEachSeries(events, function (event, cb_event) {
             console.log("Doing Facebook recursive event fetch: %s", event.event_id);
 
             facebook.request(event.event_id + '/feed', limit, function (err, body) {
                 if (err) {
                     console.error("Facebook recursive events fetch error (%s): %s", event.event_id, err);
                     // We handle error independently
-                    cb(null);
+                    cb_event(null);
                     return;
                 }
 
-                async.forEach(body.data, function (post, cb) {
+                async.forEach(body.data, function (post, cb_post) {
                     models.Post.storeFacebookPost(post, ['event', 'event/' + event.event_id], function (err, post, event) {
                         notifyClients(err, post, event);
                         // We handle error independently
-                        cb(null);
+                        cb_post(null);
                     });
                 }, function (err) {
                     console.log("Facebook recursive event fetch done: %s", event.event_id);
-                    cb(null);
+                    cb_event(null);
                 });
             });
         }, function (err) {
-            if (cb) {
-                cb(err);
-            }
+            if (cb_main) cb_main(null);
+        });
+    });
+}
+
+function fetchFacebookAuthorsLatest(limit, cb_main) {
+    models.Author.find({'type': 'facebook'}, function (err, authors) {
+        if (err) {
+            console.error("Facebook authors fetch error: %s", err);
+            if (cb_main) cb_main(null);
+            return;
+        }
+
+        async.forEachSeries(authors, function (author, cb_author) {
+            console.log("Doing Facebook authors fetch: %s", author.foreign_id);
+
+            facebook.request(author.foreign_id + '/feed', limit, function (err, body) {
+                if (err) {
+                    console.error("Facebook authors fetch error (%s): %s", author.foreign_id, err);
+                    // We handle error independently
+                    cb_author(null);
+                    return;
+                }
+
+                async.forEach(body.data, function (post, cb_post) {
+                    var text = models.Post.getText(post);
+                    if (FACEBOOK_QUERY_REGEXP.test(text)) {
+                        models.Post.storeFacebookPost(post, ['author', 'author/' + author.foreign_id], function (err, post, event) {
+                            notifyClients(err, post, event);
+                            // We handle error independently
+                            cb_post(null);
+                        });
+                    }
+                    else {
+                        cb_post(null);
+                    }
+                }, function (err) {
+                    console.log("Facebook authors fetch done: %s", author.foreign_id);
+                    cb_author(null);
+                });
+            });
+        }, function (err) {
+            if (cb_main) cb_main(null);
         });
     });
 }
@@ -920,12 +960,12 @@ function enableFacebookStream() {
     addAppToFacebookPage(subscribeToFacebook);
 }
 
-function pollFacebookRecursiveEventsLatest() {
-    // The first time we read all posts
-    fetchFacebookRecursiveEventsLatest(0, function (err) {
+function pollFacebook(f) {
+    // The first time we don't limit
+    f(0, function (err) {
         // We enqueue next polling
         function polling() {
-            fetchFacebookRecursiveEventsLatest(1000, function (err) {
+            f(1000, function (err) {
                 setTimeout(polling, settings.FACEBOOK_POLL_INTERVAL);
             });
         }
@@ -933,27 +973,29 @@ function pollFacebookRecursiveEventsLatest() {
     });
 }
 
-function facebookPolling() {
-    fetchFacebookLatest(1000);
-    fetchFacebookPageLatest(1000);
-    fetchFacebookPageLatestAlternative();
-}
+models.once('ready', function () {
+    if (twit) {
+        fetchTwitterLatest();
 
-if (models && settings.FACEBOOK_ACCESS_TOKEN) {
-    // Fetch all posts
-    fetchFacebookLatest(0);
-    fetchFacebookPageLatest(0);
-    fetchFacebookPageLatestAlternative();
+        connectToTwitterStream();
+    }
+    else {
+        console.warn("Not fetching content from Twitter.");
+    }
 
-    enableFacebookStream();
+    if (models && settings.FACEBOOK_ACCESS_TOKEN) {
+        pollFacebook(fetchFacebookLatest);
+        pollFacebook(fetchFacebookPageLatest);
+        pollFacebook(fetchFacebookPageLatestAlternative);
+        pollFacebook(fetchFacebookRecursiveEventsLatest);
+        pollFacebook(fetchFacebookAuthorsLatest);
 
-    pollFacebookRecursiveEventsLatest();
-
-    setInterval(facebookPolling, settings.FACEBOOK_POLL_INTERVAL);
-}
-else {
-    console.warn("Not fetching content from Facebook.");
-}
+        enableFacebookStream();
+    }
+    else {
+        console.warn("Not fetching content from Facebook.");
+    }
+});
 
 function keepAlive() {
     request(settings.SITE_URL, function (error, res, body) {

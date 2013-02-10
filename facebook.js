@@ -115,7 +115,7 @@ function processQueue(purge_requests) {
     facebookLimiter.removeTokens(1, function(err, remainingRequests) {
         f();
 
-        if (remainingRequests < 10) {
+        if (remainingRequests < 10 && facebookQueue.length > 0) {
             limiterWarning(remainingRequests);
         }
     });

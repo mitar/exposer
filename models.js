@@ -116,6 +116,10 @@ postSchema.statics.PUBLIC_FIELDS = {
 
 postSchema.statics.FACEBOOK_ID_REGEXP = /^(\d+)_(\d+)$/;
 
+postSchema.statics.getText = function (data) {
+    return (data.message || '') + ' ' + (data.name || '') + ' ' + (data.caption || '') + ' ' + (data.description || '');
+};
+
 postSchema.statics.hasEvent = function (post) {
     // It seems that links to events are of type "link" and without data.link field,
     // but sometimes type is not set, but link field exists and points to the event
@@ -387,6 +391,14 @@ postSchema.statics.storeFacebookPost = function (post, source, cb) {
             return;
         }
 
+        if (callback_post.data.from && callback_post.data.from.id) {
+            Author.findOneAndUpdate({'type': 'facebook', 'foreign_id': callback_post.data.from.id}, {'foreign_name': callback_post.data.from.name || null}, {'upsert': true}, function (err, author) {
+                if (err) {
+                    console.error("Post (%s) author (%s) store error: %s", callback_post.foreign_id, callback_post.data.from.id, err);
+                }
+            });
+        }
+
         Post.merge(callback_post, function (err, post_merged) {
             if (err) {
                 // Just log the error and continue
@@ -452,8 +464,7 @@ postSchema.statics.detectLanguage = function (type, data) {
         return null;
     }
 
-    var text = (data.message || '') + ' ' + (data.name || '') + ' ' + (data.caption || '') + ' ' + (data.description || '');
-
+    var text = Post.getText(data);
     if (text.length < settings.LANGUAGE_DETECTION_MIN_LENGTH) {
         return null;
     }
@@ -724,7 +735,27 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
     });
 }
 
+var authorSchema = mongoose.Schema({
+    'type': {
+        'type': String,
+        'index': true,
+        'required': true
+    },
+    'foreign_id': {
+        'type': String,
+        'index': true,
+        'required': true
+    },
+    'foreign_name': {
+        'type': String,
+        'index': true
+    }
+});
+
+var Author = db.model('Author', authorSchema);
+
 // We are setting module.exports directly because we want to use our own object for exports
 module.exports = new events.EventEmitter();
 module.exports.Post = Post;
 module.exports.FacebookEvent = FacebookEvent;
+module.exports.Author = Author;

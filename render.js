@@ -50,7 +50,7 @@ function renderPost(templates, post) {
             else if (post.data.link) {
                 like_link = post.data.link;
             }
-            else if (post.data.actions.like) {
+            else if (post.data.actions && post.data.actions.like) {
                 like_link = post.data.actions.like.link;
             }
             else {

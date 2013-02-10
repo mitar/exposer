@@ -139,7 +139,7 @@ postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
 
 postSchema.statics.storeTweet = function (tweet, source, cb) {
     if (!tweet.from_user && !(tweet.user && tweet.user.screen_name)) {
-        cb("Invalid tweet: " + util.inspect(tweet));
+        cb("Invalid tweet: " + util.inspect(tweet, false, 10));
         return;
     }
 
@@ -518,7 +518,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
             // initial event link was set on the post
             var link_search = FacebookEvent.URL_REGEXP.exec(body.message);
             if (!link_search) {
-                cb("Facebook post (" + post.foreign_id + ") is missing link: " + util.inspect(body));
+                cb("Facebook post (" + post.foreign_id + ") is missing link: " + util.inspect(body, false, 10));
                 return;
             }
 
@@ -530,7 +530,7 @@ postSchema.methods.fetchFacebookEvent = function (cb) {
         if (!link_match) {
             link_match = FacebookEvent.URL_REGEXP.exec(body.link);
             if (!link_match) {
-                cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body));
+                cb("Facebook post (" + post.foreign_id + ") has invalid event link: " + util.inspect(body, false, 10));
                 return;
             }
         }

@@ -42,7 +42,7 @@ function facebookRequest(url_orig, limit, cb, payload) {
                 }
 
                 var err = {
-                    'error': "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body),
+                    'error': "Facebook request (" + url_orig + ") error, error: " + error + ", status: " + (res && res.statusCode) + ", body: " + util.inspect(body, false, 10),
                     'body': body
                 };
 

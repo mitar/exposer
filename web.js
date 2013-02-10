@@ -246,7 +246,7 @@ app.post(settings.FACEBOOK_REALTIME_PATHNAME, function (req, res) {
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.send('');
 
-    console.log("Facebook realtime payload", req.body);
+    console.log("Facebook realtime payload", util.inspect(req.body, false, 10));
     // TODO: We currently ignore to who payload is and just try to fetch latest, this should be improved
     // TODO: We should fetch into the past until we get to posts we already have
 
@@ -636,11 +636,11 @@ function connectToTwitterStream() {
             // TODO: Implement (https://dev.twitter.com/docs/streaming-apis/messages)
             console.log("Twitter scrub_geo", data);
         }).on('end', function (res) {
-            console.warn("Twitter stream disconnected", res);
+            console.warn("Twitter stream disconnected");
             // TODO: Back-off
             connectToTwitterStream();
         }).on('destroy', function (res) {
-            console.warn("Twitter stream disconnected", res);
+            console.warn("Twitter stream disconnected");
             // TODO: Back-off
             connectToTwitterStream();
         }).on('error', function (error, statusCode) {

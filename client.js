@@ -22,6 +22,7 @@ var render = require('./render')(templates);
 
 var DOTS = /\.\.\.$/;
 var MAX_RECONNECT_INTERVAL = 5 * 60 * 1000; // ms
+var INITIAL_RECONNECT_INTERVAL = 100; // ms
 
 var SECTIONS = {
     'stream': true,
@@ -31,7 +32,6 @@ var SECTIONS = {
 };
 
 var remotePromise = null;
-remote = null;
 var i18nPromise = null;
 
 var displayedPosts = {};
@@ -176,6 +176,7 @@ function objectKeys(obj) {
 
 function loadMorePosts(override) {
     remotePromise.done(function () {
+        var remote = this;
         var since = oldestDisplayedPostsDate ? oldestDisplayedPostsDate.toDate() : null;
         var except = objectKeys(oldestDisplayedPostsIds);
         var request = '' + (since ? since.valueOf() : since) + '|' + except;
@@ -261,13 +262,16 @@ function convertStats(stats) {
 }
 
 function loadGraphData(event) {
-    remote.getStats(event.min, event.max, function (err, stats, count_all, count_twitter, count_facebook) {
-        stats = convertStats(stats);
-        graph.series[0].setData(stats.all);
-        graph.series[1].setData(stats.twitter);
-        graph.series[2].setData(stats.facebook);
+    remotePromise.done(function () {
+        var remote = this;
+        remote.getStats(event.min, event.max, function (err, stats, count_all, count_twitter, count_facebook) {
+            stats = convertStats(stats);
+            graph.series[0].setData(stats.all);
+            graph.series[1].setData(stats.twitter);
+            graph.series[2].setData(stats.facebook);
 
-        $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+            $('#under-graph').text("Shown interval cumulative: All " + count_all + ", Twitter " + count_twitter + ", Facebook " + count_facebook);
+        });
     });
 }
 
@@ -277,6 +281,7 @@ function loadGraph() {
     }
 
     remotePromise.done(function () {
+        var remote = this;
         loadEvents(function (err) {
             if (err) {
                 console.error(err);
@@ -455,6 +460,7 @@ function loadEvents(cb) {
     }
 
     remotePromise.done(function () {
+        var remote = this;
         i18nPromise.done(function () {
             remote.getEvents(function (err, events) {
                 if (err) {
@@ -514,6 +520,8 @@ $(document).ready(function () {
     var remote_deferred = $.Deferred();
     remotePromise = remote_deferred.promise();
 
+    var reconnect_wait = null;
+
     postsRelayout = $.debounce(200, function () {
         $('#posts').isotope('reLayout');
     });
@@ -560,9 +568,11 @@ $(document).ready(function () {
         'dynamicLoad': true
     }).promise();
 
-    var last_retry = 100; // ms
+    var last_retry = INITIAL_RECONNECT_INTERVAL; // ms
 
     function connect(callback) {
+        reconnect_wait = null;
+
         var stream = shoe((REMOTE || '') + '/dnode');
 
         var d = dnode({
@@ -573,17 +583,16 @@ $(document).ready(function () {
                 displayNewEvent(event);
             }
         });
-        d.on('remote', function (r) {
-            if (last_retry != 100) {
+        d.on('remote', function (remote) {
+            if (last_retry != INITIAL_RECONNECT_INTERVAL) {
                 console.warn("Connection to the server restored.");
 
                 // Reset back
-                last_retry = 100;
+                last_retry = INITIAL_RECONNECT_INTERVAL;
             }
 
-            remote = r;
             if (!remote_deferred.isResolved) {
-                remote_deferred.resolve();
+                remote_deferred.resolveWith(remote);
             }
 
             if (callback) {
@@ -591,6 +600,14 @@ $(document).ready(function () {
             }
 
             $('#load-posts').click(function (event) {
+                if (!remote_deferred.isResolved && reconnect_wait !== null) {
+                    console.warn("Forcing reconnect to the server.");
+                    clearTimeout(reconnect_wait);
+                    reconnect_wait = null;
+                    last_retry = INITIAL_RECONNECT_INTERVAL;
+                    connect();
+                }
+
                 loadMorePosts(true);
             }).show();
 
@@ -604,8 +621,14 @@ $(document).ready(function () {
                 }
             });
         }).on('end', function () {
+            if (!remote_deferred.isResolved) {
+                remote_deferred.reject();
+            }
+            remote_deferred = $.Deferred();
+            remotePromise = remote_deferred.promise();
+
             console.warn("Connection to the server failed. Retrying in " + last_retry + " ms.");
-            setTimeout(connect, last_retry);
+            reconnect_wait = setTimeout(connect, last_retry);
             last_retry *= 2;
             if (last_retry > MAX_RECONNECT_INTERVAL) {
                 last_retry = MAX_RECONNECT_INTERVAL;

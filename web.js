@@ -113,6 +113,25 @@ app.set('views', __dirname + '/templates');
 
 i18next.registerAppHelper(app);
 
+function forceSiteUrl(site_url) {
+    site_url = site_url || settings.SITE_URL;
+
+    var site_parsed = url.parse(site_url);
+    var site_request = site_parsed.protocol + '//' + site_parsed.host.toLowerCase();
+
+    return function (req, res, next) {
+        var request = req.protocol + '://' + req.get('Host').toLowerCase();
+        if (request === site_request) {
+            next();
+            return
+        }
+
+        console.log('Request with invalid host, redirecting: %s', request);
+        res.redirect(site_url + req.originalUrl);
+    };
+}
+
+app.use(forceSiteUrl());
 app.use(express.cookieParser());
 app.use(express.cookieSession({
     'key': 'session',

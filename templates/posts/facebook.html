@@ -28,29 +28,6 @@
                     </div>
                     {% if facebook_event %}
                         {% include "event_include.html" %}
-                    {% else if post.data.type === "link" && post.data.link %}
-                        <div class="link">
-                            {% if post.data.picture %}
-                                <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
-                            {% endif %}
-                            <div class="meta-outside">
-                                <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">
-                                    {# Must not contain </a> because HTML5 parser stops there then. #}
-                                    <span class="meta">
-                                        <span class="name">{{ post.data.name }}</span>
-                                        {% if post.data.caption %}
-                                            <span class="caption">{{ post.data.caption }}</span>
-                                        {% endif %}
-                                        {% if post.data.description %}
-                                            <span class="description">{{ post.data.description }}</span>
-                                        {% endif %}
-                                    </span>
-                                </a>
-                            </div>
-                            <div class="top-border"> </div>
-                            <div class="right-border"> </div>
-                            <div class="bottom-border"> </div>
-                        </div>
                     {% else if post.data.type === "photo" %}
                         <div class="photo">
                             <a href="{{ post.data.link }}"><img src="{{ post.data.picture|facebook_photo }}" class="picture" alt="{{ post.data.name }}" /></a>
@@ -70,7 +47,31 @@
                             {% endif %}
                             <div class="meta-outside">
                                 <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">
-                                    {# Must not contain </a> because HTML5 parser stops there then. #}
+                                    {# Must not contain </a> because HTML5 parser stops there then #}
+                                    <span class="meta">
+                                        <span class="name">{{ post.data.name }}</span>
+                                        {% if post.data.caption %}
+                                            <span class="caption">{{ post.data.caption }}</span>
+                                        {% endif %}
+                                        {% if post.data.description %}
+                                            <span class="description">{{ post.data.description }}</span>
+                                        {% endif %}
+                                    </span>
+                                </a>
+                            </div>
+                            <div class="top-border"> </div>
+                            <div class="right-border"> </div>
+                            <div class="bottom-border"> </div>
+                        </div>
+                    {# Some links simply do not have type == link #}
+                    {% else if post.data.link %}
+                        <div class="link">
+                            {% if post.data.picture %}
+                                <img src="{{ post.data.picture|facebook_picture }}" class="picture" alt="{{ post.data.name }}" />
+                            {% endif %}
+                            <div class="meta-outside">
+                                <a href="{{ post.data.link }}" class="meta-link{% if post.data.picture %} meta-link-picture{% endif %}">
+                                    {# Must not contain </a> because HTML5 parser stops there then #}
                                     <span class="meta">
                                         <span class="name">{{ post.data.name }}</span>
                                         {% if post.data.caption %}

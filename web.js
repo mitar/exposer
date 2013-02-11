@@ -35,7 +35,8 @@ if (!settings.REMOTE) {
     var models = require('./models');
 
     models.once('ready', function () {
-        models.Post.findOne({'merged_to': null}).sort({'foreign_timestamp': 1}).exec(function (err, post) {
+        var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}};
+        models.Post.findOne(_.extend({}, query, settings.POSTS_FILTER)).sort({'foreign_timestamp': 1}).exec(function (err, post) {
             if (err) {
                 console.error("Could not find the first post: %s", err);
                 return;
@@ -368,7 +369,7 @@ function getStats(from, to, cb) {
         return;
     }
 
-    var query = {'merged_to': null};
+    var query = {'merged_to': null, 'data.is_retweet': {'$ne': true}};
 
     if (from) {
         from = moment(from);
@@ -443,7 +444,7 @@ function getStats(from, to, cb) {
     });
 
     models.Post.aggregate([
-        {'$match': query},
+        {'$match': _.extend({}, query, settings.POSTS_FILTER)},
         project,
         {'$group': {
             '_id': id,

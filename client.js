@@ -315,8 +315,12 @@ function loadGraph() {
 
                 stats = convertStats(stats);
 
-                knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (p, i) {
-                    return stats.all[0][0] <= p.x && p.x <= stats.all[stats.all.length - 1][0];
+                knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (event, i) {
+                    return stats.all[0][0] <= event.x && event.x <= stats.all[stats.all.length - 1][0];
+                });
+                knownEventsGraphFlags = $.map(knownEventsGraphFlags, function (event, i) {
+                    event.title = '' + i;
+                    return event;
                 });
 
                 graph = new Highcharts.StockChart({

@@ -127,7 +127,7 @@ postSchema.statics.hasEvent = function (post) {
 };
 
 postSchema.statics.fetchFacebookEvent = function (post_id, cb) {
-    Post.findOne(_.extend({}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
+    Post.findOne(_.extend({}, {'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}}, settings.POSTS_FILTER, {'foreign_id': post_id, 'type': 'facebook'})).exec(function (err, post) {
         if (err) {
             cb("Facebook post (" + post_id + ") load error: " + err);
             return;
@@ -665,7 +665,7 @@ facebookEventSchema.statics.cleanEvent = function (event) {
 facebookEventSchema.methods.postFetch = function (cb) {
     var event = this;
 
-    Post.find(_.extend({}, {'type': 'facebook', 'foreign_id': {'$in': event.posts}}, settings.POSTS_FILTER)).exec(function (err, posts) {
+    Post.find(_.extend({}, {'type': 'facebook', 'foreign_id': {'$in': event.posts}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}}, settings.POSTS_FILTER)).exec(function (err, posts) {
         if (err) {
             cb(err);
             return;
@@ -712,7 +712,7 @@ function storePost(foreign_id, type, foreign_timestamp, source, data, original_d
             // We load post manually, because to know if post was stored or not we
             // do not set "new" parameter of findOneAndUpdate call
             // We also want just some fields and a lean object
-            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
+            Post.findOne(_.extend({}, {'$where': Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}}, settings.POSTS_FILTER, query), Post.PUBLIC_FIELDS).lean(true).exec(function (err, post) {
                 if (err) {
                     cb("Post (" + Post.createTypeForeignId(type, foreign_id) + ") load error: " + err);
                     return;

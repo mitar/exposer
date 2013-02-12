@@ -12,7 +12,8 @@ function findauthors() {
         'type': 'facebook',
         '$where': models.Post.NOT_FILTERED,
         'merged_to': null,
-        'data.is_retweet': {'$ne': true}
+        'data.is_retweet': {'$ne': true},
+        'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}
     };
 
     models.Post.find(_.extend({}, query, settings.POSTS_FILTER), function (err, posts) {

@@ -38,7 +38,7 @@ if (!settings.REMOTE) {
     var models = require('./models');
 
     models.once('ready', function () {
-        var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}};
+        var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}};
         models.Post.findOne(_.extend({}, query, settings.POSTS_FILTER)).sort({'foreign_timestamp': 1}).exec(function (err, post) {
             if (err) {
                 console.error("Could not find the first post: %s", err);
@@ -327,11 +327,11 @@ function getPosts(since, except, limit, cb) {
         limit = settings.MAX_POSTS_PER_REQUEST;
     }
 
-    var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}};
+    var query = {'$where': models.Post.NOT_FILTERED, 'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}};
     if (since) {
         since = moment(since);
         if (since.isValid()) {
-            query.foreign_timestamp = {'$lte': since.toDate()};
+            query.foreign_timestamp['$lte'] = since.toDate();
         }
     }
     if (_.isArray(except)) {
@@ -393,17 +393,13 @@ function getStats(from, to, cb) {
         return;
     }
 
-    var query = {'merged_to': null, 'data.is_retweet': {'$ne': true}};
+    var query = {'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}};
 
     if (from) {
         from = moment(from);
         if (!from.isValid()) {
             cb("Invalid from timestamp");
             return;
-        }
-
-        if (!query.foreign_timestamp) {
-            query.foreign_timestamp = {};
         }
         query.foreign_timestamp['$gte'] = from;
     }
@@ -416,10 +412,6 @@ function getStats(from, to, cb) {
         if (!to.isValid()) {
             cb("Invalid to timestamp");
             return;
-        }
-
-        if (!query.foreign_timestamp) {
-            query.foreign_timestamp = {};
         }
         query.foreign_timestamp['$lte'] = to;
     }

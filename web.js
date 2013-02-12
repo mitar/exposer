@@ -152,6 +152,8 @@ function forceSiteUrl(site_url) {
 }
 
 app.use(forceSiteUrl());
+app.use(express.compress());
+app.use(express.static(__dirname + '/static'));
 app.use(express.cookieParser());
 app.use(express.cookieSession({
     'key': 'session',
@@ -164,7 +166,6 @@ app.use(express.cookieSession({
     }
 }));
 app.use(express.bodyParser());
-app.use(express.static(__dirname + '/static'));
 app.use(i18next.handle);
 
 i18next.serveClientScript(app).serveDynamicResources(app);

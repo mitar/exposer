@@ -66,11 +66,19 @@ function addEvent(event) {
     knownEventsGraphFlags.sort(function (a, b) {
         return a.x - b.x;
     });
+    knownEventsGraphFlags = $.map(knownEventsGraphFlags, function (event, i) {
+        event.title = '' + i;
+        return event;
+    });
 
     if (graph) {
         // TODO: Could be probably optimized so that event is not even inserted if out of bounds?
-        knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (p, i) {
-            return graph.series[0].points[0].x <= p.x && p.x <= graph.series[0].points[graph.series[0].points.length - 1].x;
+        knownEventsGraphFlags = $.grep(knownEventsGraphFlags, function (event, i) {
+            return graph.series[0].points[0].x <= event.x && event.x <= graph.series[0].points[graph.series[0].points.length - 1].x;
+        });
+        knownEventsGraphFlags = $.map(knownEventsGraphFlags, function (event, i) {
+            event.title = '' + i;
+            return event;
         });
         graph.series[3].setData(knownEventsGraphFlags);
     }

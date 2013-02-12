@@ -156,6 +156,11 @@ body {
     float: left;
 }
 
+.facebook-post .head-pic .head-pic-link {
+    width: 32px;
+    height: 32px;
+}
+
 .head-pic img {
     border-radius: 5px 5px 5px 5px;
     height: 32px;
@@ -789,4 +794,11 @@ input::-moz-focus-inner {
     margin-bottom: 1.2em;
     font-size: 10px;
     color: #666666;
+}
+
+.github-source {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: 0;
 }

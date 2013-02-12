@@ -1,4 +1,6 @@
-_ = require('underscore');
+var moment = require('moment');
+
+var _ = require('underscore');
 
 exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'https://exposer.herokuapp.com';
 exports.PORT = process.env.PORT || '5000';
@@ -39,6 +41,7 @@ exports.I18N_LANGUAGES = process.env.I18N_LANGUAGES ? process.env.I18N_LANGUAGES
 exports.TWITTER_QUERY = process.env.TWITTER_QUERY ? process.env.TWITTER_QUERY.split(',') : ['#gotofje', '#gotofsi', '#protesti', 'protestih', 'protestniki', '@gotofsi', '@gotofje', '#gotoviso', '#mbprotest', '#ljprotest', '#kkprotest', '#ceprotest', '#fertikje', '#demonstracije', '#zbor', '#nisegotovo', '#malomorgen', '#politikasi', '#volitve', '#vstaja', 'zborzarepubliko', '#korupcija', '#jansa', '#jansevanje', '#pahor', '#stavkajs', '#stavka', 'javnisektor', 'onlyinslovenia', '#sviz', '#zombiji', '#tribunacd', '#tribunadsp', 'policijskadrzava', 'ograjamorapasti', 'zdajpadost', 'slorevolucija', '#vsinaulice', '#shodzzr', 'gotovivsi', 'policijskonasilje', 'protestival', 'vseslovenska', 'vseslovenski', '#gremogor'];
 exports.FACEBOOK_QUERY = process.env.FACEBOOK_QUERY ? process.env.FACEBOOK_QUERY.split(',') : ['gotofje', 'gotofsi', 'protesti', 'protestih', 'protestniki', 'gotoviso', 'mbprotest', 'ljprotest', 'kkprotest', 'ceprotest', 'fertikje', 'demonstracije', 'nisegotovo', 'malomorgen', 'politikasi', 'zborzarepubliko', 'jansevanje', 'stavkajs', 'javnisektor', 'onlyinslovenia', 'tribunacd', 'tribunadsp', 'policijskadrzava', 'ograjamorapasti', 'zdajpadost', 'slorevolucija', 'vsinaulice', 'gotovivsi', 'policijskonasilje', 'protestival', 'vseslovenska', 'vseslovenski', 'demonstracij'];
 exports.POSTS_FILTER = {
+    'foreign_timestamp': {'$gte': moment.utc([2012, 10, 24]).toDate()},
     'data.from.id': {'$nin': [
         // Henrik Grubelnik (https://www.facebook.com/henrik.grubelnik) overposting
         '100000591290520',

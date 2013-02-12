@@ -113,7 +113,7 @@
         {% endif %}
         <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
         <script type="text/javascript" src="https://connect.facebook.net/en_US/all.js"></script>
-        <script type="text/javascript" src="/bundle.js"></script>
+        <script type="text/javascript" src="/bundle.js{% if BUNDLE_TIMESTAMP %}?{{ BUNDLE_TIMESTAMP }}{% endif %}"></script>
         <script type="text/javascript" src="/i18next/i18next.js"></script>
     </body>
 </html>

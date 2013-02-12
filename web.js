@@ -7,8 +7,10 @@ if (process.env.NODETIME_ACCOUNT_KEY) {
 
 var async = require('async');
 var consolidate = require('consolidate');
+var crypto = require('crypto');
 var dnode = require('dnode');
 var express = require('express');
+var fs = require('fs');
 var http = require('http');
 var i18next = require("i18next");
 var i18nextWrapper = require('i18next/lib/i18nextWrapper');
@@ -99,6 +101,22 @@ var render = require('./render')({
 var FACEBOOK_POST_ID_REGEXP = /\/(\d+)$/;
 var FACEBOOK_POST_PERMALINK_REGEXP = /permalink\.php\?story_fbid/;
 var FACEBOOK_QUERY_REGEXP = new RegExp(settings.FACEBOOK_QUERY.join('|'), 'i');
+
+var BUNDLE_TIMESTAMP = null;
+
+if (app.get('env') === 'production') {
+    fs.stat('./static/bundle.js', function (err, stats) {
+        if (err) {
+            console.error("Bundle file does not exist? Have you forgot to run browserify?", err);
+            // TODO: Handle better?
+            throw new Error("Bundle file does not exist? Have you forgot to run browserify?");
+        }
+
+        var shasum = crypto.createHash('sha256');
+        shasum.update('' + stats.mtime.valueOf());
+        BUNDLE_TIMESTAMP = shasum.digest('hex').slice(0, 10);
+    });
+}
 
 app.engine('html', consolidate.swig);
 
@@ -218,6 +236,7 @@ app.get('/', function (req, res) {
             'SHOW_LINKS': !!settings.SHOW_LINKS,
             'SITE_URL': settings.SITE_URL,
             'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,
+            'BUNDLE_TIMESTAMP': BUNDLE_TIMESTAMP,
             'escaped_fragment': escaped_fragment,
             'escaped_fragment_content': escaped_fragment_content,
             'languages': languages,

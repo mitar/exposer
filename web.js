@@ -11,6 +11,7 @@ var crypto = require('crypto');
 var dnode = require('dnode');
 var express = require('express');
 var fs = require('fs');
+var gzippo = require('gzippo');
 var http = require('http');
 var i18next = require("i18next");
 var i18nextWrapper = require('i18next/lib/i18nextWrapper');
@@ -151,9 +152,12 @@ function forceSiteUrl(site_url) {
     };
 }
 
+// Cannot be set to 0 for non-production, so we set to 1 second
+var CACHE_MAX_AGE = app.get('env') === 'production' ? 7 * 24 * 60 * 60 * 1000 : 1000;
+
 app.use(forceSiteUrl());
+app.use(gzippo.staticGzip(__dirname + '/static', {'maxAge': CACHE_MAX_AGE, 'clientMaxAge': CACHE_MAX_AGE}));
 app.use(express.compress());
-app.use(express.static(__dirname + '/static', {'maxAge': app.get('env') === 'production' ? 86400000 : 0}));
 app.use(express.cookieParser());
 app.use(express.cookieSession({
     'key': 'session',

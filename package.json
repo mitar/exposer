@@ -22,7 +22,8 @@
         "i18next": "git://github.com/mitar/i18next-node.git#mitar",
         "mongodb": "1.2.x",
         "nodetime": "0.8.x",
-        "uglify-js": "2.2.x"
+        "uglify-js": "2.2.x",
+        "gzippo": "git://github.com/mitar/gzippo.git#cache-all"
     },
     "engines": {
         "node": "0.8.x",

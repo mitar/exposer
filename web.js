@@ -153,7 +153,7 @@ function forceSiteUrl(site_url) {
 
 app.use(forceSiteUrl());
 app.use(express.compress());
-app.use(express.static(__dirname + '/static'));
+app.use(express.static(__dirname + '/static', {'maxAge': app.get('env') === 'production' ? 86400000 : 0}));
 app.use(express.cookieParser());
 app.use(express.cookieSession({
     'key': 'session',

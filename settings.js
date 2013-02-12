@@ -60,6 +60,7 @@ exports.POSTS_FILTER = {
         'norwegian',
         'lithuanian',
         'estonian',
-        'latvian'
+        'latvian',
+        'cebuano'
     ]}
 };

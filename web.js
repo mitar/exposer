@@ -393,7 +393,7 @@ function getStats(from, to, cb) {
         return;
     }
 
-    var query = {'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': settings.POSTS_RANGE_MIN}};
+    var query = {'merged_to': null, 'data.is_retweet': {'$ne': true}, 'foreign_timestamp': {'$gte': moment(settings.POSTS_RANGE_MIN)}};
 
     if (from) {
         from = moment(from);

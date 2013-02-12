@@ -18,6 +18,17 @@ var templates = {
 
 var $ = require('jquery');
 
+require('./client/jquery.dotdotdot.js');
+require('./client/jquery.isotope.js');
+require('./client/jquery.hashchange.js');
+require('./client/isotope.js');
+require('./client/highstock.js');
+require('./client/highstock.exporting.js');
+require('./client/jquery.timeago.js');
+require('./client/jquery.eventcalendar.js');
+
+$.extend(require('./client/jquery.throttle.js').Cowboy);
+
 var render = require('./render')(templates);
 
 var DOTS = /\.\.\.$/;

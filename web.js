@@ -867,6 +867,7 @@ function fetchFacebookRecursiveEventsLatest(limit, cb_main) {
             return;
         }
 
+        events = _.shuffle(events);
         async.forEachSeries(events, function (event, cb_event) {
             console.log("Doing Facebook recursive event fetch: %s", event.event_id);
 
@@ -903,6 +904,7 @@ function fetchFacebookAuthorsLatest(limit, cb_main) {
             return;
         }
 
+        authors = _.shuffle(authors);
         async.forEachSeries(authors, function (author, cb_author) {
             console.log("Doing Facebook authors fetch: %s", author.foreign_id);
 

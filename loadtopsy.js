@@ -127,7 +127,7 @@ function doRequest(query, until_now) {
 }
 
 function loadtopsy() {
-    var now = moment.utc().unix();
+    var now = process.argv.length > 2 ? parseInt(process.argv[2]) : moment.utc().unix();
     var query = {'perpage': '100', 'page': 1, 'offset': 0, 'maxtime': now, 'mintime': now - ONE_DAY_SECONDS, 'q': settings.TWITTER_QUERY.join(' OR '), 'apikey': settings.TOPSY_APIKEY};
     doRequest(query, 0);
 }

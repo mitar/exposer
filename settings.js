@@ -17,6 +17,7 @@ exports.FACEBOOK_PAGE_ID = process.env.FACEBOOK_PAGE_ID;
 exports.FACEBOOK_PAGE_NAME = process.env.FACEBOOK_PAGE_NAME;
 exports.FACEBOOK_ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
 exports.FACEBOOK_REALTIME_VERIFY_TOKEN = process.env.FACEBOOK_REALTIME_VERIFY_TOKEN;
+exports.TOPSY_APIKEY = process.env.TOPSY_APIKEY;
 exports.GOOGLE_SITE_VERIFICATION = process.env.GOOGLE_SITE_VERIFICATION;
 exports.KEEP_ALIVE_INTERVAL = 25 * 60 * 1000; // ms
 exports.LANGUAGE_DETECTION_MIN_LENGTH = 90; // How many characters should there be to try to detect the language

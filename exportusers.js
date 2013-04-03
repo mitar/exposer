@@ -20,6 +20,7 @@ function exportusers() {
         });
 
         console.log(JSON.stringify(users));
+		process.exit(0);
     });
 }
 

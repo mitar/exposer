@@ -1,4 +1,3 @@
-var assert = require('assert');
 var twitter = require('ntwitter');
 var util = require('util');
 
@@ -104,9 +103,6 @@ function processIds() {
                     nextId();
                     return;
                 }
-
-                // We know that we do not yet have it
-                assert(tweet, tweet);
 
                 newCount++;
                 nextId();

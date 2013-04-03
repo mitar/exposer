@@ -38,12 +38,17 @@ function regexMatch(obj) {
     return false;
 }
 
-function nextId() {
+function nextId(noWait) {
     id = ids[0];
     ids = ids.slice(1);
 
     if (id) {
-        setTimeout(processIds, settings.TWITTER_REQUEST_INTERVAL);
+        if (noWait) {
+            processIds();
+        }
+        else {
+            setTimeout(processIds, settings.TWITTER_REQUEST_INTERVAL);
+        }
     }
     else {
         console.log("newCount: %s", newCount);
@@ -58,14 +63,14 @@ function processIds() {
     models.Post.where('foreign_id', id).count(function (err, count) {
         if (err) {
             console.error(err);
-            nextId();
+            nextId(true);
             return;
         }
 
         if (count > 0) {
             console.warn("Tweet existing", id);
             alreadyHaveCount++;
-            nextId();
+            nextId(true);
             return;
         }
 
@@ -80,6 +85,11 @@ function processIds() {
                 }
                 else if (err.statusCode === 404) {
                     console.warn("Tweet not found", err);
+                    missingCount++;
+                    nextId();
+                }
+                else if (err.statusCode === 403) {
+                    console.warn("Tweet inaccessible", err);
                     missingCount++;
                     nextId();
                 }

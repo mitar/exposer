@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          exposer
+# Required-Start:    $local_fs $remote_fs $network $syslog mongodb
+# Required-Stop:     $local_fs $remote_fs $network $syslog mongodb
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts exposer
+# Description:       starts exposer using start-stop-daemon
+### END INIT INFO
+
+PATH="/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin"
+FOREVER_BIN="/srv/exposer/node_modules/.bin/forever"
+EXPOSER_DIR="/srv/exposer"
+EXPOSER_START_ARGS="start --sourceDir $EXPOSER_DIR --minUptime 20000 --spinSleepTime 60000 --append -p $EXPOSER_DIR/run -l $EXPOSER_DIR/run/exposer.log -c node web.js"
+EXPOSER_STOP_ARGS="stop web.js"
+USER="exposer"
+GROUP="exposer"
+DESC="Exposer"
+NAME="exposer"
+
+set -e
+
+. /lib/lsb/init-functions
+
+export PATH=/srv/exposer/node_modules/.bin:$PATH
+export NODE_PATH=/usr/local/lib/node_modules
+
+eval `cat /srv/exposer/.env | while read line; do echo export "$line"; done`
+
+start() {
+	echo "Starting $DESC... "
+ 	start-stop-daemon --start --chuid "$USER:$GROUP" --chdir $EXPOSER_DIR --exec $EXPOSER_DIR/node_modules/.bin/browserify -- client.js -p ./configure -o static/bundle.js || true
+	start-stop-daemon --start --chuid "$USER:$GROUP" --chdir $EXPOSER_DIR --exec $FOREVER_BIN -- $EXPOSER_START_ARGS || true
+	echo "done"
+}
+
+stop() {
+ 	echo "Stopping $DESC... "
+	start-stop-daemon --start --chuid "$USER:$GROUP" --exec $FOREVER_BIN -- $EXPOSER_STOP_ARGS || true
+ 	echo "done"
+}
+
+status() {
+	start-stop-daemon --start --chuid "$USER:$GROUP" --exec $FOREVER_BIN -- list && exit 0 || exit $?
+}
+
+case "$1" in
+ 	start)
+		start
+		;;
+ 	stop)
+ 		stop
+	 	;;
+	restart)
+		stop
+		start
+		;;
+	status)
+		status
+		;;
+	*)
+		echo "Usage: $NAME {start|stop|restart|status}" >&2
+		exit 1
+		;;
+esac
+
+exit 0

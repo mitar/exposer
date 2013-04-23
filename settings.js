@@ -4,6 +4,7 @@ var _ = require('underscore');
 
 exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'https://exposer.herokuapp.com';
 exports.PORT = process.env.PORT || '5000';
+exports.HOST = process.env.HOST;
 exports.BEHIND_PROXY = !!(process.env.BEHIND_PROXY || false);
 exports.SECURE_SESSION_COOKIE = !!(process.env.SECURE_SESSION_COOKIE || false);
 exports.SITE_URL = process.env.SITE_URL || 'http://127.0.0.1:5000';

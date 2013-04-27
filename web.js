@@ -992,29 +992,31 @@ function pollFacebook(f) {
     });
 }
 
-models.once('ready', function () {
-    if (twit) {
-        fetchTwitterLatest();
+if (!settings.REMOTE) {
+    models.once('ready', function () {
+        if (twit) {
+            //fetchTwitterLatest();
 
-        connectToTwitterStream();
-    }
-    else {
-        console.warn("Not fetching content from Twitter.");
-    }
+            //connectToTwitterStream();
+        }
+        else {
+            console.warn("Not fetching content from Twitter.");
+        }
 
-    if (models && settings.FACEBOOK_ACCESS_TOKEN) {
-        pollFacebook(fetchFacebookLatest);
-        pollFacebook(fetchFacebookPageLatest);
-        pollFacebook(fetchFacebookPageLatestAlternative);
-        pollFacebook(fetchFacebookRecursiveEventsLatest);
-        pollFacebook(fetchFacebookAuthorsLatest);
+        if (models && settings.FACEBOOK_ACCESS_TOKEN) {
+            //pollFacebook(fetchFacebookLatest);
+            //pollFacebook(fetchFacebookPageLatest);
+            //pollFacebook(fetchFacebookPageLatestAlternative);
+            //pollFacebook(fetchFacebookRecursiveEventsLatest);
+            //pollFacebook(fetchFacebookAuthorsLatest);
 
-        enableFacebookStream();
-    }
-    else {
-        console.warn("Not fetching content from Facebook.");
-    }
-});
+            //enableFacebookStream();
+        }
+        else {
+            console.warn("Not fetching content from Facebook.");
+        }
+    });
+}
 
 function keepAlive() {
     request(settings.SITE_URL, function (error, res, body) {

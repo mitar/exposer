@@ -992,25 +992,25 @@ function pollFacebook(f) {
     });
 }
 
-if (!settings.REMOTE) {
+if (models) {
     models.once('ready', function () {
         if (twit) {
-            //fetchTwitterLatest();
+            fetchTwitterLatest();
 
-            //connectToTwitterStream();
+            connectToTwitterStream();
         }
         else {
             console.warn("Not fetching content from Twitter.");
         }
 
         if (models && settings.FACEBOOK_ACCESS_TOKEN) {
-            //pollFacebook(fetchFacebookLatest);
-            //pollFacebook(fetchFacebookPageLatest);
-            //pollFacebook(fetchFacebookPageLatestAlternative);
-            //pollFacebook(fetchFacebookRecursiveEventsLatest);
-            //pollFacebook(fetchFacebookAuthorsLatest);
+            pollFacebook(fetchFacebookLatest);
+            pollFacebook(fetchFacebookPageLatest);
+            pollFacebook(fetchFacebookPageLatestAlternative);
+            pollFacebook(fetchFacebookRecursiveEventsLatest);
+            pollFacebook(fetchFacebookAuthorsLatest);
 
-            //enableFacebookStream();
+            enableFacebookStream();
         }
         else {
             console.warn("Not fetching content from Facebook.");

@@ -2,7 +2,7 @@ var moment = require('moment');
 
 var _ = require('underscore');
 
-exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'https://exposer.herokuapp.com';
+exports.REMOTE = !_.isUndefined(process.env.REMOTE) ? process.env.REMOTE : 'http://exposer.tnode.com';
 exports.PORT = process.env.PORT || '5000';
 exports.HOST = process.env.HOST;
 exports.BEHIND_PROXY = !!(process.env.BEHIND_PROXY || false);

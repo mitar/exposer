@@ -5,7 +5,7 @@ Exposer aims at being a webservice which aggregates all posts from various socia
 
 Currently, it supports collecting public Twitter and Facebook posts. You can see two instances deployed:
 
- * https://exposer.herokuapp.com/
+ * http://exposer.tnode.com/
  * https://aufschrei.herokuapp.com/
 
 Remote development installation

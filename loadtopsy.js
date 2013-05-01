@@ -10,7 +10,7 @@ var models = require('./models');
 var settings = require('./settings');
 
 var TWEET_ID_REGEXP = /(\d+)$/;
-var ONE_DAY_SECONDS = 24 * 60 * 60;
+var INTERVAL = 1 * 60 * 60; // seconds
 
 var twit = new twitter({
     'consumer_key': settings.TWITTER_CONSUMER_KEY,
@@ -23,13 +23,13 @@ var count = 0;
 
 function doRequest(query, until_now) {
     if (query.page > 10) {
-        console.warn("Too many tweets per day, page limit reached. Skipping.", query);
+        console.warn("Too many tweets per interval, page limit reached. Skipping.", query);
         console.log("New tweets until now: %s", count);
 
         query.page = 1;
         query.offset = 0;
-        query.mintime -= ONE_DAY_SECONDS;
-        query.maxtime -= ONE_DAY_SECONDS;
+        query.mintime -= INTERVAL;
+        query.maxtime -= INTERVAL;
         until_now = 0;
     }
 
@@ -55,10 +55,10 @@ function doRequest(query, until_now) {
         }
 
         if (body.response.total > 1000) {
-            console.warn("Too many tweets per day, we will not be able to fetch all: %s", body.response.total);
+            console.warn("Too many tweets per interval, we will not be able to fetch all: %s", body.response.total);
         }
         else {
-            console.log("Total tweets for this day: %s", body.response.total);
+            console.log("Total tweets for this interval: %s", body.response.total);
         }
 
         var tweet_ids = _.map(body.response.list, function (tweet, i, list) {
@@ -84,8 +84,8 @@ function doRequest(query, until_now) {
                 else {
                     query.page = 1;
                     query.offset = 0;
-                    query.mintime -= ONE_DAY_SECONDS;
-                    query.maxtime -= ONE_DAY_SECONDS;
+                    query.mintime -= INTERVAL;
+                    query.maxtime -= INTERVAL;
 
                     doRequest(query, 0);
                 }
@@ -128,7 +128,7 @@ function doRequest(query, until_now) {
 
 function loadtopsy() {
     var now = process.argv.length > 2 ? parseInt(process.argv[2]) : moment.utc().unix();
-    var query = {'perpage': '100', 'page': 1, 'offset': 0, 'maxtime': now, 'mintime': now - ONE_DAY_SECONDS, 'q': settings.TWITTER_QUERY.join(' OR '), 'apikey': settings.TOPSY_APIKEY};
+    var query = {'perpage': '100', 'page': 1, 'offset': 0, 'maxtime': now, 'mintime': now - INTERVAL, 'q': settings.TWITTER_QUERY.join(' OR '), 'apikey': settings.TOPSY_APIKEY};
     doRequest(query, 0);
 }
 

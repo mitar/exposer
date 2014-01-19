@@ -99,7 +99,7 @@ var render = require('./render')({
     }
 });
 
-var FACEBOOK_POST_ID_REGEXP = /\/(\d+)$/;
+var FACEBOOK_POST_ID_REGEXP = /\/(\d+)(\?.*)?$/;
 var FACEBOOK_POST_PERMALINK_REGEXP = /permalink\.php\?story_fbid/;
 var FACEBOOK_QUERY_REGEXP = new RegExp(settings.FACEBOOK_QUERY.join('|'), 'i');
 

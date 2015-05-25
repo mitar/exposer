@@ -11,20 +11,21 @@ Currently, it supports collecting public Twitter and Facebook posts. You can see
 Production installation
 -----------------------
 
-For production use [Docker](https://www.docker.io/). See `run.sh` for a script which runs Exposer and MongoDB
-containers. By default (depending on the `NAME` and `DATA_ROOT` you set), you should provide a
-`/srv/exposer/configuration.sh` file which exports environment variables to configure the Exposer instance.
-Besides various tokens you probably want to configure the following as well:
+For production use `Docker`_. See ``run.sh`` for a script which runs Exposer and MongoDB
+containers. By default (depending on the ``NAME`` and ``DATA_ROOT`` you set), you should provide a
+``/srv/exposer/configuration.sh`` file which exports environment variables to configure the Exposer instance.
+Besides various tokens you probably want to configure the following as well::
 
-```
-export HOST=0.0.0.0
-export PORT=5000
-export NODE_ENV=production
-export REMOTE=
-```
+    export HOST=0.0.0.0
+    export PORT=5000
+    export NODE_ENV=production
+    export REMOTE=
 
-`MONGODB_URL` is configured automatically from the linked Docker container. Set `BEHIND_PROXY=1` if you are using
-a reverse HTTP proxy before the container ([you should](https://github.com/tozd/docker-nginx-proxy)).
+``MONGODB_URL`` is configured automatically from the linked Docker container. Set ``BEHIND_PROXY=1`` if you are using
+a reverse HTTP proxy before the container (`you should`_).
+
+.. _Docker: https://www.docker.io/
+.. _you should: https://github.com/tozd/docker-nginx-proxy
 
 Remote development installation
 -------------------------------

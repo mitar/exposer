@@ -7,7 +7,7 @@
         "dnode": "1.0.x",
         "browserify": "1.16.x",
         "jquery-browserify": "1.8.x",
-        "mongoose": "3.4.x",
+        "mongoose": "3.5.16",
         "ntwitter": "0.5.x",
         "swig": "0.13.x",
         "request": "2.12.x",

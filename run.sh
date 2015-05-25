@@ -19,4 +19,4 @@ mkdir -p "$EXPOSER_LOG"
 touch "$EXPOSER_CONFIGURATION"
 
 docker run --detach=true --restart=always --name "${NAME}_mongodb" --volume "${MONGODB_LOG}:/var/log/mongod" --volume "${MONGODB_DATA}:/var/lib/mongodb" tozd/mongodb
-docker run --detach=true --restart=always --name "${NAME}_exposer" --volume "${EXPOSER_LOG}:/var/log/exposer" --volume "${EXPOSER_CONFIGURATION}:/etc/service/exposer/run.initialization" --link "${NAME}_mongodb:mongodb" mitar/exposer
+docker run --detach=true --restart=always --name "${NAME}_exposer" --env VIRTUAL_HOST=exposer.tnode.com --env VIRTUAL_URL=/ --volume "${EXPOSER_LOG}:/var/log/exposer" --volume "${EXPOSER_CONFIGURATION}:/etc/service/exposer/run.initialization" --link "${NAME}_mongodb:mongodb" mitar/exposer

@@ -10,9 +10,9 @@ body {
 
 .post {
     display: inline-block;
-    margin: 0;
-    max-width: 360px;
-    min-width: 360px;
+    margin: 0 5px;
+    max-width: 350px;
+    min-width: 350px;
     padding: 0;
     vertical-align: top;
 }
@@ -23,7 +23,7 @@ body {
 }
 
 .facebook-post {
-    margin: 5px;
+    margin: 5px -5px 5px 5px;
 }
 
 .twitter-tweet {

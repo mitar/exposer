@@ -24,7 +24,7 @@ export REMOTE=
 ```
 
 `MONGODB_URL` is configured automatically from the linked Docker container. Set `BEHIND_PROXY=1` if you are using
-some reverse HTTP proxy before the container (you should).
+a reverse HTTP proxy before the container ([you should](https://github.com/tozd/docker-nginx-proxy)).
 
 Remote development installation
 -------------------------------

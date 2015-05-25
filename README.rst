@@ -8,6 +8,12 @@ Currently, it supports collecting public Twitter and Facebook posts. You can see
  * http://exposer.tnode.com/
  * http://aufschrei.tnode.com/
 
+Production installation
+-----------------------
+
+For production use [Docker](https://www.docker.io/). See `run.sh` for a script which runs Exposer and MongoDB
+containers.
+
 Remote development installation
 -------------------------------
 

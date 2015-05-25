@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+[ -f /etc/service/exposer/run.initialization ] && source /etc/service/exposer/run.initialization
+
+if [ -z "$MONGODB_URL" ]; then
+  export MONGODB_URL="mongodb://${DB_PORT_27017_TCP_ADDR}:${DB_PORT_27017_TCP_PORT}/exposer"
+fi
+
+cd /exposer
+exec chpst -u exposer:exposer /usr/bin/node web.js 2>&1

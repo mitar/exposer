@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-# An example script to run Exposer in production. It uses data volumes under the $DATA_ROOT directory
-# by default /srv. You can provide a configuration.sh script which should export environment variables
+# An example script to run Exposer in production. It uses data volumes under the $DATA_ROOT directory.
+# By default /srv. You can provide a configuration.sh script which should export environment variables
 # to configure Exposer. See settings.js file for the list of possible variables.
 
 export NAME='exposer'

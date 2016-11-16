@@ -21,8 +21,7 @@
         "consolidate": "0.8.x",
         "i18next": "git://github.com/mitar/i18next-node.git#mitar",
         "mongodb": "1.2.x",
-        "uglify-js": "2.2.x",
-        "gzippo": "git://github.com/mitar/gzippo.git#cache-all"
+        "uglify-js": "2.2.x"
     },
     "engines": {
         "node": "0.8.x",

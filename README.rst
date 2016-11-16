@@ -48,6 +48,7 @@ Development installation which uses remote data. Useful when developing just cli
     browserify client.js -p ./configure -o static/bundle.js
 
    This will install all node.js dependencies and compile client JavaScript file.
+   You can ignore the `Expressions in require() statements` warning.
 
    If you want client JavaScript file to be compiled automatically on any change to source files (so that it is easy
    to develop), run with ``-w`` parameter::
